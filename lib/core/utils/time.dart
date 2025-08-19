@@ -9,3 +9,11 @@ String formatRelativeTime(DateTime dateTime, {DateTime? now}) {
   if (diff.inDays < 7) return '${diff.inDays}d ago';
   return DateFormat('MMM d, h:mm a').format(dateTime);
 }
+
+String formatDate(DateTime dateTime) {
+  return DateFormat('MMM d, yyyy').format(dateTime);
+}
+
+String formatDateTime(DateTime dateTime) {
+  return DateFormat('MMM d, yyyy h:mm a').format(dateTime);
+}

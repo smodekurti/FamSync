@@ -37,16 +37,24 @@ class GradientPageScaffold extends StatelessWidget {
             pinned: true,
             expandedHeight: expandedHeight,
             elevation: 0,
-            backgroundColor: gradientColors.first,
+            backgroundColor: Colors.transparent,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
+              ),
+            ),
             foregroundColor: onPrimary,
             scrolledUnderElevation: 0,
             shadowColor: Colors.transparent,
             surfaceTintColor: Colors.transparent,
             actions: [
-              ...actions.map((w) => IconTheme.merge(
-                    data: IconThemeData(color: onPrimary),
-                    child: w,
-                  )),
+              ...actions.map(
+                (w) => IconTheme.merge(
+                  data: IconThemeData(color: onPrimary),
+                  child: w,
+                ),
+              ),
             ],
             flexibleSpace: FlexibleSpaceBar(
               collapseMode: CollapseMode.pin,
@@ -54,7 +62,10 @@ class GradientPageScaffold extends StatelessWidget {
                 style: TextStyle(color: onPrimary),
                 child: title,
               ),
-              titlePadding: const EdgeInsetsDirectional.only(start: 16, bottom: 12),
+              titlePadding: const EdgeInsetsDirectional.only(
+                start: 16,
+                bottom: 12,
+              ),
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -79,5 +90,3 @@ class GradientPageScaffold extends StatelessWidget {
     );
   }
 }
-
-

@@ -20,6 +20,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
   TaskPriority _priority = TaskPriority.medium;
   String? _assigneeUid;
   DateTime? _dueDate;
+  TaskPriority? _filterPriority; // null = All
 
   @override
   void dispose() {
@@ -48,27 +49,48 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
               };
               final currentUid = profile?.uid;
               return tasksAsync.when(
-                data: (items) => ListView.separated(
-                  padding: EdgeInsets.all(spaces.md),
-                  separatorBuilder: (_, __) => const Divider(),
-                  itemCount: items.length,
-                  itemBuilder: (_, i) {
-                    final t = items[i];
-                    return CheckboxListTile(
-                      value: t.completed,
-                      onChanged: (v) => ref
-                          .read(tasksRepositoryProvider)
-                          .toggleCompleted(
-                            familyId: familyId,
-                            id: t.id,
-                            completed: v ?? false,
-                          ),
-                      title: Text(t.title),
-                      subtitle: Text(_subtitleForTask(t, uidToName, currentUid)),
-                      secondary: _priorityIcon(t.priority),
-                    );
-                  },
-                ),
+                data: (items) {
+                  final filtered = _filterPriority == null
+                      ? items
+                      : items.where((t) => t.priority == _filterPriority).toList();
+                  return ListView.separated(
+                    padding: EdgeInsets.all(spaces.md),
+                    separatorBuilder: (_, __) => const Divider(),
+                    itemCount: filtered.length + 1,
+                    itemBuilder: (_, i) {
+                      if (i == 0) {
+                        return _PriorityFilterBar(
+                          selected: _filterPriority,
+                          onChanged: (p) => setState(() => _filterPriority = p),
+                        );
+                      }
+                      final t = filtered[i - 1];
+                      final assigneeChips = _assigneeChips(t.assignedUids, uidToName, currentUid);
+                      return CheckboxListTile(
+                        value: t.completed,
+                        onChanged: (v) => ref
+                            .read(tasksRepositoryProvider)
+                            .toggleCompleted(
+                              familyId: familyId,
+                              id: t.id,
+                              completed: v ?? false,
+                            ),
+                        title: Text(t.title),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(_subtitleForTask(t, uidToName, currentUid)),
+                            if (assigneeChips.isNotEmpty) ...[
+                              const SizedBox(height: 6),
+                              Wrap(spacing: 6, runSpacing: -8, children: assigneeChips),
+                            ],
+                          ],
+                        ),
+                        secondary: _priorityIcon(t.priority),
+                      );
+                    },
+                  );
+                },
                 error: (e, _) => Center(child: Text('Error: $e')),
                 loading: () => const Center(child: CircularProgressIndicator()),
               );
@@ -99,6 +121,18 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
       parts.add('Assigned: ${extra > 0 ? '$firstName +$extra' : firstName}');
     }
     return parts.isEmpty ? 'No details' : parts.join(' • ');
+  }
+
+  List<Widget> _assigneeChips(List<String> uids, Map<String, String> uidToName, String? currentUid) {
+    return uids.map((uid) {
+      final name = uid == currentUid ? 'You' : (uidToName[uid] ?? 'Member');
+      final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+      return Chip(
+        visualDensity: VisualDensity.compact,
+        avatar: CircleAvatar(radius: 10, child: Text(initial, style: const TextStyle(fontSize: 11))),
+        label: Text(name),
+      );
+    }).toList();
   }
 
   Icon _priorityIcon(TaskPriority p) {
@@ -242,6 +276,43 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
           },
         );
       },
+    );
+  }
+}
+
+class _PriorityFilterBar extends StatelessWidget {
+  const _PriorityFilterBar({required this.selected, required this.onChanged});
+  final TaskPriority? selected;
+  final ValueChanged<TaskPriority?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        FilterChip(
+          label: const Text('All'),
+          selected: selected == null,
+          onSelected: (_) => onChanged(null),
+        ),
+        const SizedBox(width: 8),
+        FilterChip(
+          label: const Text('High'),
+          selected: selected == TaskPriority.high,
+          onSelected: (_) => onChanged(TaskPriority.high),
+        ),
+        const SizedBox(width: 8),
+        FilterChip(
+          label: const Text('Med'),
+          selected: selected == TaskPriority.medium,
+          onSelected: (_) => onChanged(TaskPriority.medium),
+        ),
+        const SizedBox(width: 8),
+        FilterChip(
+          label: const Text('Low'),
+          selected: selected == TaskPriority.low,
+          onSelected: (_) => onChanged(TaskPriority.low),
+        ),
+      ],
     );
   }
 }

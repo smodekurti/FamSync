@@ -37,7 +37,7 @@ class GradientPageScaffold extends StatelessWidget {
             pinned: true,
             expandedHeight: expandedHeight,
             elevation: 0,
-            backgroundColor: Colors.transparent,
+            backgroundColor: gradientColors.first,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(24),

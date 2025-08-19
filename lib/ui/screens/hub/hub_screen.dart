@@ -23,7 +23,7 @@ class HubScreen extends ConsumerWidget {
             slivers: [
               _HubSliverAppBar(),
               SliverPadding(
-                padding: EdgeInsets.all(spaces.md),
+                padding: EdgeInsets.fromLTRB(spaces.md, spaces.lg, spaces.md, spaces.md),
                 sliver: SliverGrid.count(
                   crossAxisCount: isCompact ? 1 : 2,
                   crossAxisSpacing: spaces.md,
@@ -71,13 +71,15 @@ class _HubSliverAppBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final spaces = context.spaces;
+    final Color collapsedBg =
+        isDark ? AppGradients.hubHeaderDark.first : AppGradients.hubHeaderLight.first;
     return SliverAppBar(
       pinned: true,
       floating: false,
       forceElevated: true,
       expandedHeight: 240,
       elevation: 0,
-      backgroundColor: Colors.transparent,
+      backgroundColor: collapsedBg,
       scrolledUnderElevation: 0,
       shadowColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,

@@ -73,6 +73,8 @@ class _HubSliverAppBar extends ConsumerWidget {
     final spaces = context.spaces;
     return SliverAppBar(
       pinned: true,
+      floating: false,
+      forceElevated: true,
       expandedHeight: 240,
       elevation: 0,
       backgroundColor: Colors.transparent,
@@ -89,6 +91,7 @@ class _HubSliverAppBar extends ConsumerWidget {
         SizedBox(width: 8),
       ],
       flexibleSpace: FlexibleSpaceBar(
+        collapseMode: CollapseMode.pin,
         title: const FamilyAppBarTitle(fallback: 'Family'),
         titlePadding: const EdgeInsetsDirectional.only(start: 16, bottom: 12),
         background: Container(

@@ -10,6 +10,7 @@ import 'package:fam_sync/ui/screens/finance/finance_screen.dart';
 import 'package:fam_sync/ui/screens/hub/hub_screen.dart';
 import 'package:fam_sync/ui/screens/auth/auth_gate.dart';
 import 'package:fam_sync/ui/screens/onboarding/onboarding_screen.dart';
+import 'package:fam_sync/ui/screens/announcements/announcements_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -17,16 +18,24 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/onboarding',
-        pageBuilder: (context, state) => const NoTransitionPage(child: OnboardingScreen()),
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: OnboardingScreen()),
       ),
       StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) => AuthGate(child: MainShell(shell: navigationShell)),
+        builder: (context, state, navigationShell) =>
+            AuthGate(child: MainShell(shell: navigationShell)),
         branches: [
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/hub',
-                pageBuilder: (context, state) => const NoTransitionPage(child: HubScreen()),
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: HubScreen()),
+              ),
+              GoRoute(
+                path: '/announcements',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: AnnouncementsScreen()),
               ),
             ],
           ),
@@ -34,7 +43,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/calendar',
-                pageBuilder: (context, state) => const NoTransitionPage(child: CalendarScreen()),
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: CalendarScreen()),
               ),
             ],
           ),
@@ -42,7 +52,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/tasks',
-                pageBuilder: (context, state) => const NoTransitionPage(child: TasksScreen()),
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: TasksScreen()),
               ),
             ],
           ),
@@ -50,7 +61,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/shopping',
-                pageBuilder: (context, state) => const NoTransitionPage(child: ShoppingScreen()),
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: ShoppingScreen()),
               ),
             ],
           ),
@@ -58,7 +70,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/finance',
-                pageBuilder: (context, state) => const NoTransitionPage(child: FinanceScreen()),
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: FinanceScreen()),
               ),
             ],
           ),
@@ -67,12 +80,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     ],
     errorPageBuilder: (context, state) => MaterialPage(
       child: Scaffold(
-        body: Center(
-          child: Text('Navigation error: \'${state.error}\''),
-        ),
+        body: Center(child: Text('Navigation error: \'${state.error}\'')),
       ),
     ),
   );
 });
-
-

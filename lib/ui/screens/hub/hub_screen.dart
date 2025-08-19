@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fam_sync/theme/app_theme.dart';
+import 'package:fam_sync/theme/tokens.dart';
 import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/data/announcements/announcements_repository.dart';
 import 'package:fam_sync/core/utils/time.dart';
@@ -47,7 +48,6 @@ class HubScreen extends ConsumerWidget {
 class _Header extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = Theme.of(context).colorScheme;
     final spaces = context.spaces;
     final dateStr = formatHeaderDate(DateTime.now());
     final profileAsync = ref.watch(userProfileStreamProvider);
@@ -56,7 +56,9 @@ class _Header extends ConsumerWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [colors.primary, colors.secondaryContainer],
+          colors: Theme.of(context).brightness == Brightness.dark
+              ? AppGradients.hubHeaderDark
+              : AppGradients.hubHeaderLight,
         ),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(24),

@@ -25,7 +25,8 @@ class AppTheme {
         elevation: 0,
         centerTitle: false,
       ),
-      // Card defaults are fine; component-level widgets can style via tokens
+      // Subtle elevation separation for cards under vibrant header
+      cardColor: colorScheme.surfaceContainerLow,
       navigationBarTheme: NavigationBarThemeData(
         elevation: AppElevations.level2,
         backgroundColor: colorScheme.surface,
@@ -54,7 +55,7 @@ class AppTheme {
         elevation: 0,
         centerTitle: false,
       ),
-      // Card defaults are fine; component-level widgets can style via tokens
+      cardColor: colorScheme.surfaceContainerLow,
       navigationBarTheme: NavigationBarThemeData(
         elevation: AppElevations.level2,
         backgroundColor: colorScheme.surface,

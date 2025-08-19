@@ -12,6 +12,7 @@ _$MessageImpl _$$MessageImplFromJson(Map<String, dynamic> json) =>
       text: json['text'] as String,
       authorUid: json['authorUid'] as String,
       authorName: json['authorName'] as String,
+      authorPhotoUrl: json['authorPhotoUrl'] as String?,
       createdAt: const TimestampDateTimeConverter().fromJson(json['createdAt']),
     );
 
@@ -22,5 +23,6 @@ Map<String, dynamic> _$$MessageImplToJson(
   'text': instance.text,
   'authorUid': instance.authorUid,
   'authorName': instance.authorName,
+  'authorPhotoUrl': instance.authorPhotoUrl,
   'createdAt': const TimestampDateTimeConverter().toJson(instance.createdAt),
 };

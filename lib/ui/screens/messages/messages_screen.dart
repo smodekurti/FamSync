@@ -113,6 +113,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                                         authorUid: user.uid,
                                         authorName:
                                             profile?.displayName ?? 'User',
+                                        authorPhotoUrl: profile?.photoUrl,
                                       );
                                 } catch (e) {
                                   if (!mounted) return;
@@ -157,39 +158,85 @@ class _MessageBubble extends StatelessWidget {
     final fg = isMine ? colors.onPrimaryContainer : colors.onSurface;
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 520),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              message.authorName,
-              style: Theme.of(
-                context,
-              ).textTheme.labelSmall?.copyWith(color: fg.withOpacity(0.7)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (!isMine)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: _Avatar(
+                url: message.authorPhotoUrl,
+                fallbackInitial:
+                    message.authorName.isNotEmpty ? message.authorName[0] : '?',
+              ),
             ),
-            const SizedBox(height: 2),
-            Text(
-              message.text,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: fg),
+          Container(
+            constraints: const BoxConstraints(maxWidth: 520),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(16),
             ),
-            const SizedBox(height: 2),
-            Text(
-              formatRelativeTime(message.createdAt),
-              style: Theme.of(
-                context,
-              ).textTheme.labelSmall?.copyWith(color: fg.withOpacity(0.6)),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  message.authorName,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(color: fg.withOpacity(0.7)),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  message.text,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: fg),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  formatRelativeTime(message.createdAt),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(color: fg.withOpacity(0.6)),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          if (isMine)
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: _Avatar(
+                url: message.authorPhotoUrl,
+                fallbackInitial:
+                    message.authorName.isNotEmpty ? message.authorName[0] : '?',
+              ),
+            ),
+        ],
       ),
+    );
+  }
+}
+
+class _Avatar extends StatelessWidget {
+  const _Avatar({required this.url, required this.fallbackInitial});
+  final String? url;
+  final String fallbackInitial;
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = Theme.of(context).colorScheme.surfaceVariant;
+    final fg = Theme.of(context).colorScheme.onSurfaceVariant;
+    return CircleAvatar(
+      radius: 14,
+      backgroundColor: bg,
+      backgroundImage:
+          (url != null && url!.isNotEmpty) ? NetworkImage(url!) : null,
+      child: (url == null || url!.isEmpty)
+          ? Text(fallbackInitial.toUpperCase(),
+              style: TextStyle(color: fg, fontSize: 12))
+          : null,
     );
   }
 }

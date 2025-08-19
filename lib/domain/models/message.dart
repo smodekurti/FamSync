@@ -26,10 +26,10 @@ class Message with _$Message {
     required String text,
     required String authorUid,
     required String authorName,
+    String? authorPhotoUrl,
     @TimestampDateTimeConverter() required DateTime createdAt,
   }) = _Message;
 
-  factory Message.fromJson(Map<String, dynamic> json) => _$MessageFromJson(json);
+  factory Message.fromJson(Map<String, dynamic> json) =>
+      _$MessageFromJson(json);
 }
-
-

@@ -7,6 +7,7 @@ import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/data/announcements/announcements_repository.dart';
 import 'package:fam_sync/core/utils/time.dart';
 import 'package:fam_sync/data/users/users_repository.dart';
+import 'package:fam_sync/data/family/family_repository.dart';
 
 class HubScreen extends ConsumerWidget {
   const HubScreen({super.key});
@@ -77,7 +78,22 @@ class _Header extends ConsumerWidget {
                 Row(children: [
                   const Icon(Icons.groups, color: Colors.white),
                   const SizedBox(width: 8),
-                  Text('Family Hub', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
+                  profileAsync.when(
+                    data: (profile) {
+                      final fid = profile?.familyId;
+                      if (fid == null) {
+                        return Text('Family Hub', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white));
+                      }
+                      final famAsync = ref.watch(familyStreamProvider(fid));
+                      return famAsync.when(
+                        data: (fam) => Text(fam?.name ?? 'Family Hub', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
+                        error: (_, __) => Text('Family Hub', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
+                        loading: () => Text('Family Hub', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
+                      );
+                    },
+                    error: (_, __) => Text('Family Hub', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
+                    loading: () => Text('Family Hub', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
+                  ),
                 ]),
                 Row(children: const [
                   Icon(Icons.notifications_none, color: Colors.white),

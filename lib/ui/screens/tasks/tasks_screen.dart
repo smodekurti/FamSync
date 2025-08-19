@@ -58,6 +58,9 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                             .where((t) => t.priority == _filterPriority)
                             .toList();
                   return ListView.separated(
+                    shrinkWrap: true,
+                    primary: false,
+                    physics: const NeverScrollableScrollPhysics(),
                     padding: EdgeInsets.all(spaces.md),
                     separatorBuilder: (_, __) => const Divider(),
                     itemCount: filtered.length + 1,

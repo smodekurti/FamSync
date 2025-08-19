@@ -30,7 +30,7 @@ class HubScreen extends ConsumerWidget {
                       _AnnouncementsCard(
                         onOpen: () => context.go('/announcements'),
                       ),
-                      const _HubCard(title: 'Messages', icon: Icons.message),
+                      _HubCard(title: 'Messages', icon: Icons.message, onTap: () => context.go('/messages')),
                       const _HubCard(
                         title: 'Location',
                         icon: Icons.location_on,
@@ -49,17 +49,18 @@ class HubScreen extends ConsumerWidget {
 }
 
 class _HubCard extends StatelessWidget {
-  const _HubCard({required this.title, required this.icon});
+  const _HubCard({required this.title, required this.icon, this.onTap});
 
   final String title;
   final IconData icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         child: Padding(
           padding: EdgeInsets.all(context.spaces.lg),
           child: Column(

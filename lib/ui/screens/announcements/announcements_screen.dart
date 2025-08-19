@@ -7,6 +7,8 @@ import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/domain/models/announcement.dart';
 import 'package:fam_sync/theme/app_theme.dart';
 import 'package:fam_sync/core/utils/time.dart';
+import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
+import 'package:fam_sync/ui/widgets/gradient_page_scaffold.dart';
 
 class AnnouncementsScreen extends ConsumerStatefulWidget {
   const AnnouncementsScreen({super.key});
@@ -30,8 +32,8 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
     final spaces = context.spaces;
     final profileAsync = ref.watch(userProfileStreamProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Announcements')),
+    return GradientPageScaffold(
+      title: const FamilyAppBarTitle(fallback: 'Announcements'),
       body: profileAsync.when(
         data: (profile) {
           final familyId = profile?.familyId;

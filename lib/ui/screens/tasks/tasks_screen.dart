@@ -7,6 +7,8 @@ import 'package:fam_sync/domain/models/task.dart';
 import 'package:fam_sync/data/users/users_repository.dart';
 import 'package:fam_sync/domain/models/user_profile.dart';
 import 'package:fam_sync/core/utils/time.dart';
+import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
+import 'package:fam_sync/ui/widgets/gradient_page_scaffold.dart';
 
 class TasksScreen extends ConsumerStatefulWidget {
   const TasksScreen({super.key});
@@ -32,8 +34,8 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
   Widget build(BuildContext context) {
     final spaces = context.spaces;
     final profileAsync = ref.watch(userProfileStreamProvider);
-    return Scaffold(
-      appBar: AppBar(title: const Text('Tasks & Chores')),
+    return GradientPageScaffold(
+      title: const FamilyAppBarTitle(fallback: 'Tasks & Chores'),
       body: profileAsync.when(
         data: (profile) {
           final familyId = profile?.familyId;
@@ -52,7 +54,9 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                 data: (items) {
                   final filtered = _filterPriority == null
                       ? items
-                      : items.where((t) => t.priority == _filterPriority).toList();
+                      : items
+                            .where((t) => t.priority == _filterPriority)
+                            .toList();
                   return ListView.separated(
                     padding: EdgeInsets.all(spaces.md),
                     separatorBuilder: (_, __) => const Divider(),
@@ -65,7 +69,11 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                         );
                       }
                       final t = filtered[i - 1];
-                      final assigneeChips = _assigneeChips(t.assignedUids, uidToName, currentUid);
+                      final assigneeChips = _assigneeChips(
+                        t.assignedUids,
+                        uidToName,
+                        currentUid,
+                      );
                       return CheckboxListTile(
                         value: t.completed,
                         onChanged: (v) => ref
@@ -82,7 +90,11 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                             Text(_subtitleForTask(t, uidToName, currentUid)),
                             if (assigneeChips.isNotEmpty) ...[
                               const SizedBox(height: 6),
-                              Wrap(spacing: 6, runSpacing: -8, children: assigneeChips),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: -8,
+                                children: assigneeChips,
+                              ),
                             ],
                           ],
                         ),
@@ -109,7 +121,11 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
     );
   }
 
-  String _subtitleForTask(Task t, Map<String, String> uidToName, String? currentUid) {
+  String _subtitleForTask(
+    Task t,
+    Map<String, String> uidToName,
+    String? currentUid,
+  ) {
     final parts = <String>[];
     if (t.dueDate != null) parts.add('Due: ${formatDateTime(t.dueDate!)}');
     if (t.assignedUids.isNotEmpty) {
@@ -123,13 +139,20 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
     return parts.isEmpty ? 'No details' : parts.join(' • ');
   }
 
-  List<Widget> _assigneeChips(List<String> uids, Map<String, String> uidToName, String? currentUid) {
+  List<Widget> _assigneeChips(
+    List<String> uids,
+    Map<String, String> uidToName,
+    String? currentUid,
+  ) {
     return uids.map((uid) {
       final name = uid == currentUid ? 'You' : (uidToName[uid] ?? 'Member');
       final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
       return Chip(
         visualDensity: VisualDensity.compact,
-        avatar: CircleAvatar(radius: 10, child: Text(initial, style: const TextStyle(fontSize: 11))),
+        avatar: CircleAvatar(
+          radius: 10,
+          child: Text(initial, style: const TextStyle(fontSize: 11)),
+        ),
         label: Text(name),
       );
     }).toList();
@@ -164,7 +187,12 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
         return StatefulBuilder(
           builder: (ctx, setModalState) {
             return Padding(
-              padding: EdgeInsets.fromLTRB(spaces.md, spaces.md, spaces.md, MediaQuery.of(ctx).viewInsets.bottom + spaces.md),
+              padding: EdgeInsets.fromLTRB(
+                spaces.md,
+                spaces.md,
+                spaces.md,
+                MediaQuery.of(ctx).viewInsets.bottom + spaces.md,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -183,13 +211,19 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                       isExpanded: true,
                       hint: const Text('Assign to (optional)'),
                       items: [
-                        const DropdownMenuItem<String?>(value: null, child: Text('Unassigned')),
-                        ...users.map((u) => DropdownMenuItem<String?>(
-                              value: u.uid,
-                              child: Text(u.displayName),
-                            )),
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('Unassigned'),
+                        ),
+                        ...users.map(
+                          (u) => DropdownMenuItem<String?>(
+                            value: u.uid,
+                            child: Text(u.displayName),
+                          ),
+                        ),
                       ],
-                      onChanged: (String? val) => setModalState(() => _assigneeUid = val),
+                      onChanged: (String? val) =>
+                          setModalState(() => _assigneeUid = val),
                     ),
                     error: (e, _) => Text('Members error: $e'),
                     loading: () => const LinearProgressIndicator(minHeight: 2),
@@ -207,10 +241,15 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                               firstDate: now.subtract(const Duration(days: 1)),
                               lastDate: now.add(const Duration(days: 365 * 3)),
                             );
-                            if (picked != null) setModalState(() => _dueDate = picked);
+                            if (picked != null)
+                              setModalState(() => _dueDate = picked);
                           },
                           icon: const Icon(Icons.event),
-                          label: Text(_dueDate == null ? 'Pick due date' : 'Due: ${formatDate(_dueDate!)}'),
+                          label: Text(
+                            _dueDate == null
+                                ? 'Pick due date'
+                                : 'Due: ${formatDate(_dueDate!)}',
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -226,11 +265,21 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                                   );
                                   if (picked != null && _dueDate != null) {
                                     final d = _dueDate!;
-                                    setModalState(() => _dueDate = DateTime(d.year, d.month, d.day, picked.hour, picked.minute));
+                                    setModalState(
+                                      () => _dueDate = DateTime(
+                                        d.year,
+                                        d.month,
+                                        d.day,
+                                        picked.hour,
+                                        picked.minute,
+                                      ),
+                                    );
                                   }
                                 },
                           icon: const Icon(Icons.schedule),
-                          label: Text(_dueDate == null ? 'Pick time' : 'Time set'),
+                          label: Text(
+                            _dueDate == null ? 'Pick time' : 'Time set',
+                          ),
                         ),
                       ),
                     ],
@@ -238,12 +287,25 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                   SizedBox(height: spaces.sm),
                   SegmentedButton<TaskPriority>(
                     segments: const [
-                      ButtonSegment(value: TaskPriority.low, label: Text('Low'), icon: Icon(Icons.arrow_downward)),
-                      ButtonSegment(value: TaskPriority.medium, label: Text('Med'), icon: Icon(Icons.drag_handle)),
-                      ButtonSegment(value: TaskPriority.high, label: Text('High'), icon: Icon(Icons.arrow_upward)),
+                      ButtonSegment(
+                        value: TaskPriority.low,
+                        label: Text('Low'),
+                        icon: Icon(Icons.arrow_downward),
+                      ),
+                      ButtonSegment(
+                        value: TaskPriority.medium,
+                        label: Text('Med'),
+                        icon: Icon(Icons.drag_handle),
+                      ),
+                      ButtonSegment(
+                        value: TaskPriority.high,
+                        label: Text('High'),
+                        icon: Icon(Icons.arrow_upward),
+                      ),
                     ],
                     selected: {_priority},
-                    onSelectionChanged: (s) => setModalState(() => _priority = s.first),
+                    onSelectionChanged: (s) =>
+                        setModalState(() => _priority = s.first),
                   ),
                   SizedBox(height: spaces.md),
                   Row(
@@ -253,14 +315,20 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                           onPressed: _title.text.trim().isEmpty
                               ? null
                               : () async {
-                                  final profile = ref.read(userProfileStreamProvider).value;
+                                  final profile = ref
+                                      .read(userProfileStreamProvider)
+                                      .value;
                                   final fid = profile?.familyId;
                                   if (fid == null) return;
-                                  await ref.read(tasksRepositoryProvider).addTask(
+                                  await ref
+                                      .read(tasksRepositoryProvider)
+                                      .addTask(
                                         familyId: fid,
                                         title: _title.text.trim(),
                                         priority: _priority,
-                                        assignedUids: _assigneeUid == null ? const [] : <String>[_assigneeUid!],
+                                        assignedUids: _assigneeUid == null
+                                            ? const []
+                                            : <String>[_assigneeUid!],
                                         dueDate: _dueDate,
                                       );
                                   if (mounted) Navigator.pop(ctx);
@@ -316,5 +384,3 @@ class _PriorityFilterBar extends StatelessWidget {
     );
   }
 }
-
-

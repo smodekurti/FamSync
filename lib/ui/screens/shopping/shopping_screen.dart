@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:fam_sync/theme/app_theme.dart';
+import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
+import 'package:fam_sync/ui/widgets/gradient_page_scaffold.dart';
 
 class ShoppingScreen extends StatelessWidget {
   const ShoppingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Shopping & Meals')),
+    return GradientPageScaffold(
+      title: const FamilyAppBarTitle(fallback: 'Shopping & Meals'),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth > 700;

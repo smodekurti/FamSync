@@ -7,6 +7,8 @@ import 'package:fam_sync/data/messages/messages_repository.dart';
 import 'package:fam_sync/domain/models/message.dart';
 import 'package:fam_sync/theme/app_theme.dart';
 import 'package:fam_sync/core/utils/time.dart';
+import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
+import 'package:fam_sync/ui/widgets/gradient_page_scaffold.dart';
 
 class MessagesScreen extends ConsumerStatefulWidget {
   const MessagesScreen({super.key});
@@ -44,8 +46,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     final spaces = context.spaces;
     final profileAsync = ref.watch(userProfileStreamProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Family Messages')),
+    return GradientPageScaffold(
+      title: const FamilyAppBarTitle(fallback: 'Messages'),
       body: profileAsync.when(
         data: (profile) {
           final familyId = profile?.familyId;
@@ -167,8 +169,9 @@ class _MessageBubble extends StatelessWidget {
               padding: const EdgeInsets.only(right: 8.0),
               child: _Avatar(
                 url: message.authorPhotoUrl,
-                fallbackInitial:
-                    message.authorName.isNotEmpty ? message.authorName[0] : '?',
+                fallbackInitial: message.authorName.isNotEmpty
+                    ? message.authorName[0]
+                    : '?',
               ),
             ),
           Container(
@@ -209,8 +212,9 @@ class _MessageBubble extends StatelessWidget {
               padding: const EdgeInsets.only(left: 8.0),
               child: _Avatar(
                 url: message.authorPhotoUrl,
-                fallbackInitial:
-                    message.authorName.isNotEmpty ? message.authorName[0] : '?',
+                fallbackInitial: message.authorName.isNotEmpty
+                    ? message.authorName[0]
+                    : '?',
               ),
             ),
         ],
@@ -231,11 +235,14 @@ class _Avatar extends StatelessWidget {
     return CircleAvatar(
       radius: 14,
       backgroundColor: bg,
-      backgroundImage:
-          (url != null && url!.isNotEmpty) ? NetworkImage(url!) : null,
+      backgroundImage: (url != null && url!.isNotEmpty)
+          ? NetworkImage(url!)
+          : null,
       child: (url == null || url!.isEmpty)
-          ? Text(fallbackInitial.toUpperCase(),
-              style: TextStyle(color: fg, fontSize: 12))
+          ? Text(
+              fallbackInitial.toUpperCase(),
+              style: TextStyle(color: fg, fontSize: 12),
+            )
           : null,
     );
   }

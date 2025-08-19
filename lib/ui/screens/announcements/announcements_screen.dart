@@ -6,6 +6,7 @@ import 'package:fam_sync/data/announcements/announcements_repository.dart';
 import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/domain/models/announcement.dart';
 import 'package:fam_sync/theme/app_theme.dart';
+import 'package:fam_sync/core/utils/time.dart';
 
 class AnnouncementsScreen extends ConsumerStatefulWidget {
   const AnnouncementsScreen({super.key});
@@ -66,15 +67,24 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                                 final user =
                                     fb.FirebaseAuth.instance.currentUser;
                                 if (user == null) return;
-                                await ref
-                                    .read(announcementsRepositoryProvider)
-                                    .addAnnouncement(
-                                      familyId: familyId,
-                                      text: text,
-                                      authorUid: user.uid,
-                                      authorName:
-                                          profile?.displayName ?? 'User',
-                                    );
+                                try {
+                                  await ref
+                                      .read(announcementsRepositoryProvider)
+                                      .addAnnouncement(
+                                        familyId: familyId,
+                                        text: text,
+                                        authorUid: user.uid,
+                                        authorName:
+                                            profile?.displayName ?? 'User',
+                                      );
+                                } catch (e) {
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Failed to post: $e'),
+                                    ),
+                                  );
+                                }
                                 _textController.clear();
                                 setState(() {});
                               },
@@ -127,17 +137,45 @@ class _AnnouncementTile extends ConsumerWidget {
       child: ListTile(
         title: Text(announcement.text),
         subtitle: Text(
-          '${announcement.authorName} • ${announcement.createdAt}',
+          '${announcement.authorName} • ${formatRelativeTime(announcement.createdAt)}',
         ),
         trailing: canDelete
             ? IconButton(
                 icon: const Icon(Icons.delete_outline),
-                onPressed: () => ref
-                    .read(announcementsRepositoryProvider)
-                    .deleteAnnouncement(
-                      familyId: familyId,
-                      id: announcement.id,
-                    ),
+                onPressed: () async {
+                  final confirm =
+                      await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Delete announcement?'),
+                          content: const Text('This cannot be undone.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('Cancel'),
+                            ),
+                            FilledButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              child: const Text('Delete'),
+                            ),
+                          ],
+                        ),
+                      ) ??
+                      false;
+                  if (!confirm) return;
+                  try {
+                    await ref
+                        .read(announcementsRepositoryProvider)
+                        .deleteAnnouncement(
+                          familyId: familyId,
+                          id: announcement.id,
+                        );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to delete: $e')),
+                    );
+                  }
+                },
               )
             : null,
       ),

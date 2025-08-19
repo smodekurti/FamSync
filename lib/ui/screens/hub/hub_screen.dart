@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fam_sync/theme/app_theme.dart';
 import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/data/announcements/announcements_repository.dart';
+import 'package:fam_sync/core/utils/time.dart';
 
 class HubScreen extends ConsumerWidget {
   const HubScreen({super.key});
@@ -30,7 +31,11 @@ class HubScreen extends ConsumerWidget {
                       _AnnouncementsCard(
                         onOpen: () => context.go('/announcements'),
                       ),
-                      _HubCard(title: 'Messages', icon: Icons.message, onTap: () => context.go('/messages')),
+                      _HubCard(
+                        title: 'Messages',
+                        icon: Icons.message,
+                        onTap: () => context.go('/messages'),
+                      ),
                       const _HubCard(
                         title: 'Location',
                         icon: Icons.location_on,
@@ -139,7 +144,7 @@ class _AnnouncementsCard extends ConsumerWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 subtitle: Text(
-                                  '${a.authorName} • ${a.createdAt}',
+                                  '${a.authorName} • ${formatRelativeTime(a.createdAt)}',
                                 ),
                               );
                             },

@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "797333682643",
+    "project_id": "famsync-91f49",
+    "storage_bucket": "famsync-91f49.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:797333682643:android:af08c510764f1356cad726",
+        "android_client_info": {
+          "package_name": "com.example.famsync"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "797333682643-55pleehrhpkeokkkam9nkqmfqsd4c0is.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmno3SIA9U-kvDfJjzg8hBrLLJwvLjJr8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "797333682643-55pleehrhpkeokkkam9nkqmfqsd4c0is.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "797333682643-cfiosm8okqs5apj5dgbstb9btc5o3vq2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.famSync"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

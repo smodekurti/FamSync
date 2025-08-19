@@ -4,7 +4,7 @@ import 'package:fam_sync/theme/responsive.dart';
 class AppColors {
   AppColors._();
   // Seed only here; rest through ColorScheme to avoid hardcoding
-  static const seed = Color(0xFF3F51B5); // Single source of truth for palette
+  static const seed = Color(0xFF6750FF); // Vibrant indigo seed for energetic palette
 }
 
 class AppRadii {
@@ -20,6 +20,19 @@ class AppElevations {
   static const double level1 = 1;
   static const double level2 = 2;
   static const double level3 = 4;
+}
+
+class AppGradients {
+  AppGradients._();
+  // Vibrant, energizing header gradient
+  static const List<Color> hubHeaderLight = [
+    Color(0xFF6750FF), // Indigo
+    Color(0xFFFF4D9D), // Hot pink
+  ];
+  static const List<Color> hubHeaderDark = [
+    Color(0xFF4E3BFF), // Deeper indigo
+    Color(0xFFFF3D7F), // Vivid magenta
+  ];
 }
 
 class AppSpacing {

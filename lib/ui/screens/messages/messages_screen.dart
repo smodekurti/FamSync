@@ -6,6 +6,7 @@ import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/data/messages/messages_repository.dart';
 import 'package:fam_sync/domain/models/message.dart';
 import 'package:fam_sync/theme/app_theme.dart';
+import 'package:fam_sync/core/utils/time.dart';
 
 class MessagesScreen extends ConsumerStatefulWidget {
   const MessagesScreen({super.key});
@@ -29,8 +30,11 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     // List is newest-first; keep view pinned to top after sending
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-        _scrollController.animateTo(0,
-            duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
       }
     });
   }
@@ -61,24 +65,34 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                     separatorBuilder: (_, __) => SizedBox(height: spaces.sm),
                     itemBuilder: (_, i) => _MessageBubble(
                       message: items[i],
-                      isMine: items[i].authorUid == fb.FirebaseAuth.instance.currentUser?.uid,
+                      isMine:
+                          items[i].authorUid ==
+                          fb.FirebaseAuth.instance.currentUser?.uid,
                     ),
                   ),
                   error: (e, _) => Center(child: Text('Error: $e')),
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                 ),
               ),
               SafeArea(
                 top: false,
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(spaces.md, spaces.sm, spaces.md, spaces.md),
+                  padding: EdgeInsets.fromLTRB(
+                    spaces.md,
+                    spaces.sm,
+                    spaces.md,
+                    spaces.md,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
                         child: TextField(
                           controller: _textController,
                           onChanged: (_) => setState(() {}),
-                          decoration: const InputDecoration(hintText: 'Message your family...'),
+                          decoration: const InputDecoration(
+                            hintText: 'Message your family...',
+                          ),
                         ),
                       ),
                       SizedBox(width: spaces.sm),
@@ -87,14 +101,27 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                             ? null
                             : () async {
                                 final text = _textController.text.trim();
-                                final user = fb.FirebaseAuth.instance.currentUser;
+                                final user =
+                                    fb.FirebaseAuth.instance.currentUser;
                                 if (user == null) return;
-                                await ref.read(messagesRepositoryProvider).addMessage(
-                                      familyId: familyId,
-                                      text: text,
-                                      authorUid: user.uid,
-                                      authorName: profile?.displayName ?? 'User',
-                                    );
+                                try {
+                                  await ref
+                                      .read(messagesRepositoryProvider)
+                                      .addMessage(
+                                        familyId: familyId,
+                                        text: text,
+                                        authorUid: user.uid,
+                                        authorName:
+                                            profile?.displayName ?? 'User',
+                                      );
+                                } catch (e) {
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Failed to send: $e'),
+                                    ),
+                                  );
+                                }
                                 _textController.clear();
                                 setState(() {});
                                 _scrollToTop();
@@ -124,7 +151,9 @@ class _MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final bg = isMine ? colors.primaryContainer : colors.surfaceContainerHighest;
+    final bg = isMine
+        ? colors.primaryContainer
+        : colors.surfaceContainerHighest;
     final fg = isMine ? colors.onPrimaryContainer : colors.onSurface;
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
@@ -138,16 +167,29 @@ class _MessageBubble extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(message.authorName, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: fg.withOpacity(0.7))),
+            Text(
+              message.authorName,
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(color: fg.withOpacity(0.7)),
+            ),
             const SizedBox(height: 2),
-            Text(message.text, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: fg)),
+            Text(
+              message.text,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: fg),
+            ),
             const SizedBox(height: 2),
-            Text('${message.createdAt}', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: fg.withOpacity(0.6))),
+            Text(
+              formatRelativeTime(message.createdAt),
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(color: fg.withOpacity(0.6)),
+            ),
           ],
         ),
       ),
     );
   }
 }
-
-

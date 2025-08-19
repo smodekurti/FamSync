@@ -40,27 +40,40 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
             return const Center(child: Text('No family context.'));
           }
           final tasksAsync = ref.watch(tasksStreamProvider(familyId));
-          return tasksAsync.when(
-            data: (items) => ListView.separated(
-              padding: EdgeInsets.all(spaces.md),
-              separatorBuilder: (_, __) => const Divider(),
-              itemCount: items.length,
-              itemBuilder: (_, i) {
-                final t = items[i];
-                return CheckboxListTile(
-                  value: t.completed,
-                  onChanged: (v) => ref.read(tasksRepositoryProvider).toggleCompleted(
-                        familyId: familyId,
-                        id: t.id,
-                        completed: v ?? false,
-                      ),
-                  title: Text(t.title),
-                  subtitle: Text(_subtitleForTask(t)),
-                  secondary: _priorityIcon(t.priority),
-                );
-              },
-            ),
-            error: (e, _) => Center(child: Text('Error: $e')),
+          final usersAsync = ref.watch(familyUsersProvider(familyId));
+          return usersAsync.when(
+            data: (users) {
+              final uidToName = <String, String>{
+                for (final u in users) u.uid: u.displayName,
+              };
+              final currentUid = profile?.uid;
+              return tasksAsync.when(
+                data: (items) => ListView.separated(
+                  padding: EdgeInsets.all(spaces.md),
+                  separatorBuilder: (_, __) => const Divider(),
+                  itemCount: items.length,
+                  itemBuilder: (_, i) {
+                    final t = items[i];
+                    return CheckboxListTile(
+                      value: t.completed,
+                      onChanged: (v) => ref
+                          .read(tasksRepositoryProvider)
+                          .toggleCompleted(
+                            familyId: familyId,
+                            id: t.id,
+                            completed: v ?? false,
+                          ),
+                      title: Text(t.title),
+                      subtitle: Text(_subtitleForTask(t, uidToName, currentUid)),
+                      secondary: _priorityIcon(t.priority),
+                    );
+                  },
+                ),
+                error: (e, _) => Center(child: Text('Error: $e')),
+                loading: () => const Center(child: CircularProgressIndicator()),
+              );
+            },
+            error: (e, _) => Center(child: Text('Members error: $e')),
             loading: () => const Center(child: CircularProgressIndicator()),
           );
         },
@@ -74,10 +87,17 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
     );
   }
 
-  String _subtitleForTask(Task t) {
+  String _subtitleForTask(Task t, Map<String, String> uidToName, String? currentUid) {
     final parts = <String>[];
     if (t.dueDate != null) parts.add('Due: ${formatDateTime(t.dueDate!)}');
-    if (t.assignedUids.isNotEmpty) parts.add('Assigned: ${t.assignedUids.length}');
+    if (t.assignedUids.isNotEmpty) {
+      final firstUid = t.assignedUids.first;
+      final firstName = firstUid == currentUid
+          ? 'You'
+          : (uidToName[firstUid] ?? 'Member');
+      final extra = t.assignedUids.length - 1;
+      parts.add('Assigned: ${extra > 0 ? '$firstName +$extra' : firstName}');
+    }
     return parts.isEmpty ? 'No details' : parts.join(' • ');
   }
 

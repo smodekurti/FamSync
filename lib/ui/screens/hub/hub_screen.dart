@@ -76,16 +76,19 @@ class _HubSliverAppBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final spaces = context.spaces;
-    final Color collapsedBg = isDark
-        ? AppGradients.hubHeaderDark.first
-        : AppGradients.hubHeaderLight.first;
     return SliverAppBar(
       pinned: true,
       floating: false,
       forceElevated: true,
       expandedHeight: 240,
       elevation: 0,
-      backgroundColor: collapsedBg,
+      backgroundColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
       scrolledUnderElevation: 0,
       shadowColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,

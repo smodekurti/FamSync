@@ -184,6 +184,7 @@ class _HeaderBody extends ConsumerWidget {
             context,
           ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
         ),
+        SizedBox(height: spaces.xl),
       ],
     );
   }
@@ -203,7 +204,7 @@ class _SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Card(
-      color: colors.surfaceContainerLow,
+      color: colors.surfaceContainerHigh,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: colors.outlineVariant),

@@ -7,7 +7,7 @@ import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/data/announcements/announcements_repository.dart';
 import 'package:fam_sync/core/utils/time.dart';
 import 'package:fam_sync/data/users/users_repository.dart';
-import 'package:fam_sync/data/family/family_repository.dart';
+import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
 
 class HubScreen extends ConsumerWidget {
   const HubScreen({super.key});
@@ -21,7 +21,7 @@ class HubScreen extends ConsumerWidget {
         return Scaffold(
           body: CustomScrollView(
             slivers: [
-              SliverToBoxAdapter(child: _Header()),
+              _HubSliverAppBar(),
               SliverPadding(
                 padding: EdgeInsets.all(spaces.md),
                 sliver: SliverGrid.count(
@@ -46,97 +46,89 @@ class HubScreen extends ConsumerWidget {
 
 // Old generic card no longer used after redesign; keeping UI-specific cards below
 
-class _Header extends ConsumerWidget {
+class _HubSliverAppBar extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final spaces = context.spaces;
+    return SliverAppBar(
+      pinned: true,
+      expandedHeight: 240,
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      title: const FamilyAppBarTitle(fallback: 'Family'),
+      actions: const [
+        Icon(Icons.notifications_none, color: Colors.white),
+        SizedBox(width: 16),
+        Icon(Icons.add, color: Colors.white),
+        SizedBox(width: 16),
+        Icon(Icons.person_outline, color: Colors.white),
+        SizedBox(width: 8),
+      ],
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsetsDirectional.only(start: 16, bottom: 12),
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark ? AppGradients.hubHeaderDark : AppGradients.hubHeaderLight,
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(24),
+              bottomRight: Radius.circular(24),
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(16, kToolbarHeight + spaces.md, 16, spaces.lg),
+            child: _HeaderBody(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final spaces = context.spaces;
     final dateStr = formatHeaderDate(DateTime.now());
     final profileAsync = ref.watch(userProfileStreamProvider);
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: Theme.of(context).brightness == Brightness.dark
-              ? AppGradients.hubHeaderDark
-              : AppGradients.hubHeaderLight,
-        ),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
-      ),
-      padding: EdgeInsets.fromLTRB(spaces.lg, spaces.xl, spaces.lg, spaces.lg),
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(children: [
-                  const Icon(Icons.groups, color: Colors.white),
-                  const SizedBox(width: 8),
-                  profileAsync.when(
-                    data: (profile) {
-                      final fid = profile?.familyId;
-                      if (fid == null) {
-                        return Text('Family Hub', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white));
-                      }
-                      final famAsync = ref.watch(familyStreamProvider(fid));
-                      return famAsync.when(
-                        data: (fam) => Text(fam?.name ?? 'Family Hub', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
-                        error: (_, __) => Text('Family Hub', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
-                        loading: () => Text('Family Hub', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
-                      );
-                    },
-                    error: (_, __) => Text('Family Hub', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
-                    loading: () => Text('Family Hub', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        profileAsync.when(
+          data: (profile) {
+            final familyId = profile?.familyId;
+            if (familyId == null) return const SizedBox.shrink();
+            final usersAsync = ref.watch(familyUsersProvider(familyId));
+            return usersAsync.when(
+              data: (users) => Row(
+                children: users.take(3).map((u) => Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: Column(
+                    children: [
+                      CircleAvatar(radius: 24, child: Text((u.displayName.isNotEmpty ? u.displayName[0] : '?'))),
+                      const SizedBox(height: 6),
+                      const SizedBox(height: 2),
+                      Text(u.displayName.split(' ').first, style: const TextStyle(color: Colors.white)),
+                    ],
                   ),
-                ]),
-                Row(children: const [
-                  Icon(Icons.notifications_none, color: Colors.white),
-                  SizedBox(width: 16),
-                  Icon(Icons.add, color: Colors.white),
-                  SizedBox(width: 16),
-                  Icon(Icons.person_outline, color: Colors.white),
-                ]),
-              ],
-            ),
-            SizedBox(height: spaces.lg),
-            profileAsync.when(
-              data: (profile) {
-                final familyId = profile?.familyId;
-                if (familyId == null) return const SizedBox.shrink();
-                final usersAsync = ref.watch(familyUsersProvider(familyId));
-                return usersAsync.when(
-                  data: (users) => Row(
-                    children: users.take(3).map((u) => Padding(
-                      padding: const EdgeInsets.only(right: 16),
-                      child: Column(
-                        children: [
-                          CircleAvatar(radius: 24, child: Text((u.displayName.isNotEmpty ? u.displayName[0] : '?'))),
-                          const SizedBox(height: 6),
-                          Text(u.displayName.split(' ').first, style: const TextStyle(color: Colors.white)),
-                        ],
-                      ),
-                    )).toList(),
-                  ),
-                  error: (_, __) => const SizedBox.shrink(),
-                  loading: () => const SizedBox.shrink(),
-                );
-              },
+                )).toList(),
+              ),
               error: (_, __) => const SizedBox.shrink(),
               loading: () => const SizedBox.shrink(),
-            ),
-            SizedBox(height: spaces.lg),
-            Text(dateStr, style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
-            const SizedBox(height: 4),
-            Text("84°F | Dinner plan: Eating out 🍴", style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
-          ],
+            );
+          },
+          error: (_, __) => const SizedBox.shrink(),
+          loading: () => const SizedBox.shrink(),
         ),
-      ),
+        SizedBox(height: spaces.lg),
+        Text(dateStr, style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
+        const SizedBox(height: 4),
+        Text("84°F | Dinner plan: Eating out 🍴", style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+      ],
     );
   }
 }

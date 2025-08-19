@@ -18,12 +18,19 @@ class ShoppingScreen extends StatelessWidget {
             child: isWide
                 ? Row(
                     children: [
-                      const Expanded(child: _ListPlaceholder(title: 'Grocery List')), 
+                      const Expanded(
+                        child: _ListPlaceholder(title: 'Grocery List'),
+                      ),
                       SizedBox(width: context.spaces.md),
-                      const Expanded(child: _ListPlaceholder(title: 'Meal Planner')), 
+                      const Expanded(
+                        child: _ListPlaceholder(title: 'Meal Planner'),
+                      ),
                     ],
                   )
                 : ListView(
+                    shrinkWrap: true,
+                    primary: false,
+                    physics: const NeverScrollableScrollPhysics(),
                     children: [
                       const _ListPlaceholder(title: 'Grocery List'),
                       SizedBox(height: context.spaces.md),
@@ -57,5 +64,3 @@ class _ListPlaceholder extends StatelessWidget {
     );
   }
 }
-
-

@@ -4,6 +4,8 @@ import 'package:fam_sync/theme/app_theme.dart';
 import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/data/tasks/tasks_repository.dart';
 import 'package:fam_sync/domain/models/task.dart';
+import 'package:fam_sync/data/users/users_repository.dart';
+import 'package:fam_sync/domain/models/user_profile.dart';
 
 class TasksScreen extends ConsumerStatefulWidget {
   const TasksScreen({super.key});
@@ -15,6 +17,8 @@ class TasksScreen extends ConsumerStatefulWidget {
 class _TasksScreenState extends ConsumerState<TasksScreen> {
   final TextEditingController _title = TextEditingController();
   TaskPriority _priority = TaskPriority.medium;
+  String? _assigneeUid;
+  DateTime? _dueDate;
 
   @override
   void dispose() {
@@ -90,12 +94,18 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
   Future<void> _showAddTaskSheet(BuildContext context) async {
     _title.clear();
     _priority = TaskPriority.medium;
+    _assigneeUid = null;
+    _dueDate = null;
     await showModalBottomSheet<void>(
       context: context,
       useSafeArea: true,
       isScrollControlled: true,
       builder: (ctx) {
         final spaces = ctx.spaces;
+        final familyId = ref.read(userProfileStreamProvider).value?.familyId;
+        final AsyncValue<List<UserProfile>> usersAsync = familyId == null
+            ? const AsyncValue<List<UserProfile>>.data(<UserProfile>[]) // empty
+            : ref.watch(familyUsersProvider(familyId));
         return Padding(
           padding: EdgeInsets.fromLTRB(spaces.md, spaces.md, spaces.md, MediaQuery.of(ctx).viewInsets.bottom + spaces.md),
           child: Column(
@@ -108,6 +118,45 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                 controller: _title,
                 decoration: const InputDecoration(labelText: 'Title'),
                 onChanged: (_) => setState(() {}),
+              ),
+              SizedBox(height: spaces.sm),
+              usersAsync.when(
+                data: (users) => DropdownButtonFormField<String?>(
+                  value: _assigneeUid,
+                  isExpanded: true,
+                  hint: const Text('Assign to (optional)'),
+                  items: [
+                    const DropdownMenuItem<String?>(value: null, child: Text('Unassigned')),
+                    ...users.map((u) => DropdownMenuItem<String?>(
+                          value: u.uid,
+                          child: Text(u.displayName),
+                        )),
+                  ],
+                  onChanged: (String? val) => setState(() => _assigneeUid = val),
+                ),
+                error: (e, _) => Text('Members error: $e'),
+                loading: () => const LinearProgressIndicator(minHeight: 2),
+              ),
+              SizedBox(height: spaces.sm),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final now = DateTime.now();
+                        final picked = await showDatePicker(
+                          context: ctx,
+                          initialDate: now,
+                          firstDate: now.subtract(const Duration(days: 1)),
+                          lastDate: now.add(const Duration(days: 365 * 3)),
+                        );
+                        if (picked != null) setState(() => _dueDate = picked);
+                      },
+                      icon: const Icon(Icons.event),
+                      label: Text(_dueDate == null ? 'Pick due date' : 'Due: ${_dueDate!.toLocal().toString().split(' ').first}'),
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: spaces.sm),
               SegmentedButton<TaskPriority>(
@@ -132,6 +181,8 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                               familyId: fid,
                               title: _title.text.trim(),
                               priority: _priority,
+                              assignedUids: _assigneeUid == null ? const [] : <String>[_assigneeUid!],
+                              dueDate: _dueDate,
                             );
                         if (mounted) Navigator.pop(ctx);
                       },

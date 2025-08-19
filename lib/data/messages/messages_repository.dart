@@ -27,12 +27,14 @@ class MessagesRepository {
     required String text,
     required String authorUid,
     required String authorName,
+    String? authorPhotoUrl,
   }) async {
     final now = DateTime.now();
     await _collection(familyId).add({
       'text': text,
       'authorUid': authorUid,
       'authorName': authorName,
+      if (authorPhotoUrl != null) 'authorPhotoUrl': authorPhotoUrl,
       'createdAt': Timestamp.fromDate(now),
     });
   }

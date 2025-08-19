@@ -25,6 +25,7 @@ mixin _$Message {
   String get text => throw _privateConstructorUsedError;
   String get authorUid => throw _privateConstructorUsedError;
   String get authorName => throw _privateConstructorUsedError;
+  String? get authorPhotoUrl => throw _privateConstructorUsedError;
   @TimestampDateTimeConverter()
   DateTime get createdAt => throw _privateConstructorUsedError;
 
@@ -47,6 +48,7 @@ abstract class $MessageCopyWith<$Res> {
     String text,
     String authorUid,
     String authorName,
+    String? authorPhotoUrl,
     @TimestampDateTimeConverter() DateTime createdAt,
   });
 }
@@ -70,6 +72,7 @@ class _$MessageCopyWithImpl<$Res, $Val extends Message>
     Object? text = null,
     Object? authorUid = null,
     Object? authorName = null,
+    Object? authorPhotoUrl = freezed,
     Object? createdAt = null,
   }) {
     return _then(
@@ -90,6 +93,10 @@ class _$MessageCopyWithImpl<$Res, $Val extends Message>
                 ? _value.authorName
                 : authorName // ignore: cast_nullable_to_non_nullable
                       as String,
+            authorPhotoUrl: freezed == authorPhotoUrl
+                ? _value.authorPhotoUrl
+                : authorPhotoUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -113,6 +120,7 @@ abstract class _$$MessageImplCopyWith<$Res> implements $MessageCopyWith<$Res> {
     String text,
     String authorUid,
     String authorName,
+    String? authorPhotoUrl,
     @TimestampDateTimeConverter() DateTime createdAt,
   });
 }
@@ -135,6 +143,7 @@ class __$$MessageImplCopyWithImpl<$Res>
     Object? text = null,
     Object? authorUid = null,
     Object? authorName = null,
+    Object? authorPhotoUrl = freezed,
     Object? createdAt = null,
   }) {
     return _then(
@@ -155,6 +164,10 @@ class __$$MessageImplCopyWithImpl<$Res>
             ? _value.authorName
             : authorName // ignore: cast_nullable_to_non_nullable
                   as String,
+        authorPhotoUrl: freezed == authorPhotoUrl
+            ? _value.authorPhotoUrl
+            : authorPhotoUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -172,6 +185,7 @@ class _$MessageImpl implements _Message {
     required this.text,
     required this.authorUid,
     required this.authorName,
+    this.authorPhotoUrl,
     @TimestampDateTimeConverter() required this.createdAt,
   });
 
@@ -187,12 +201,14 @@ class _$MessageImpl implements _Message {
   @override
   final String authorName;
   @override
+  final String? authorPhotoUrl;
+  @override
   @TimestampDateTimeConverter()
   final DateTime createdAt;
 
   @override
   String toString() {
-    return 'Message(id: $id, text: $text, authorUid: $authorUid, authorName: $authorName, createdAt: $createdAt)';
+    return 'Message(id: $id, text: $text, authorUid: $authorUid, authorName: $authorName, authorPhotoUrl: $authorPhotoUrl, createdAt: $createdAt)';
   }
 
   @override
@@ -206,14 +222,23 @@ class _$MessageImpl implements _Message {
                 other.authorUid == authorUid) &&
             (identical(other.authorName, authorName) ||
                 other.authorName == authorName) &&
+            (identical(other.authorPhotoUrl, authorPhotoUrl) ||
+                other.authorPhotoUrl == authorPhotoUrl) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, id, text, authorUid, authorName, createdAt);
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    text,
+    authorUid,
+    authorName,
+    authorPhotoUrl,
+    createdAt,
+  );
 
   /// Create a copy of Message
   /// with the given fields replaced by the non-null parameter values.
@@ -235,6 +260,7 @@ abstract class _Message implements Message {
     required final String text,
     required final String authorUid,
     required final String authorName,
+    final String? authorPhotoUrl,
     @TimestampDateTimeConverter() required final DateTime createdAt,
   }) = _$MessageImpl;
 
@@ -248,6 +274,8 @@ abstract class _Message implements Message {
   String get authorUid;
   @override
   String get authorName;
+  @override
+  String? get authorPhotoUrl;
   @override
   @TimestampDateTimeConverter()
   DateTime get createdAt;

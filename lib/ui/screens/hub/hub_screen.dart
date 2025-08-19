@@ -103,6 +103,13 @@ class _HubSliverAppBar extends ConsumerWidget {
                   ? AppGradients.hubHeaderDark
                   : AppGradients.hubHeaderLight,
             ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x66000000),
+                offset: Offset(0, 2),
+                blurRadius: 12,
+              ),
+            ],
             borderRadius: const BorderRadius.only(
               bottomLeft: Radius.circular(24),
               bottomRight: Radius.circular(24),
@@ -196,10 +203,13 @@ class _SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Card(
+      color: colors.surfaceContainerLow,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: colors.outlineVariant),
       ),
+      elevation: 1,
+      clipBehavior: Clip.antiAlias,
       child: Padding(
         padding: EdgeInsets.all(context.spaces.lg),
         child: Column(

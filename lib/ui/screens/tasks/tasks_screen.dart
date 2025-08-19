@@ -6,6 +6,7 @@ import 'package:fam_sync/data/tasks/tasks_repository.dart';
 import 'package:fam_sync/domain/models/task.dart';
 import 'package:fam_sync/data/users/users_repository.dart';
 import 'package:fam_sync/domain/models/user_profile.dart';
+import 'package:fam_sync/core/utils/time.dart';
 
 class TasksScreen extends ConsumerStatefulWidget {
   const TasksScreen({super.key});
@@ -75,7 +76,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
 
   String _subtitleForTask(Task t) {
     final parts = <String>[];
-    if (t.dueDate != null) parts.add('Due: ${t.dueDate}');
+    if (t.dueDate != null) parts.add('Due: ${formatDateTime(t.dueDate!)}');
     if (t.assignedUids.isNotEmpty) parts.add('Assigned: ${t.assignedUids.length}');
     return parts.isEmpty ? 'No details' : parts.join(' • ');
   }
@@ -106,93 +107,119 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
         final AsyncValue<List<UserProfile>> usersAsync = familyId == null
             ? const AsyncValue<List<UserProfile>>.data(<UserProfile>[]) // empty
             : ref.watch(familyUsersProvider(familyId));
-        return Padding(
-          padding: EdgeInsets.fromLTRB(spaces.md, spaces.md, spaces.md, MediaQuery.of(ctx).viewInsets.bottom + spaces.md),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('New Task', style: Theme.of(ctx).textTheme.titleMedium),
-              SizedBox(height: spaces.sm),
-              TextField(
-                controller: _title,
-                decoration: const InputDecoration(labelText: 'Title'),
-                onChanged: (_) => setState(() {}),
-              ),
-              SizedBox(height: spaces.sm),
-              usersAsync.when(
-                data: (users) => DropdownButtonFormField<String?>(
-                  value: _assigneeUid,
-                  isExpanded: true,
-                  hint: const Text('Assign to (optional)'),
-                  items: [
-                    const DropdownMenuItem<String?>(value: null, child: Text('Unassigned')),
-                    ...users.map((u) => DropdownMenuItem<String?>(
-                          value: u.uid,
-                          child: Text(u.displayName),
-                        )),
-                  ],
-                  onChanged: (String? val) => setState(() => _assigneeUid = val),
-                ),
-                error: (e, _) => Text('Members error: $e'),
-                loading: () => const LinearProgressIndicator(minHeight: 2),
-              ),
-              SizedBox(height: spaces.sm),
-              Row(
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.fromLTRB(spaces.md, spaces.md, spaces.md, MediaQuery.of(ctx).viewInsets.bottom + spaces.md),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        final now = DateTime.now();
-                        final picked = await showDatePicker(
-                          context: ctx,
-                          initialDate: now,
-                          firstDate: now.subtract(const Duration(days: 1)),
-                          lastDate: now.add(const Duration(days: 365 * 3)),
-                        );
-                        if (picked != null) setState(() => _dueDate = picked);
-                      },
-                      icon: const Icon(Icons.event),
-                      label: Text(_dueDate == null ? 'Pick due date' : 'Due: ${_dueDate!.toLocal().toString().split(' ').first}'),
-                    ),
+                  Text('New Task', style: Theme.of(ctx).textTheme.titleMedium),
+                  SizedBox(height: spaces.sm),
+                  TextField(
+                    controller: _title,
+                    decoration: const InputDecoration(labelText: 'Title'),
+                    onChanged: (_) => setModalState(() {}),
                   ),
-                ],
-              ),
-              SizedBox(height: spaces.sm),
-              SegmentedButton<TaskPriority>(
-                segments: const [
-                  ButtonSegment(value: TaskPriority.low, label: Text('Low'), icon: Icon(Icons.arrow_downward)),
-                  ButtonSegment(value: TaskPriority.medium, label: Text('Med'), icon: Icon(Icons.drag_handle)),
-                  ButtonSegment(value: TaskPriority.high, label: Text('High'), icon: Icon(Icons.arrow_upward)),
-                ],
-                selected: {_priority},
-                onSelectionChanged: (s) => setState(() => _priority = s.first),
-              ),
-              SizedBox(height: spaces.md),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _title.text.trim().isEmpty ? null : () async {
-                        final profile = ref.read(userProfileStreamProvider).value;
-                        final fid = profile?.familyId;
-                        if (fid == null) return;
-                        await ref.read(tasksRepositoryProvider).addTask(
-                              familyId: fid,
-                              title: _title.text.trim(),
-                              priority: _priority,
-                              assignedUids: _assigneeUid == null ? const [] : <String>[_assigneeUid!],
-                              dueDate: _dueDate,
+                  SizedBox(height: spaces.sm),
+                  usersAsync.when(
+                    data: (users) => DropdownButtonFormField<String?>(
+                      value: _assigneeUid,
+                      isExpanded: true,
+                      hint: const Text('Assign to (optional)'),
+                      items: [
+                        const DropdownMenuItem<String?>(value: null, child: Text('Unassigned')),
+                        ...users.map((u) => DropdownMenuItem<String?>(
+                              value: u.uid,
+                              child: Text(u.displayName),
+                            )),
+                      ],
+                      onChanged: (String? val) => setModalState(() => _assigneeUid = val),
+                    ),
+                    error: (e, _) => Text('Members error: $e'),
+                    loading: () => const LinearProgressIndicator(minHeight: 2),
+                  ),
+                  SizedBox(height: spaces.sm),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            final now = DateTime.now();
+                            final picked = await showDatePicker(
+                              context: ctx,
+                              initialDate: _dueDate ?? now,
+                              firstDate: now.subtract(const Duration(days: 1)),
+                              lastDate: now.add(const Duration(days: 365 * 3)),
                             );
-                        if (mounted) Navigator.pop(ctx);
-                      },
-                      child: const Text('Add Task'),
-                    ),
+                            if (picked != null) setModalState(() => _dueDate = picked);
+                          },
+                          icon: const Icon(Icons.event),
+                          label: Text(_dueDate == null ? 'Pick due date' : 'Due: ${formatDate(_dueDate!)}'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _dueDate == null
+                              ? null
+                              : () async {
+                                  final now = TimeOfDay.now();
+                                  final picked = await showTimePicker(
+                                    context: ctx,
+                                    initialTime: now,
+                                  );
+                                  if (picked != null && _dueDate != null) {
+                                    final d = _dueDate!;
+                                    setModalState(() => _dueDate = DateTime(d.year, d.month, d.day, picked.hour, picked.minute));
+                                  }
+                                },
+                          icon: const Icon(Icons.schedule),
+                          label: Text(_dueDate == null ? 'Pick time' : 'Time set'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: spaces.sm),
+                  SegmentedButton<TaskPriority>(
+                    segments: const [
+                      ButtonSegment(value: TaskPriority.low, label: Text('Low'), icon: Icon(Icons.arrow_downward)),
+                      ButtonSegment(value: TaskPriority.medium, label: Text('Med'), icon: Icon(Icons.drag_handle)),
+                      ButtonSegment(value: TaskPriority.high, label: Text('High'), icon: Icon(Icons.arrow_upward)),
+                    ],
+                    selected: {_priority},
+                    onSelectionChanged: (s) => setModalState(() => _priority = s.first),
+                  ),
+                  SizedBox(height: spaces.md),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _title.text.trim().isEmpty
+                              ? null
+                              : () async {
+                                  final profile = ref.read(userProfileStreamProvider).value;
+                                  final fid = profile?.familyId;
+                                  if (fid == null) return;
+                                  await ref.read(tasksRepositoryProvider).addTask(
+                                        familyId: fid,
+                                        title: _title.text.trim(),
+                                        priority: _priority,
+                                        assignedUids: _assigneeUid == null ? const [] : <String>[_assigneeUid!],
+                                        dueDate: _dueDate,
+                                      );
+                                  if (mounted) Navigator.pop(ctx);
+                                },
+                          child: const Text('Add Task'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

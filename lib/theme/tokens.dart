@@ -4,7 +4,9 @@ import 'package:fam_sync/theme/responsive.dart';
 class AppColors {
   AppColors._();
   // Seed only here; rest through ColorScheme to avoid hardcoding
-  static const seed = Color(0xFF6750FF); // Vibrant indigo seed for energetic palette
+  static const seed = Color(
+    0xFF6750FF,
+  ); // Vibrant indigo seed for energetic palette
 }
 
 class AppRadii {
@@ -39,12 +41,36 @@ class AppSpacing {
   AppSpacing(this.layout);
   final AppLayout layout;
 
-  double get xs => layout.isSmall ? 4 : layout.isMedium ? 6 : 8;
-  double get sm => layout.isSmall ? 8 : layout.isMedium ? 10 : 12;
-  double get md => layout.isSmall ? 12 : layout.isMedium ? 16 : 20;
-  double get lg => layout.isSmall ? 16 : layout.isMedium ? 20 : 24;
-  double get xl => layout.isSmall ? 20 : layout.isMedium ? 24 : 32;
-  double get xxl => layout.isSmall ? 24 : layout.isMedium ? 32 : 40;
+  double get xs => layout.isSmall
+      ? 4
+      : layout.isMedium
+      ? 6
+      : 8;
+  double get sm => layout.isSmall
+      ? 8
+      : layout.isMedium
+      ? 10
+      : 12;
+  double get md => layout.isSmall
+      ? 12
+      : layout.isMedium
+      ? 16
+      : 20;
+  double get lg => layout.isSmall
+      ? 16
+      : layout.isMedium
+      ? 20
+      : 24;
+  double get xl => layout.isSmall
+      ? 20
+      : layout.isMedium
+      ? 24
+      : 32;
+  double get xxl => layout.isSmall
+      ? 24
+      : layout.isMedium
+      ? 32
+      : 40;
 }
 
 class AppSizes {
@@ -56,12 +82,26 @@ class AppSizes {
   double get cardMinHeight => layout.isSmall ? 120 : 160;
 
   // Icon sizes
-  double get iconSm => layout.isSmall ? 20 : layout.isMedium ? 22 : 24;
-  double get iconMd => layout.isSmall ? 24 : layout.isMedium ? 28 : 32;
-  double get iconLg => layout.isSmall ? 32 : layout.isMedium ? 36 : 40;
+  double get iconSm => layout.isSmall
+      ? 20
+      : layout.isMedium
+      ? 22
+      : 24;
+  double get iconMd => layout.isSmall
+      ? 24
+      : layout.isMedium
+      ? 28
+      : 32;
+  double get iconLg => layout.isSmall
+      ? 32
+      : layout.isMedium
+      ? 36
+      : 40;
 
   // Component widths
-  double get statCardWidth => layout.isSmall ? 160 : layout.isMedium ? 180 : 200;
+  double get statCardWidth => layout.isSmall
+      ? 160
+      : layout.isMedium
+      ? 180
+      : 200;
 }
-
-

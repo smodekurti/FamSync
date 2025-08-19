@@ -15,14 +15,40 @@ class TasksRepository {
       _firestore.collection('families').doc(familyId).collection('tasks');
 
   Stream<List<Task>> watchTasks(String familyId) {
-    final query = _collection(familyId)
-        .orderBy('completed')
-        .orderBy('priority', descending: true)
-        .orderBy('dueDate')
-        .orderBy('createdAt', descending: true);
-    return query.snapshots().map((snap) => snap.docs
-        .map((d) => Task.fromJson({...d.data(), 'id': d.id}))
-        .toList());
+    // To avoid composite index requirements, fetch by createdAt only and sort client-side.
+    final query = _collection(familyId).orderBy('createdAt', descending: true);
+    return query.snapshots().map((snap) {
+      final items = snap.docs
+          .map((d) => Task.fromJson({...d.data(), 'id': d.id}))
+          .toList();
+      int weight(TaskPriority p) {
+        switch (p) {
+          case TaskPriority.high:
+            return 3;
+          case TaskPriority.medium:
+            return 2;
+          case TaskPriority.low:
+            return 1;
+        }
+      }
+      items.sort((a, b) {
+        // Incomplete first
+        if (a.completed != b.completed) return a.completed ? 1 : -1;
+        // Priority high -> low
+        final pw = weight(b.priority).compareTo(weight(a.priority));
+        if (pw != 0) return pw;
+        // Due date earliest first; nulls last
+        if (a.dueDate == null && b.dueDate != null) return 1;
+        if (a.dueDate != null && b.dueDate == null) return -1;
+        if (a.dueDate != null && b.dueDate != null) {
+          final dd = a.dueDate!.compareTo(b.dueDate!);
+          if (dd != 0) return dd;
+        }
+        // Newest created first
+        return b.createdAt.compareTo(a.createdAt);
+      });
+      return items;
+    });
   }
 
   Future<void> addTask({

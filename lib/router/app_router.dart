@@ -11,6 +11,7 @@ import 'package:fam_sync/ui/screens/hub/hub_screen.dart';
 import 'package:fam_sync/ui/screens/auth/auth_gate.dart';
 import 'package:fam_sync/ui/screens/onboarding/onboarding_screen.dart';
 import 'package:fam_sync/ui/screens/announcements/announcements_screen.dart';
+import 'package:fam_sync/ui/screens/messages/messages_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -36,6 +37,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 path: '/announcements',
                 pageBuilder: (context, state) =>
                     const NoTransitionPage(child: AnnouncementsScreen()),
+              ),
+              GoRoute(
+                path: '/messages',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: MessagesScreen()),
               ),
             ],
           ),

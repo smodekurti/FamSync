@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fam_sync/theme/app_theme.dart';
 import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/data/announcements/announcements_repository.dart';
+import 'package:fam_sync/core/utils/time.dart';
 
 class HubScreen extends ConsumerWidget {
   const HubScreen({super.key});
@@ -30,7 +31,11 @@ class HubScreen extends ConsumerWidget {
                       _AnnouncementsCard(
                         onOpen: () => context.go('/announcements'),
                       ),
-                      const _HubCard(title: 'Messages', icon: Icons.message),
+                      _HubCard(
+                        title: 'Messages',
+                        icon: Icons.message,
+                        onTap: () => context.go('/messages'),
+                      ),
                       const _HubCard(
                         title: 'Location',
                         icon: Icons.location_on,
@@ -49,17 +54,18 @@ class HubScreen extends ConsumerWidget {
 }
 
 class _HubCard extends StatelessWidget {
-  const _HubCard({required this.title, required this.icon});
+  const _HubCard({required this.title, required this.icon, this.onTap});
 
   final String title;
   final IconData icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         child: Padding(
           padding: EdgeInsets.all(context.spaces.lg),
           child: Column(
@@ -138,7 +144,7 @@ class _AnnouncementsCard extends ConsumerWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 subtitle: Text(
-                                  '${a.authorName} • ${a.createdAt}',
+                                  '${a.authorName} • ${formatRelativeTime(a.createdAt)}',
                                 ),
                               );
                             },

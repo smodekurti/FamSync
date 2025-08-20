@@ -8,6 +8,7 @@ import 'package:fam_sync/data/announcements/announcements_repository.dart';
 import 'package:fam_sync/core/utils/time.dart';
 import 'package:fam_sync/data/users/users_repository.dart';
 import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
+import 'package:fam_sync/ui/strings.dart';
 
 class HubScreen extends ConsumerWidget {
   const HubScreen({super.key});
@@ -95,7 +96,10 @@ class _HubSliverAppBar extends ConsumerWidget {
       scrolledUnderElevation: 0,
       shadowColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
-      foregroundColor: Colors.white,
+      foregroundColor:
+          ThemeData.estimateBrightnessForColor(collapsedBg) == Brightness.dark
+          ? Colors.white
+          : Colors.black,
       actions: const [
         Icon(Icons.notifications_none, color: Colors.white),
         SizedBox(width: 16),
@@ -193,7 +197,7 @@ class _HeaderBody extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          "84°F | Dinner plan: Eating out 🍴",
+          AppStrings.headerSubtitlePlaceholder,
           style: Theme.of(
             context,
           ).textTheme.bodyMedium?.copyWith(color: Colors.white70),

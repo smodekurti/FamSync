@@ -33,7 +33,9 @@ class AppTheme {
       ),
       chipTheme: base.chipTheme.copyWith(
         side: BorderSide(color: colorScheme.outlineVariant),
-        shape: StadiumBorder(side: BorderSide(color: colorScheme.outlineVariant)),
+        shape: StadiumBorder(
+          side: BorderSide(color: colorScheme.outlineVariant),
+        ),
       ),
     );
   }
@@ -62,7 +64,9 @@ class AppTheme {
       ),
       chipTheme: base.chipTheme.copyWith(
         side: BorderSide(color: colorScheme.outlineVariant),
-        shape: StadiumBorder(side: BorderSide(color: colorScheme.outlineVariant)),
+        shape: StadiumBorder(
+          side: BorderSide(color: colorScheme.outlineVariant),
+        ),
       ),
     );
   }
@@ -90,5 +94,3 @@ extension BuildContextThemeX on BuildContext {
   TextTheme get textStyles => Theme.of(this).textTheme;
   ColorScheme get colors => Theme.of(this).colorScheme;
 }
-
-

@@ -8,7 +8,9 @@ import 'package:fam_sync/data/users/users_repository.dart';
 import 'package:fam_sync/domain/models/user_profile.dart';
 import 'package:fam_sync/core/utils/time.dart';
 import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
-import 'package:fam_sync/ui/widgets/gradient_page_scaffold.dart';
+import 'package:fam_sync/ui/appbar/fam_app_bar_scaffold.dart';
+import 'package:fam_sync/ui/strings.dart';
+import 'package:fam_sync/ui/icons.dart';
 
 class TasksScreen extends ConsumerStatefulWidget {
   const TasksScreen({super.key});
@@ -34,8 +36,20 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
   Widget build(BuildContext context) {
     final spaces = context.spaces;
     final profileAsync = ref.watch(userProfileStreamProvider);
-    return GradientPageScaffold(
-      title: const FamilyAppBarTitle(fallback: 'Tasks & Chores'),
+    return FamAppBarScaffold(
+      title: const FamilyAppBarTitle(fallback: AppStrings.tasksTitle),
+      fixedActions: const [
+        Icon(AppIcons.reminder),
+        SizedBox(width: 8),
+        Icon(AppIcons.add),
+        SizedBox(width: 8),
+        Icon(AppIcons.profile),
+      ],
+      extraActions: const [],
+      headerBuilder: (context, controller) => _PriorityFilterBar(
+        selected: _filterPriority,
+        onChanged: (p) => setState(() => _filterPriority = p),
+      ),
       body: profileAsync.when(
         data: (profile) {
           final familyId = profile?.familyId;
@@ -61,17 +75,16 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                     shrinkWrap: true,
                     primary: false,
                     physics: const NeverScrollableScrollPhysics(),
-                    padding: EdgeInsets.all(spaces.md),
+                    padding: EdgeInsets.only(
+                      left: spaces.md,
+                      right: spaces.md,
+                      top: spaces.sm,
+                      bottom: spaces.md,
+                    ),
                     separatorBuilder: (_, __) => const Divider(),
-                    itemCount: filtered.length + 1,
+                    itemCount: filtered.length,
                     itemBuilder: (_, i) {
-                      if (i == 0) {
-                        return _PriorityFilterBar(
-                          selected: _filterPriority,
-                          onChanged: (p) => setState(() => _filterPriority = p),
-                        );
-                      }
-                      final t = filtered[i - 1];
+                      final t = filtered[i];
                       final assigneeChips = _assigneeChips(
                         t.assignedUids,
                         uidToName,
@@ -358,32 +371,38 @@ class _PriorityFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        FilterChip(
-          label: const Text('All'),
-          selected: selected == null,
-          onSelected: (_) => onChanged(null),
-        ),
-        const SizedBox(width: 8),
-        FilterChip(
-          label: const Text('High'),
-          selected: selected == TaskPriority.high,
-          onSelected: (_) => onChanged(TaskPriority.high),
-        ),
-        const SizedBox(width: 8),
-        FilterChip(
-          label: const Text('Med'),
-          selected: selected == TaskPriority.medium,
-          onSelected: (_) => onChanged(TaskPriority.medium),
-        ),
-        const SizedBox(width: 8),
-        FilterChip(
-          label: const Text('Low'),
-          selected: selected == TaskPriority.low,
-          onSelected: (_) => onChanged(TaskPriority.low),
-        ),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          FilterChip(
+            label: const Text(AppStrings.filterAll),
+            selected: selected == null,
+            onSelected: (_) => onChanged(null),
+          ),
+          const SizedBox(width: 8),
+          FilterChip(
+            avatar: const Icon(AppIcons.priorityHigh, size: 16),
+            label: const Text(AppStrings.filterHigh),
+            selected: selected == TaskPriority.high,
+            onSelected: (_) => onChanged(TaskPriority.high),
+          ),
+          const SizedBox(width: 8),
+          FilterChip(
+            avatar: const Icon(AppIcons.priorityMedium, size: 16),
+            label: const Text(AppStrings.filterMedium),
+            selected: selected == TaskPriority.medium,
+            onSelected: (_) => onChanged(TaskPriority.medium),
+          ),
+          const SizedBox(width: 8),
+          FilterChip(
+            avatar: const Icon(AppIcons.priorityLow, size: 16),
+            label: const Text(AppStrings.filterLow),
+            selected: selected == TaskPriority.low,
+            onSelected: (_) => onChanged(TaskPriority.low),
+          ),
+        ],
+      ),
     );
   }
 }

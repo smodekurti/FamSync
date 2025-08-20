@@ -8,7 +8,9 @@ import 'package:fam_sync/domain/models/message.dart';
 import 'package:fam_sync/theme/app_theme.dart';
 import 'package:fam_sync/core/utils/time.dart';
 import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
-import 'package:fam_sync/ui/widgets/gradient_page_scaffold.dart';
+import 'package:fam_sync/ui/appbar/fam_app_bar_scaffold.dart';
+import 'package:fam_sync/ui/strings.dart';
+import 'package:fam_sync/ui/icons.dart';
 
 class MessagesScreen extends ConsumerStatefulWidget {
   const MessagesScreen({super.key});
@@ -46,8 +48,29 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     final spaces = context.spaces;
     final profileAsync = ref.watch(userProfileStreamProvider);
 
-    return GradientPageScaffold(
-      title: const FamilyAppBarTitle(fallback: 'Messages'),
+    return FamAppBarScaffold(
+      title: const FamilyAppBarTitle(fallback: AppStrings.messagesTitle),
+      fixedActions: const [
+        Icon(AppIcons.reminder),
+        SizedBox(width: 8),
+        Icon(AppIcons.add),
+        SizedBox(width: 8),
+        Icon(AppIcons.profile),
+      ],
+      extraActions: const [],
+      headerBuilder: (context, controller) => TextField(
+        decoration: const InputDecoration(
+          hintText: AppStrings.searchMessagesHint,
+          prefixIcon: Icon(Icons.search),
+          filled: true,
+          isDense: true,
+          border: OutlineInputBorder(
+            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+        ),
+        onChanged: (_) {},
+      ),
       body: profileAsync.when(
         data: (profile) {
           final familyId = profile?.familyId;

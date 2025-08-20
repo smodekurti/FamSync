@@ -280,13 +280,126 @@ class _TodayTimelineCard extends StatelessWidget {
               ],
             ),
             SizedBox(height: spaces.md),
-            SizedBox(
-              height: sizes.cardMinHeight,
-              child: const Center(child: Text('Timeline coming soon')),
-            ),
+            _CompactTimeline(),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CompactTimeline extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final spaces = context.spaces;
+    final colors = Theme.of(context).colorScheme;
+    Widget dot(Color c) => Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: c, shape: BoxShape.circle),
+        );
+    Widget rail() => Container(width: 2, height: 28, color: colors.outlineVariant);
+    Widget pill(String label, {Color? color}) => Container(
+          padding: EdgeInsets.symmetric(horizontal: spaces.sm, vertical: spaces.xs),
+          decoration: BoxDecoration(
+            color: (color ?? colors.primary).withOpacity(0.12),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: color ?? colors.primary,
+                ),
+          ),
+        );
+    return Column(
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(children: [dot(colors.primary), rail(), dot(colors.tertiary)]),
+            SizedBox(width: spaces.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      pill(AppStrings.todayNow),
+                      SizedBox(width: spaces.sm),
+                      Expanded(
+                        child: Text(
+                          AppStrings.todaySchoolDrop,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: spaces.sm),
+                  Row(
+                    children: [
+                      pill(AppStrings.todayNext, color: colors.secondary),
+                      SizedBox(width: spaces.sm),
+                      Expanded(
+                        child: Text(
+                          AppStrings.todayGroceryPickup,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: spaces.sm),
+        Row(
+          children: [
+            const SizedBox(width: 10),
+            SizedBox(width: spaces.md),
+            Expanded(
+              child: Row(
+                children: [
+                  const Icon(Icons.sports_soccer, size: 18),
+                  SizedBox(width: spaces.xs),
+                  Expanded(
+                    child: Text(
+                      AppStrings.todaySoccerPractice,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: spaces.sm),
+        Row(
+          children: [
+            const SizedBox(width: 10),
+            SizedBox(width: spaces.md),
+            Expanded(
+              child: Row(
+                children: [
+                  const Icon(Icons.dinner_dining, size: 18),
+                  SizedBox(width: spaces.xs),
+                  Expanded(
+                    child: Text(
+                      AppStrings.todayDinner,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

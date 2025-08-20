@@ -13,6 +13,12 @@ class AppStrings {
   static const familyStoryTitle = 'Family Story';
   static const actionablesTitle = 'Actionables';
   static const todayTitle = 'Today';
+  static const todayNow = 'Now';
+  static const todayNext = 'Next';
+  static const todaySchoolDrop = 'School drop-off';
+  static const todayGroceryPickup = 'Grocery pickup';
+  static const todaySoccerPractice = 'Soccer practice';
+  static const todayDinner = 'Dinner at home';
 
   // Placeholders / Hints
   static const noFamilyContext = 'No family context.';

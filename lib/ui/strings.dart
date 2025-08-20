@@ -45,4 +45,10 @@ class AppStrings {
   static const newTask = 'New task';
   static const newEvent = 'New event';
   static const addListItem = 'Add list item';
+
+  // Hub compact cards
+  static const shoppingShortTitle = 'Shopping';
+  static const shoppingUrgentSummary = '3 urgent items';
+  static const deliveriesShortTitle = 'Deliveries';
+  static const deliveriesNextSummary = 'Next by 5:30 PM';
 }

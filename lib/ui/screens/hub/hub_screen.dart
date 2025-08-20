@@ -35,26 +35,17 @@ class HubScreen extends ConsumerWidget {
       headerBuilder: (context, controller) => _TopStrip(),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final twoCol = !layout.isSmall;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _TodayTimelineCard(),
               SizedBox(height: spaces.md),
-              if (twoCol)
-                _TwoColumn(
-                  left: _ActionablesCard(),
-                  right: _AnnouncementsMessagesRow(),
-                )
-              else ...[
-                _ActionablesCard(),
-                SizedBox(height: spaces.md),
-                _AnnouncementsMessagesRow(),
-              ],
+              _ActionablesCard(),
+              SizedBox(height: spaces.md),
+              _AnnouncementsMessagesRow(),
               SizedBox(height: spaces.md),
               _LogisticsRow(),
               SizedBox(height: spaces.lg),
-              // Prevent vertical overflow by allowing wrap and intrinsic height
               _ShortcutsDock(),
             ],
           );
@@ -371,23 +362,19 @@ class _AnnouncementsMessagesRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final spaces = context.spaces;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(
-          child: _SectionCard(
-            title: AppStrings.announcementsTitle,
-            icon: Icons.campaign,
-            child: _AnnouncementsList(onOpen: () => context.go('/announcements')),
-          ),
+        _SectionCard(
+          title: AppStrings.announcementsTitle,
+          icon: Icons.campaign,
+          child: _AnnouncementsList(onOpen: () => context.go('/announcements')),
         ),
-        SizedBox(width: spaces.md),
-        Expanded(
-          child: _SectionCard(
-            title: AppStrings.messagesTitle,
-            icon: Icons.message,
-            child: _RecentMessages(onOpen: () => context.go('/messages')),
-          ),
+        SizedBox(height: spaces.md),
+        _SectionCard(
+          title: AppStrings.messagesTitle,
+          icon: Icons.message,
+          child: _RecentMessages(onOpen: () => context.go('/messages')),
         ),
       ],
     );
@@ -438,51 +425,99 @@ class _LogisticsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final spaces = context.spaces;
-    return Row(
-      children: [
-        Expanded(
-          child: Card(
-            color: colors.surfaceContainerHigh,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: colors.outlineVariant),
-            ),
-            elevation: 1,
-            child: Padding(
-              padding: EdgeInsets.all(spaces.lg),
-              child: Row(
+    final isCompact = context.layout.isSmall;
+    final children = <Widget>[
+      Expanded(
+        child: _MiniInfoCard(
+          leading: const Icon(Icons.list_alt),
+          title: AppStrings.shoppingShortTitle,
+          subtitle: AppStrings.shoppingUrgentSummary,
+          trailing: TextButton(
+            onPressed: () {},
+            child: const Text(AppStrings.showAll),
+          ),
+        ),
+      ),
+      SizedBox(width: spaces.md),
+      Expanded(
+        child: _MiniInfoCard(
+          leading: const Icon(Icons.local_shipping_outlined),
+          title: AppStrings.deliveriesShortTitle,
+          subtitle: AppStrings.deliveriesNextSummary,
+        ),
+      ),
+    ];
+    if (isCompact) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(children: [children[0]]),
+          SizedBox(height: spaces.md),
+          Row(children: [children[2]]),
+        ],
+      );
+    }
+    return Row(children: children);
+  }
+}
+
+class _MiniInfoCard extends StatelessWidget {
+  const _MiniInfoCard({
+    required this.leading,
+    required this.title,
+    required this.subtitle,
+    this.trailing,
+  });
+  final Widget leading;
+  final String title;
+  final String subtitle;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final spaces = context.spaces;
+    return Card(
+      color: colors.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: colors.outlineVariant),
+      ),
+      elevation: 1,
+      child: Padding(
+        padding: EdgeInsets.all(spaces.lg),
+        child: Row(
+          children: [
+            leading,
+            SizedBox(width: spaces.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.list_alt),
-                  SizedBox(width: spaces.sm),
-                  const Expanded(child: Text('Shopping: 3 urgent items')),
-                  TextButton(onPressed: () {}, child: const Text(AppStrings.showAll)),
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  SizedBox(height: spaces.xs),
+                  Text(
+                    subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ],
               ),
             ),
-          ),
+            if (trailing != null) ...[
+              SizedBox(width: spaces.sm),
+              trailing!,
+            ],
+          ],
         ),
-        SizedBox(width: spaces.md),
-        Expanded(
-          child: Card(
-            color: colors.surfaceContainerHigh,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: colors.outlineVariant),
-            ),
-            elevation: 1,
-            child: Padding(
-              padding: EdgeInsets.all(spaces.lg),
-              child: Row(
-                children: [
-                  const Icon(Icons.local_shipping_outlined),
-                  SizedBox(width: spaces.sm),
-                  const Expanded(child: Text('Deliveries: Next by 5:30 PM')),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

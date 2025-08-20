@@ -50,4 +50,9 @@ class FamilyRepository {
 
 final familyRepositoryProvider = Provider<FamilyRepository>((ref) => FamilyRepository());
 
+final familyStreamProvider = StreamProvider.family<models.Family?, String>((ref, familyId) {
+  final repo = ref.watch(familyRepositoryProvider);
+  return repo.watchFamily(familyId);
+});
+
 

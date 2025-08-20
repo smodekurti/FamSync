@@ -25,14 +25,17 @@ class AppTheme {
         elevation: 0,
         centerTitle: false,
       ),
-      // Card defaults are fine; component-level widgets can style via tokens
+      // Subtle elevation separation for cards under vibrant header
+      cardColor: colorScheme.surfaceContainerLow,
       navigationBarTheme: NavigationBarThemeData(
         elevation: AppElevations.level2,
         backgroundColor: colorScheme.surface,
       ),
       chipTheme: base.chipTheme.copyWith(
         side: BorderSide(color: colorScheme.outlineVariant),
-        shape: StadiumBorder(side: BorderSide(color: colorScheme.outlineVariant)),
+        shape: StadiumBorder(
+          side: BorderSide(color: colorScheme.outlineVariant),
+        ),
       ),
     );
   }
@@ -54,14 +57,16 @@ class AppTheme {
         elevation: 0,
         centerTitle: false,
       ),
-      // Card defaults are fine; component-level widgets can style via tokens
+      cardColor: colorScheme.surfaceContainerLow,
       navigationBarTheme: NavigationBarThemeData(
         elevation: AppElevations.level2,
         backgroundColor: colorScheme.surface,
       ),
       chipTheme: base.chipTheme.copyWith(
         side: BorderSide(color: colorScheme.outlineVariant),
-        shape: StadiumBorder(side: BorderSide(color: colorScheme.outlineVariant)),
+        shape: StadiumBorder(
+          side: BorderSide(color: colorScheme.outlineVariant),
+        ),
       ),
     );
   }
@@ -89,5 +94,3 @@ extension BuildContextThemeX on BuildContext {
   TextTheme get textStyles => Theme.of(this).textTheme;
   ColorScheme get colors => Theme.of(this).colorScheme;
 }
-
-

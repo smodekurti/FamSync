@@ -35,7 +35,7 @@ class HubScreen extends ConsumerWidget {
       ],
       headerBuilder: (context, controller) => _TopStrip(),
       body: LayoutBuilder(
-      builder: (context, constraints) {
+        builder: (context, constraints) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -83,8 +83,8 @@ class _SectionCard extends StatelessWidget {
       ),
       elevation: 1,
       clipBehavior: Clip.antiAlias,
-        child: Padding(
-          padding: EdgeInsets.all(context.spaces.lg),
+      child: Padding(
+        padding: EdgeInsets.all(context.spaces.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -125,7 +125,9 @@ class _AnnouncementsList extends ConsumerWidget {
       data: (profile) {
         final familyId = profile?.familyId;
         if (familyId == null) {
-          return const Center(child: Text(AppStrings.joinFamilyToSeeAnnouncements));
+          return const Center(
+            child: Text(AppStrings.joinFamilyToSeeAnnouncements),
+          );
         }
         final recent = ref.watch(recentAnnouncementsProvider(familyId));
         return recent.when(
@@ -137,7 +139,9 @@ class _AnnouncementsList extends ConsumerWidget {
                       Padding(
                         padding: EdgeInsets.only(bottom: context.spaces.sm),
                         child: ListTile(
-                          tileColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          tileColor: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -181,18 +185,18 @@ class _TopStrip extends ConsumerWidget {
                 dateStr,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.white,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(color: Colors.white),
               ),
               const SizedBox(height: 1),
               Text(
                 AppStrings.headerSubtitlePlaceholder,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white70,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.white70),
               ),
             ],
           ),
@@ -212,11 +216,16 @@ class _TopStrip extends ConsumerWidget {
                   shrinkWrap: true,
                   itemBuilder: (_, i) {
                     final u = users[i];
-                    final label = u.displayName.isNotEmpty ? u.displayName[0] : '?';
+                    final label = u.displayName.isNotEmpty
+                        ? u.displayName[0]
+                        : '?';
                     return CircleAvatar(
                       radius: 16,
                       backgroundColor: Colors.white24,
-                      child: Text(label, style: const TextStyle(color: Colors.white)),
+                      child: Text(
+                        label,
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     );
                   },
                   separatorBuilder: (_, __) => SizedBox(width: spaces.xs),
@@ -259,13 +268,19 @@ class _TodayTimelineCard extends StatelessWidget {
               children: [
                 const Icon(Icons.schedule),
                 SizedBox(width: spaces.sm),
-                Text(AppStrings.todayTitle, style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  AppStrings.todayTitle,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const Spacer(),
-                TextButton(onPressed: () {}, child: const Text(AppStrings.showAll)),
+                TextButton(
+                  onPressed: () {},
+                  child: const Text(AppStrings.showAll),
+                ),
               ],
             ),
             SizedBox(height: spaces.md),
-            _NowNextStrip(),
+            _NowNextTimeline(),
             SizedBox(height: spaces.md),
             _TasksTimelinePreview(),
           ],
@@ -281,19 +296,25 @@ class _NowNextStrip extends ConsumerWidget {
     final profileAsync = ref.watch(userProfileStreamProvider);
     final spaces = context.spaces;
     final colors = Theme.of(context).colorScheme;
-    Widget pill(String label, {Color? color}) => Container(
-          padding: EdgeInsets.symmetric(horizontal: spaces.sm, vertical: spaces.xs),
-          decoration: BoxDecoration(
-            color: (color ?? colors.primary).withOpacity(0.12),
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: color ?? colors.primary,
-                ),
-          ),
-        );
+    Widget pill(String label, {Color? color}) {
+      final base = color ?? colors.primary;
+      final bg = base.withValues(alpha: 0.12);
+      return Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: spaces.sm,
+          vertical: spaces.xs,
+        ),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(color: base),
+        ),
+      );
+    }
+
     return profileAsync.when(
       data: (profile) {
         final familyId = profile?.familyId;
@@ -303,14 +324,19 @@ class _NowNextStrip extends ConsumerWidget {
         return tasksAsync.when(
           data: (tasks) {
             final now = DateTime.now();
-            final candidates = tasks
-                .where((t) => !t.completed && t.dueDate != null)
-                .toList()
-              ..sort((a, b) => a.dueDate!.compareTo(b.dueDate!));
+            final candidates =
+                tasks.where((t) => !t.completed && t.dueDate != null).toList()
+                  ..sort((a, b) => a.dueDate!.compareTo(b.dueDate!));
             if (candidates.isEmpty) return const SizedBox.shrink();
-            final overdue = candidates.where((t) => t.dueDate!.isBefore(now)).toList();
-            final upcoming = candidates.where((t) => !t.dueDate!.isBefore(now)).toList();
-            final nowTask = overdue.isNotEmpty ? overdue.last : (upcoming.isNotEmpty ? upcoming.first : null);
+            final overdue = candidates
+                .where((t) => t.dueDate!.isBefore(now))
+                .toList();
+            final upcoming = candidates
+                .where((t) => !t.dueDate!.isBefore(now))
+                .toList();
+            final nowTask = overdue.isNotEmpty
+                ? overdue.last
+                : (upcoming.isNotEmpty ? upcoming.first : null);
             Task? nextTask;
             if (nowTask != null) {
               final base = nowTask.dueDate!;
@@ -322,62 +348,239 @@ class _NowNextStrip extends ConsumerWidget {
             }
             return usersAsync.when(
               data: (users) {
-                final Map<String, dynamic> byId = {for (final u in users) u.uid: u};
+                final Map<String, dynamic> byId = {
+                  for (final u in users) u.uid: u,
+                };
+                String relativeDue(DateTime due) {
+                  final diff = due.difference(now);
+                  if (diff.isNegative) {
+                    final mins = diff.inMinutes.abs();
+                    if (mins < 60) return '${mins}m late';
+                    final hrs = diff.inHours.abs();
+                    return '${hrs}h late';
+                  }
+                  final mins = diff.inMinutes;
+                  if (mins < 60) return 'in ${mins}m';
+                  final hrs = diff.inHours;
+                  return 'in ${hrs}h';
+                }
+
+                String priorityLabel(TaskPriority p) {
+                  switch (p) {
+                    case TaskPriority.high:
+                      return AppStrings.filterHigh;
+                    case TaskPriority.medium:
+                      return AppStrings.filterMedium;
+                    case TaskPriority.low:
+                      return AppStrings.filterLow;
+                  }
+                }
+
                 Widget avatarsFor(Task t) {
                   final ids = t.assignedUids;
                   final visible = ids.take(3).toList();
                   return Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      for (final id in visible)
+                      for (int i = 0; i < visible.length; i++)
                         Padding(
-                          padding: EdgeInsets.only(left: visible.indexOf(id) == 0 ? 0 : spaces.xs),
-                          child: _SmallAvatar(profile: byId[id]),
+                          padding: EdgeInsets.only(
+                            left: i == 0 ? 0 : spaces.xs,
+                          ),
+                          child: _SmallAvatar(profile: byId[visible[i]]),
                         ),
                     ],
                   );
                 }
+
+                Widget cell({
+                  required String label,
+                  required Color color,
+                  required Task task,
+                }) {
+                  final isMine = task.assignedUids.contains(profile?.uid);
+                  final infoStyle = Theme.of(context).textTheme.bodySmall;
+                  return Expanded(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: spaces.sm,
+                        vertical: spaces.xs,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          pill(label, color: color),
+                          SizedBox(width: spaces.sm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '${formatTime(task.dueDate!)} • ${task.title}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(height: spaces.xs),
+                                Wrap(
+                                  spacing: spaces.xs,
+                                  runSpacing: spaces.xs,
+                                  children: [
+                                    Text(
+                                      priorityLabel(task.priority),
+                                      style: infoStyle,
+                                    ),
+                                    Text(
+                                      relativeDue(task.dueDate!),
+                                      style: infoStyle,
+                                    ),
+                                    if (isMine)
+                                      Text(
+                                        AppStrings.youLabel,
+                                        style: infoStyle,
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(width: spaces.sm),
+                          if (task.assignedUids.isNotEmpty) avatarsFor(task),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
                 return Row(
                   children: [
-                    if (nowTask != null) ...[
-                      pill(AppStrings.todayNow),
-                      SizedBox(width: spaces.sm),
-                      Expanded(
-                        child: Text(
-                          '${formatTime(nowTask.dueDate!)} • ${nowTask.title}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                    if (nowTask != null)
+                      cell(
+                        label: AppStrings.todayNow,
+                        color: colors.primary,
+                        task: nowTask,
                       ),
-                      SizedBox(width: spaces.sm),
-                      if (nowTask.assignedUids.isNotEmpty) avatarsFor(nowTask),
-                    ],
                     if (nextTask != null) ...[
                       SizedBox(width: spaces.md),
-                      pill(AppStrings.todayNext, color: colors.secondary),
-                      SizedBox(width: spaces.sm),
-                      Expanded(
-                        child: Text(
-                          '${formatTime(nextTask.dueDate!)} • ${nextTask.title}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                      cell(
+                        label: AppStrings.todayNext,
+                        color: colors.secondary,
+                        task: nextTask!,
                       ),
-                      SizedBox(width: spaces.sm),
-                      if (nextTask.assignedUids.isNotEmpty) avatarsFor(nextTask),
                     ],
                   ],
                 );
               },
-              loading: () => const SizedBox(height: 24, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+              loading: () => const SizedBox(
+                height: 24,
+                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              ),
               error: (e, _) => Text('Error: $e'),
             );
           },
-          loading: () => const SizedBox(height: 24, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+          loading: () => const SizedBox(
+            height: 24,
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          ),
           error: (e, _) => Text('Error: $e'),
         );
       },
-      loading: () => const SizedBox(height: 24, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+      loading: () => const SizedBox(
+        height: 24,
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      ),
+      error: (e, _) => Text('Error: $e'),
+    );
+  }
+}
+
+class _NowNextTimeline extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(userProfileStreamProvider);
+    return profileAsync.when(
+      data: (profile) {
+        final familyId = profile?.familyId;
+        if (familyId == null) return const SizedBox.shrink();
+        final tasksAsync = ref.watch(tasksStreamProvider(familyId));
+        final usersAsync = ref.watch(familyUsersProvider(familyId));
+        return tasksAsync.when(
+          data: (tasks) {
+            final now = DateTime.now();
+            final candidates =
+                tasks.where((t) => !t.completed && t.dueDate != null).toList()
+                  ..sort((a, b) => a.dueDate!.compareTo(b.dueDate!));
+            if (candidates.isEmpty) return const SizedBox.shrink();
+            final overdue = candidates
+                .where((t) => t.dueDate!.isBefore(now))
+                .toList();
+            final upcoming = candidates
+                .where((t) => !t.dueDate!.isBefore(now))
+                .toList();
+            final nowTask = overdue.isNotEmpty
+                ? overdue.last
+                : (upcoming.isNotEmpty ? upcoming.first : null);
+            Task? nextTask;
+            if (nowTask != null) {
+              final base = nowTask.dueDate!;
+              nextTask = candidates.firstWhere(
+                (t) => t.dueDate!.isAfter(base),
+                orElse: () => nowTask,
+              );
+              if (identical(nextTask, nowTask)) nextTask = null;
+            }
+            return usersAsync.when(
+              data: (users) {
+                final Map<String, dynamic> byId = {
+                  for (final u in users) u.uid: u,
+                };
+                final items = <Task>[];
+                if (nowTask != null) items.add(nowTask);
+                if (nextTask != null) items.add(nextTask!);
+                if (items.isEmpty) return const SizedBox.shrink();
+                return Column(
+                  children: [
+                    for (int i = 0; i < items.length; i++)
+                      _TimelineItem(
+                        timeText: formatTime(items[i].dueDate!),
+                        title: items[i].title,
+                        note: null,
+                        assignees: items[i].assignedUids
+                            .map((id) => byId[id])
+                            .where((e) => e != null)
+                            .toList(),
+                        isLast: i == items.length - 1,
+                        showDateCapsule: false,
+                        dotColor: i == 0
+                            ? Colors.green
+                            : Theme.of(context).colorScheme.secondary,
+                      ),
+                  ],
+                );
+              },
+              loading: () => const SizedBox(
+                height: 24,
+                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              ),
+              error: (e, _) => Text('Error: $e'),
+            );
+          },
+          loading: () => const SizedBox(
+            height: 24,
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          ),
+          error: (e, _) => Text('Error: $e'),
+        );
+      },
+      loading: () => const SizedBox(
+        height: 24,
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      ),
       error: (e, _) => Text('Error: $e'),
     );
   }
@@ -402,21 +605,28 @@ class _TasksTimelinePreview extends ConsumerWidget {
             final now = DateTime.now();
             bool isSameDay(DateTime a, DateTime b) =>
                 a.year == b.year && a.month == b.month && a.day == b.day;
-            final items = tasks
-                .where((t) => !t.completed && t.dueDate != null)
-                .where((t) => isSameDay(t.dueDate!, now) || t.dueDate!.isBefore(now))
-                .toList()
-              ..sort((a, b) {
-                final ad = a.dueDate!;
-                final bd = b.dueDate!;
-                return ad.compareTo(bd);
-              });
+            final items =
+                tasks
+                    .where((t) => !t.completed && t.dueDate != null)
+                    .where(
+                      (t) =>
+                          isSameDay(t.dueDate!, now) ||
+                          t.dueDate!.isBefore(now),
+                    )
+                    .toList()
+                  ..sort((a, b) {
+                    final ad = a.dueDate!;
+                    final bd = b.dueDate!;
+                    return ad.compareTo(bd);
+                  });
             if (items.isEmpty) {
               return const Text(AppStrings.todayTimelinePlaceholder);
             }
             return usersAsync.when(
               data: (users) {
-                final Map<String, dynamic> byId = {for (final u in users) u.uid: u};
+                final Map<String, dynamic> byId = {
+                  for (final u in users) u.uid: u,
+                };
                 final visible = items.take(4).toList();
                 return Column(
                   children: [
@@ -424,24 +634,51 @@ class _TasksTimelinePreview extends ConsumerWidget {
                       _TimelineItem(
                         timeText: formatTime(visible[i].dueDate!),
                         title: visible[i].title,
-                        note: visible[i].notes.isEmpty ? null : visible[i].notes,
-                        assignees: visible[i].assignedUids.map((id) => byId[id]).where((e) => e != null).toList(),
+                        note: visible[i].notes.isEmpty
+                            ? null
+                            : visible[i].notes,
+                        assignees: visible[i].assignedUids
+                            .map((id) => byId[id])
+                            .where((e) => e != null)
+                            .toList(),
                         isLast: i == visible.length - 1,
+                        showDateCapsule: false,
+                        leadingIcon: _iconForTask(visible[i].priority),
                       ),
                   ],
                 );
               },
-              loading: () => const SizedBox(height: 60, child: Center(child: CircularProgressIndicator())),
+              loading: () => const SizedBox(
+                height: 60,
+                child: Center(child: CircularProgressIndicator()),
+              ),
               error: (e, _) => Text('Error: $e'),
             );
           },
-          loading: () => const SizedBox(height: 60, child: Center(child: CircularProgressIndicator())),
+          loading: () => const SizedBox(
+            height: 60,
+            child: Center(child: CircularProgressIndicator()),
+          ),
           error: (e, _) => Text('Error: $e'),
         );
       },
-      loading: () => const SizedBox(height: 60, child: Center(child: CircularProgressIndicator())),
+      loading: () => const SizedBox(
+        height: 60,
+        child: Center(child: CircularProgressIndicator()),
+      ),
       error: (e, _) => Text('Error: $e'),
     );
+  }
+}
+
+IconData _iconForTask(TaskPriority p) {
+  switch (p) {
+    case TaskPriority.high:
+      return Icons.priority_high_rounded;
+    case TaskPriority.medium:
+      return Icons.task_alt;
+    case TaskPriority.low:
+      return Icons.check_circle_outline;
   }
 }
 
@@ -452,12 +689,19 @@ class _TimelineItem extends StatelessWidget {
     this.note,
     required this.assignees,
     required this.isLast,
+    this.showDateCapsule = false,
+    this.dotColor,
+    this.leadingIcon,
   });
   final String timeText;
   final String title;
   final String? note;
-  final List<dynamic> assignees; // List<UserProfile?>; kept dynamic to avoid extra imports here
+  final List<dynamic>
+  assignees; // List<UserProfile?>; kept dynamic to avoid extra imports here
   final bool isLast;
+  final bool showDateCapsule;
+  final Color? dotColor;
+  final IconData? leadingIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -468,57 +712,164 @@ class _TimelineItem extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 68,
-            child: Text(timeText, style: Theme.of(context).textTheme.labelLarge),
-          ),
+          if (showDateCapsule) ...[
+            Container(
+              width: 44,
+              padding: EdgeInsets.symmetric(vertical: spaces.xs),
+              decoration: BoxDecoration(
+                color: colors.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    formatMonthAbbrev(DateTime.now()),
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  Text(
+                    formatDayNumber(DateTime.now()),
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: spaces.sm),
+          ],
           // Rail + dot
           Column(
             children: [
               Container(
                 width: 10,
                 height: 10,
-                decoration: BoxDecoration(color: colors.primary, shape: BoxShape.circle),
+                decoration: BoxDecoration(
+                  color: dotColor ?? colors.primary,
+                  shape: BoxShape.circle,
+                ),
               ),
               if (!isLast)
                 Container(
                   width: 2,
-                  height: spaces.lg,
-                  color: colors.outlineVariant,
+                  height: spaces.xxl,
+                  color: (dotColor ?? colors.primary).withValues(alpha: 0.4),
                 ),
             ],
           ),
           SizedBox(width: spaces.md),
-          // Content
+          // Content card with neon-like outline
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (assignees.isNotEmpty) ...[
-                      SizedBox(width: spaces.sm),
-                      _AvatarRow(profiles: assignees),
-                    ],
-                  ],
-                ),
-                if (note != null) ...[
-                  SizedBox(height: spaces.xs),
-                  Text(
-                    note!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall,
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: spaces.md,
+                vertical: spaces.sm,
+              ),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: (dotColor ?? colors.primary).withValues(alpha: 0.25),
+                    blurRadius: 16,
+                    spreadRadius: 0,
                   ),
                 ],
-              ],
+                border: Border.all(
+                  color: (dotColor ?? colors.primary).withValues(alpha: 0.6),
+                  width: 1.2,
+                ),
+              ),
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                  // Leading icon spans both lines visually
+                  Container(
+                    width: 36,
+                    height: double.infinity,
+                    decoration: BoxDecoration(
+                      color: colors.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border(
+                        top: BorderSide(color: colors.outlineVariant),
+                        bottom: BorderSide(color: colors.outlineVariant),
+                        left: BorderSide(color: colors.outlineVariant),
+                        right: BorderSide(
+                          color: (dotColor ?? colors.outlineVariant).withValues(alpha: 0.5),
+                          width: 1.2,
+                        ),
+                      ),
+                    ),
+                    child: Center(
+                      child: Icon(leadingIcon ?? Icons.task_alt, size: 18),
+                    ),
+                  ),
+                  SizedBox(width: spaces.md),
+                  // Two-line block: title on first, time + avatars on second
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                            ),
+                            if (dotColor != null)
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: spaces.sm,
+                                  vertical: spaces.xs,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: (dotColor!).withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  dotColor == Colors.green
+                                      ? AppStrings.todayNow
+                                      : AppStrings.todayNext,
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(color: dotColor),
+                                ),
+                              ),
+                          ],
+                        ),
+                        SizedBox(height: spaces.xs),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                timeText,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(color: colors.onSurfaceVariant),
+                              ),
+                            ),
+                            if (assignees.isNotEmpty)
+                              _AvatarRow(profiles: assignees),
+                          ],
+                        ),
+                        if (note != null) ...[
+                          SizedBox(height: spaces.xs),
+                          Text(
+                            note!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -560,10 +911,7 @@ class _SmallAvatar extends StatelessWidget {
       radius: 10,
       backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
       child: photoUrl == null
-          ? Text(
-              label,
-              style: const TextStyle(fontSize: 10),
-            )
+          ? Text(label, style: const TextStyle(fontSize: 10))
           : null,
     );
   }
@@ -591,24 +939,35 @@ class _ActionablesCard extends ConsumerWidget {
               children: [
                 const Icon(Icons.task_alt),
                 SizedBox(width: spaces.sm),
-                Text(AppStrings.actionablesTitle, style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  AppStrings.actionablesTitle,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
               ],
             ),
             SizedBox(height: spaces.md),
             profileAsync.when(
               data: (profile) {
                 final familyId = profile?.familyId;
-                if (familyId == null) return const Text(AppStrings.noFamilyContext);
+                if (familyId == null)
+                  return const Text(AppStrings.noFamilyContext);
                 final tasksAsync = ref.watch(tasksStreamProvider(familyId));
                 return tasksAsync.when(
                   data: (tasks) {
                     final today = DateTime.now();
-                    final todayTasks = tasks.where((t) =>
-                        !t.completed && (t.dueDate == null ||
-                            (t.dueDate!.year == today.year && t.dueDate!.month == today.month && t.dueDate!.day == today.day)))
+                    final todayTasks = tasks
+                        .where(
+                          (t) =>
+                              !t.completed &&
+                              (t.dueDate == null ||
+                                  (t.dueDate!.year == today.year &&
+                                      t.dueDate!.month == today.month &&
+                                      t.dueDate!.day == today.day)),
+                        )
                         .take(3)
                         .toList();
-                    if (todayTasks.isEmpty) return const Text(AppStrings.noTasksYet);
+                    if (todayTasks.isEmpty)
+                      return const Text(AppStrings.noTasksYet);
                     return Column(
                       children: [
                         for (final t in todayTasks)
@@ -616,17 +975,29 @@ class _ActionablesCard extends ConsumerWidget {
                             dense: true,
                             contentPadding: EdgeInsets.zero,
                             leading: const Icon(Icons.check_box_outline_blank),
-                            title: Text(t.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                            subtitle: t.dueDate != null ? Text(formatDateTime(t.dueDate!)) : null,
+                            title: Text(
+                              t.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: t.dueDate != null
+                                ? Text(formatDateTime(t.dueDate!))
+                                : null,
                           ),
                       ],
                     );
                   },
-                  loading: () => const SizedBox(height: 48, child: Center(child: CircularProgressIndicator())),
+                  loading: () => const SizedBox(
+                    height: 48,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
                   error: (e, _) => Text('Error: $e'),
                 );
               },
-              loading: () => const SizedBox(height: 48, child: Center(child: CircularProgressIndicator())),
+              loading: () => const SizedBox(
+                height: 48,
+                child: Center(child: CircularProgressIndicator()),
+              ),
               error: (e, _) => Text('Error: $e'),
             ),
           ],
@@ -668,11 +1039,13 @@ class _RecentMessages extends ConsumerWidget {
     return profileAsync.when(
       data: (profile) {
         final familyId = profile?.familyId;
-        if (familyId == null) return const Center(child: Text(AppStrings.noFamilyContext));
+        if (familyId == null)
+          return const Center(child: Text(AppStrings.noFamilyContext));
         final stream = ref.watch(messagesStreamProvider(familyId));
         return stream.when(
           data: (messages) {
-            if (messages.isEmpty) return const Center(child: Text(AppStrings.noMessagesYet));
+            if (messages.isEmpty)
+              return const Center(child: Text(AppStrings.noMessagesYet));
             return Column(
               children: [
                 for (final m in messages.take(3))
@@ -680,19 +1053,33 @@ class _RecentMessages extends ConsumerWidget {
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                     leading: const CircleAvatar(child: Icon(Icons.person)),
-                    title: Text(m.authorName, maxLines: 1, overflow: TextOverflow.ellipsis),
-                    subtitle: Text(m.text, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    title: Text(
+                      m.authorName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      m.text,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     trailing: Text(formatRelativeTime(m.createdAt)),
                     onTap: onOpen,
                   ),
               ],
             );
           },
-          loading: () => const SizedBox(height: 48, child: Center(child: CircularProgressIndicator())),
+          loading: () => const SizedBox(
+            height: 48,
+            child: Center(child: CircularProgressIndicator()),
+          ),
           error: (e, _) => Text('Error: $e'),
         );
       },
-      loading: () => const SizedBox(height: 48, child: Center(child: CircularProgressIndicator())),
+      loading: () => const SizedBox(
+        height: 48,
+        child: Center(child: CircularProgressIndicator()),
+      ),
       error: (e, _) => Text('Error: $e'),
     );
   }
@@ -788,10 +1175,7 @@ class _MiniInfoCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (trailing != null) ...[
-              SizedBox(width: spaces.sm),
-              trailing!,
-            ],
+            if (trailing != null) ...[SizedBox(width: spaces.sm), trailing!],
           ],
         ),
       ),

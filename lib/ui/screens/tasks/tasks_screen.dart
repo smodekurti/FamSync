@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fam_sync/theme/app_theme.dart';
 import 'package:fam_sync/data/auth/auth_repository.dart';
@@ -21,6 +22,7 @@ class TasksScreen extends ConsumerStatefulWidget {
 
 class _TasksScreenState extends ConsumerState<TasksScreen> {
   final TextEditingController _title = TextEditingController();
+  final TextEditingController _description = TextEditingController();
   TaskPriority _priority = TaskPriority.medium;
   String? _assigneeUid;
   DateTime? _dueDate;
@@ -29,6 +31,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
   @override
   void dispose() {
     _title.dispose();
+    _description.dispose();
     super.dispose();
   }
 
@@ -45,7 +48,15 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
         SizedBox(width: 8),
         Icon(AppIcons.profile),
       ],
-      extraActions: const [],
+      extraActions: kDebugMode
+          ? [
+              IconButton(
+                icon: const Icon(Icons.bolt),
+                tooltip: 'Seed sample tasks',
+                onPressed: _seedSamples,
+              ),
+            ]
+          : const [],
       headerBuilder: (context, controller) => _PriorityFilterBar(
         selected: _filterPriority,
         onChanged: (p) => setState(() => _filterPriority = p),
@@ -187,6 +198,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
 
   Future<void> _showAddTaskSheet(BuildContext context) async {
     _title.clear();
+    _description.clear();
     _priority = TaskPriority.medium;
     _assigneeUid = null;
     _dueDate = null;
@@ -219,6 +231,15 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                     controller: _title,
                     decoration: const InputDecoration(labelText: 'Title'),
                     onChanged: (_) => setModalState(() {}),
+                  ),
+                  SizedBox(height: spaces.sm),
+                  TextField(
+                    controller: _description,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: 'Description',
+                      hintText: 'Brief details for the task or event',
+                    ),
                   ),
                   SizedBox(height: spaces.sm),
                   usersAsync.when(
@@ -341,6 +362,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                                       .addTask(
                                         familyId: fid,
                                         title: _title.text.trim(),
+                                        notes: _description.text.trim(),
                                         priority: _priority,
                                         assignedUids: _assigneeUid == null
                                             ? const []
@@ -361,6 +383,18 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
         );
       },
     );
+  }
+
+  Future<void> _seedSamples() async {
+    final profile = ref.read(userProfileStreamProvider).value;
+    final fid = profile?.familyId;
+    if (fid == null) return;
+    await ref
+        .read(tasksRepositoryProvider)
+        .seedSampleTasks(
+          familyId: fid,
+          assignTo: profile?.uid == null ? const [] : <String>[profile!.uid],
+        );
   }
 }
 

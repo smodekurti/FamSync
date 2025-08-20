@@ -25,3 +25,11 @@ String formatHeaderDate(DateTime dateTime) {
 String formatTime(DateTime dateTime) {
   return DateFormat('h:mm a').format(dateTime);
 }
+
+String formatDayNumber(DateTime dateTime) {
+  return DateFormat('d').format(dateTime);
+}
+
+String formatMonthAbbrev(DateTime dateTime) {
+  return DateFormat('MMM').format(dateTime);
+}

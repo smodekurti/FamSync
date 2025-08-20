@@ -15,6 +15,7 @@ class AppStrings {
   static const todayTitle = 'Today';
   static const todayNow = 'Now';
   static const todayNext = 'Next';
+  static const todayLater = 'Later';
   static const todaySchoolDrop = 'School drop-off';
   static const todayGroceryPickup = 'Grocery pickup';
   static const todaySoccerPractice = 'Soccer practice';
@@ -26,7 +27,8 @@ class AppStrings {
   static const presenceComingSoon = 'Presence coming soon';
   static const familyStoryComingSoon = 'Family Story coming soon';
   static const headerSubtitlePlaceholder = '84°F | Dinner plan: Eating out 🍴';
-  static const joinFamilyToSeeAnnouncements = 'Join a family to see announcements.';
+  static const joinFamilyToSeeAnnouncements =
+      'Join a family to see announcements.';
   static const noAnnouncementsYet = 'No announcements yet';
   static const noMessagesYet = 'No messages yet';
   static const noTasksYet = 'No tasks for today';
@@ -52,6 +54,14 @@ class AppStrings {
   static const newTask = 'New task';
   static const newEvent = 'New event';
   static const addListItem = 'Add list item';
+  static const youLabel = 'You';
+
+  // Status labels
+  static const statusDone = 'Done';
+  static const statusInProgress = 'In progress';
+  static const statusUpcoming = 'upcoming';
+  static const statusPending = 'Pending';
+  static const statusBlocked = 'Blocked';
 
   // Hub compact cards
   static const shoppingShortTitle = 'Shopping';

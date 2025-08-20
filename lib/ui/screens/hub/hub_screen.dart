@@ -20,7 +20,7 @@ class HubScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final spaces = context.spaces;
-    final layout = context.layout;
+    final layout = context.layout; // reserved for future responsive tweaks
     return FamAppBarScaffold(
       title: const FamilyAppBarTitle(fallback: 'Family'),
       expandedHeight: 240,
@@ -234,23 +234,7 @@ class _TopStrip extends ConsumerWidget {
   }
 }
 
-class _TwoColumn extends StatelessWidget {
-  const _TwoColumn({required this.left, required this.right});
-  final Widget left;
-  final Widget right;
-  @override
-  Widget build(BuildContext context) {
-    final spaces = context.spaces;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(child: left),
-        SizedBox(width: spaces.md),
-        Expanded(child: right),
-      ],
-    );
-  }
-}
+// _TwoColumn previously used for split layouts; no longer needed in single column
 
 class _TodayTimelineCard extends StatelessWidget {
   @override
@@ -280,13 +264,87 @@ class _TodayTimelineCard extends StatelessWidget {
               ],
             ),
             SizedBox(height: spaces.md),
-            SizedBox(
-              height: sizes.cardMinHeight,
-              child: const Center(child: Text(AppStrings.todayTimelinePlaceholder)),
-            ),
+            _TasksTimelinePreview(),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _TasksTimelinePreview extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(userProfileStreamProvider);
+    final spaces = context.spaces;
+    return profileAsync.when(
+      data: (profile) {
+        final familyId = profile?.familyId;
+        if (familyId == null) {
+          return const Text(AppStrings.noFamilyContext);
+        }
+        final tasksAsync = ref.watch(tasksStreamProvider(familyId));
+        return tasksAsync.when(
+          data: (tasks) {
+            // Build a lightweight timeline from tasks due today or overdue
+            final now = DateTime.now();
+            bool isSameDay(DateTime a, DateTime b) =>
+                a.year == b.year && a.month == b.month && a.day == b.day;
+            final items = tasks
+                .where((t) => !t.completed && t.dueDate != null)
+                .where((t) => isSameDay(t.dueDate!, now) || t.dueDate!.isBefore(now))
+                .toList()
+              ..sort((a, b) {
+                final ad = a.dueDate!;
+                final bd = b.dueDate!;
+                return ad.compareTo(bd);
+              });
+            if (items.isEmpty) {
+              return const Text(AppStrings.todayTimelinePlaceholder);
+            }
+            return Column(
+              children: [
+                for (final t in items.take(4))
+                  Padding(
+                    padding: EdgeInsets.only(bottom: spaces.sm),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 68,
+                          child: Text(
+                            formatTime(t.dueDate!),
+                            style: Theme.of(context).textTheme.labelLarge,
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(t.title,
+                                  maxLines: 1, overflow: TextOverflow.ellipsis),
+                              if (t.notes.isNotEmpty)
+                                Text(
+                                  t.notes,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            );
+          },
+          loading: () => const SizedBox(height: 60, child: Center(child: CircularProgressIndicator())),
+          error: (e, _) => Text('Error: $e'),
+        );
+      },
+      loading: () => const SizedBox(height: 60, child: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Text('Error: $e'),
     );
   }
 }

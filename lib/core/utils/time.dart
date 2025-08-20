@@ -21,3 +21,7 @@ String formatDateTime(DateTime dateTime) {
 String formatHeaderDate(DateTime dateTime) {
   return DateFormat('EEEE, MMM d').format(dateTime);
 }
+
+String formatTime(DateTime dateTime) {
+  return DateFormat('h:mm a').format(dateTime);
+}

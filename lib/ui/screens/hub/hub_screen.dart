@@ -187,6 +187,8 @@ class _TopStrip extends ConsumerWidget {
             children: [
               Text(
                 dateStr,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Colors.white,
                     ),
@@ -194,6 +196,8 @@ class _TopStrip extends ConsumerWidget {
               const SizedBox(height: 2),
               Text(
                 AppStrings.headerSubtitlePlaceholder,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.white70,
                     ),

@@ -7,6 +7,9 @@ import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/domain/models/announcement.dart';
 import 'package:fam_sync/theme/app_theme.dart';
 import 'package:fam_sync/core/utils/time.dart';
+import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
+import 'package:fam_sync/ui/appbar/fam_app_bar_scaffold.dart';
+import 'package:fam_sync/ui/strings.dart';
 
 class AnnouncementsScreen extends ConsumerStatefulWidget {
   const AnnouncementsScreen({super.key});
@@ -30,8 +33,29 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
     final spaces = context.spaces;
     final profileAsync = ref.watch(userProfileStreamProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Announcements')),
+    return FamAppBarScaffold(
+      title: const FamilyAppBarTitle(fallback: AppStrings.announcementsTitle),
+      fixedActions: const [
+        Icon(Icons.notifications_none),
+        SizedBox(width: 8),
+        Icon(Icons.add),
+        SizedBox(width: 8),
+        Icon(Icons.person_outline),
+      ],
+      extraActions: const [],
+      headerBuilder: (context, controller) => TextField(
+        decoration: const InputDecoration(
+          hintText: AppStrings.searchAnnouncementsHint,
+          prefixIcon: Icon(Icons.search),
+          filled: true,
+          isDense: true,
+          border: OutlineInputBorder(
+            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+        ),
+        onChanged: (_) {},
+      ),
       body: profileAsync.when(
         data: (profile) {
           final familyId = profile?.familyId;
@@ -42,76 +66,76 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
           final announcementsAsync = ref.watch(
             announcementsStreamProvider(familyId),
           );
-          return Column(
-            children: [
-              if (isParent)
-                Padding(
-                  padding: EdgeInsets.all(spaces.md),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _textController,
-                          onChanged: (_) => setState(() {}),
-                          decoration: const InputDecoration(
-                            hintText: 'Share an announcement...',
+          return announcementsAsync.when(
+            data: (items) {
+              final lead = isParent ? 1 : 0;
+              return ListView.separated(
+                shrinkWrap: true,
+                primary: false,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.all(spaces.md),
+                itemCount: items.length + lead,
+                separatorBuilder: (_, __) => SizedBox(height: spaces.sm),
+                itemBuilder: (_, i) {
+                  if (isParent && i == 0) {
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _textController,
+                            onChanged: (_) => setState(() {}),
+                            decoration: const InputDecoration(
+                              hintText: 'Share an announcement...',
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(width: spaces.sm),
-                      FilledButton.icon(
-                        onPressed: _textController.text.trim().isEmpty
-                            ? null
-                            : () async {
-                                final text = _textController.text.trim();
-                                final user =
-                                    fb.FirebaseAuth.instance.currentUser;
-                                if (user == null) return;
-                                try {
-                                  await ref
-                                      .read(announcementsRepositoryProvider)
-                                      .addAnnouncement(
-                                        familyId: familyId,
-                                        text: text,
-                                        authorUid: user.uid,
-                                        authorName:
-                                            profile?.displayName ?? 'User',
-                                      );
-                                } catch (e) {
-                                  if (!mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Failed to post: $e'),
-                                    ),
-                                  );
-                                }
-                                _textController.clear();
-                                setState(() {});
-                              },
-                        icon: const Icon(Icons.send),
-                        label: const Text('Post'),
-                      ),
-                    ],
-                  ),
-                ),
-              Expanded(
-                child: announcementsAsync.when(
-                  data: (items) => ListView.separated(
-                    padding: EdgeInsets.all(spaces.md),
-                    itemCount: items.length,
-                    separatorBuilder: (_, __) => SizedBox(height: spaces.sm),
-                    itemBuilder: (_, i) => _AnnouncementTile(
-                      announcement: items[i],
-                      familyId: familyId,
-                      canDelete: isParent,
-                    ),
-                  ),
-                  error: (e, _) => Center(child: Text('Error: $e')),
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                ),
-              ),
-            ],
+                        SizedBox(width: spaces.sm),
+                        FilledButton.icon(
+                          onPressed: _textController.text.trim().isEmpty
+                              ? null
+                              : () async {
+                                  final text = _textController.text.trim();
+                                  final user =
+                                      fb.FirebaseAuth.instance.currentUser;
+                                  if (user == null) return;
+                                  try {
+                                    await ref
+                                        .read(announcementsRepositoryProvider)
+                                        .addAnnouncement(
+                                          familyId: familyId,
+                                          text: text,
+                                          authorUid: user.uid,
+                                          authorName:
+                                              profile?.displayName ?? 'User',
+                                        );
+                                  } catch (e) {
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Failed to post: $e'),
+                                      ),
+                                    );
+                                  }
+                                  _textController.clear();
+                                  setState(() {});
+                                },
+                          icon: const Icon(Icons.send),
+                          label: const Text('Post'),
+                        ),
+                      ],
+                    );
+                  }
+                  final a = items[i - lead];
+                  return _AnnouncementTile(
+                    announcement: a,
+                    familyId: familyId,
+                    canDelete: isParent,
+                  );
+                },
+              );
+            },
+            error: (e, _) => Center(child: Text('Error: $e')),
+            loading: () => const Center(child: CircularProgressIndicator()),
           );
         },
         error: (e, _) => Center(child: Text('Error: $e')),

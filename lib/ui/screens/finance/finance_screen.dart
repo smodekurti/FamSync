@@ -1,13 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:fam_sync/theme/app_theme.dart';
+import 'package:fam_sync/ui/appbar/fam_app_bar_scaffold.dart';
+import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
+import 'package:fam_sync/ui/strings.dart';
+import 'package:fam_sync/ui/icons.dart';
 
 class FinanceScreen extends StatelessWidget {
   const FinanceScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Finance')),
+    return FamAppBarScaffold(
+      title: const FamilyAppBarTitle(fallback: AppStrings.financeTitle),
+      fixedActions: const [
+        Icon(AppIcons.reminder),
+        SizedBox(width: 8),
+        Icon(AppIcons.add),
+        SizedBox(width: 8),
+        Icon(AppIcons.profile),
+      ],
+      extraActions: const [],
+      headerBuilder: (context, controller) => Row(
+        children: [
+          OutlinedButton.icon(
+            onPressed: () {},
+            icon: const Icon(AppIcons.calendar),
+            label: const Text(AppStrings.filterThisMonth),
+          ),
+          const SizedBox(width: 8),
+          OutlinedButton.icon(
+            onPressed: () {},
+            icon: const Icon(AppIcons.summary),
+            label: const Text(AppStrings.filterSummary),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: controller.showSearch
+                  ? TextField(
+                      key: const ValueKey('finance-search'),
+                      decoration: const InputDecoration(
+                        hintText: AppStrings.searchFinanceHint,
+                        prefixIcon: Icon(AppIcons.search),
+                        filled: true,
+                        isDense: true,
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                        ),
+                      ),
+                    )
+                  : Align(
+                      alignment: Alignment.centerRight,
+                      child: FilledButton.icon(
+                        onPressed: () => controller.toggleSearch(true),
+                        icon: const Icon(AppIcons.search),
+                        label: const Text('Search'),
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
       body: Padding(
         padding: EdgeInsets.all(context.spaces.md),
         child: LayoutBuilder(
@@ -27,16 +82,19 @@ class FinanceScreen extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: context.spaces.lg),
-                Expanded(
-                  child: Card(
+                Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(context.spaces.lg),
                     child: Center(
                       child: Text(
-                        isCompact ? 'Summary view' : 'Charts and breakdown (tablet/landscape)',
+                        isCompact
+                            ? 'Summary view'
+                            : 'Charts and breakdown (tablet/landscape)',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ),
                   ),
-                )
+                ),
               ],
             );
           },
@@ -75,5 +133,3 @@ class _StatCard extends StatelessWidget {
     );
   }
 }
-
-

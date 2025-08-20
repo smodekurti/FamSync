@@ -1,13 +1,66 @@
 import 'package:flutter/material.dart';
 import 'package:fam_sync/theme/app_theme.dart';
+import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
+import 'package:fam_sync/ui/appbar/fam_app_bar_scaffold.dart';
+import 'package:fam_sync/ui/strings.dart';
+import 'package:fam_sync/ui/icons.dart';
 
 class ShoppingScreen extends StatelessWidget {
   const ShoppingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Shopping & Meals')),
+    return FamAppBarScaffold(
+      title: const FamilyAppBarTitle(fallback: AppStrings.shoppingTitle),
+      fixedActions: const [
+        Icon(AppIcons.reminder),
+        SizedBox(width: 8),
+        Icon(AppIcons.add),
+        SizedBox(width: 8),
+        Icon(AppIcons.profile),
+      ],
+      extraActions: const [],
+      headerBuilder: (context, controller) {
+        return Row(
+          children: [
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: controller.showSearch
+                    ? TextField(
+                        key: const ValueKey('shopping-search'),
+                        decoration: const InputDecoration(
+                          hintText: AppStrings.searchShoppingHint,
+                          prefixIcon: Icon(AppIcons.search),
+                          filled: true,
+                          isDense: true,
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide.none,
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                          ),
+                        ),
+                      )
+                    : Row(
+                        key: const ValueKey('shopping-filters'),
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () {},
+                            icon: const Icon(AppIcons.filter),
+                            label: const Text('Filters'),
+                          ),
+                          const SizedBox(width: 8),
+                          FilledButton.icon(
+                            onPressed: () => controller.toggleSearch(true),
+                            icon: const Icon(AppIcons.search),
+                            label: const Text('Search'),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ],
+        );
+      },
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth > 700;
@@ -16,12 +69,19 @@ class ShoppingScreen extends StatelessWidget {
             child: isWide
                 ? Row(
                     children: [
-                      const Expanded(child: _ListPlaceholder(title: 'Grocery List')), 
+                      const Expanded(
+                        child: _ListPlaceholder(title: 'Grocery List'),
+                      ),
                       SizedBox(width: context.spaces.md),
-                      const Expanded(child: _ListPlaceholder(title: 'Meal Planner')), 
+                      const Expanded(
+                        child: _ListPlaceholder(title: 'Meal Planner'),
+                      ),
                     ],
                   )
                 : ListView(
+                    shrinkWrap: true,
+                    primary: false,
+                    physics: const NeverScrollableScrollPhysics(),
                     children: [
                       const _ListPlaceholder(title: 'Grocery List'),
                       SizedBox(height: context.spaces.md),
@@ -55,5 +115,3 @@ class _ListPlaceholder extends StatelessWidget {
     );
   }
 }
-
-

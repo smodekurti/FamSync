@@ -251,7 +251,6 @@ class _TodayTimelineCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final spaces = context.spaces;
-    final sizes = context.sizes;
     return Card(
       color: colors.surfaceContainerHigh,
       shape: RoundedRectangleBorder(
@@ -280,9 +279,13 @@ class _TodayTimelineCard extends StatelessWidget {
               ],
             ),
             SizedBox(height: spaces.md),
+<<<<<<< HEAD
             _NowNextTimeline(),
             SizedBox(height: spaces.md),
             _TasksTimelinePreview(),
+=======
+            _TodayTimeline(),
+>>>>>>> c046ac0 (Hub: implement new timeline design with real data integration and scrollable list)
           ],
         ),
       ),
@@ -290,10 +293,11 @@ class _TodayTimelineCard extends StatelessWidget {
   }
 }
 
-class _NowNextStrip extends ConsumerWidget {
+class _TodayTimeline extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(userProfileStreamProvider);
+<<<<<<< HEAD
     final spaces = context.spaces;
     final colors = Theme.of(context).colorScheme;
     Widget pill(String label, {Color? color}) {
@@ -591,14 +595,19 @@ class _TasksTimelinePreview extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(userProfileStreamProvider);
     final spaces = context.spaces;
+=======
+    
+>>>>>>> c046ac0 (Hub: implement new timeline design with real data integration and scrollable list)
     return profileAsync.when(
       data: (profile) {
         final familyId = profile?.familyId;
         if (familyId == null) {
-          return const Text(AppStrings.noFamilyContext);
+          return const Text('No family context');
         }
+        
         final tasksAsync = ref.watch(tasksStreamProvider(familyId));
         final usersAsync = ref.watch(familyUsersProvider(familyId));
+<<<<<<< HEAD
         return tasksAsync.when(
           data: (tasks) {
             // Build a lightweight timeline from upcoming/incomplete tasks with time
@@ -668,7 +677,452 @@ class _TasksTimelinePreview extends ConsumerWidget {
         child: Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) => Text('Error: $e'),
+=======
+        
+        return tasksAsync.when(
+          data: (tasks) {
+            return usersAsync.when(
+              data: (users) {
+                // Filter tasks for today and upcoming
+                final now = DateTime.now();
+                final today = DateTime(now.year, now.month, now.day);
+                final tomorrow = today.add(const Duration(days: 1));
+                
+                final todayTasks = tasks.where((task) => 
+                  !task.completed && 
+                  task.dueDate != null &&
+                  task.dueDate!.isAfter(today.subtract(const Duration(days: 1))) &&
+                  task.dueDate!.isBefore(tomorrow)
+                ).toList();
+                
+                // Sort by due time
+                todayTasks.sort((a, b) => a.dueDate!.compareTo(b.dueDate!));
+                
+                if (todayTasks.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'No tasks scheduled for today',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 16,
+                      ),
+                    ),
+                  );
+                }
+                
+                // Convert tasks to timeline events
+                final events = todayTasks.take(6).map((task) {
+                  final assignedUsers = users.where((user) => 
+                    task.assignedUids.contains(user.uid)
+                  ).toList();
+                  
+                  final participants = assignedUsers.map((user) {
+                    final name = user.displayName.isNotEmpty 
+                        ? user.displayName 
+                        : 'Unknown';
+                    return name.length > 2 ? name.substring(0, 2).toUpperCase() : name.toUpperCase();
+                  }).toList();
+                  
+                  // Generate color based on position and priority for better visual variety
+                  Color getTaskColor(int index) {
+                    // Use specific colors for first few events to match the image
+                    if (index == 0) return Colors.green; // First event: green
+                    if (index == 1) return Colors.orange; // Second event: orange  
+                    if (index == 2) return Colors.purple; // Third event: purple
+                    
+                    // For remaining events, use priority-based colors
+                    switch (task.priority) {
+                      case TaskPriority.high:
+                        return Colors.red;
+                      case TaskPriority.medium:
+                        return Colors.orange;
+                      case TaskPriority.low:
+                        return Colors.green;
+                      default:
+                        return Colors.blue;
+                    }
+                  }
+                  
+                  // Calculate time until due
+                  String? getTimeUntil() {
+                    final diff = task.dueDate!.difference(now);
+                    if (diff.isNegative) {
+                      final mins = diff.inMinutes.abs();
+                      if (mins < 60) return '${mins}m overdue';
+                      final hrs = diff.inHours.abs();
+                      return '${hrs}h overdue';
+                    }
+                    final mins = diff.inMinutes;
+                    if (mins < 60) return 'in ${mins}m';
+                    final hrs = diff.inHours;
+                    if (hrs < 24) return 'in ${hrs}h';
+                    return null;
+                  }
+                  
+                  // Determine status
+                  EventStatus getStatus() {
+                    if (task.completed) return EventStatus.confirmed;
+                    if (task.dueDate!.isBefore(now)) return EventStatus.pending;
+                    return EventStatus.upcoming;
+                  }
+                  
+                  return _TimelineEvent(
+                    time: formatTime(task.dueDate!),
+                    duration: _formatDuration(task.dueDate!),
+                    title: task.title,
+                    details: task.notes.isNotEmpty ? task.notes : 'No description',
+                    color: getTaskColor(todayTasks.indexOf(task)),
+                    participants: participants,
+                    status: getStatus(),
+                    timeUntil: getTimeUntil(),
+                    isStriped: task.priority == TaskPriority.high,
+                  );
+                }).toList();
+                
+                // Make timeline scrollable if more than 3 items
+                if (events.length <= 3) {
+                  return Column(
+                    children: [
+                      for (int i = 0; i < events.length; i++)
+                        _TimelineEventCard(
+                          event: events[i],
+                          isLast: i == events.length - 1,
+                        ),
+                    ],
+                  );
+                } else {
+                  // Scrollable timeline for more than 3 items
+                  return Container(
+                    height: 320, // Fixed height for 3 items + some padding
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          for (int i = 0; i < events.length; i++)
+                            _TimelineEventCard(
+                              event: events[i],
+                              isLast: i == events.length - 1,
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+              },
+              loading: () => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              error: (error, stack) => Text('Error loading users: $error'),
+            );
+          },
+          loading: () => const Center(
+            child: CircularProgressIndicator(),
+          ),
+          error: (error, stack) => Text('Error loading tasks: $error'),
+        );
+      },
+      loading: () => const Center(
+        child: CircularProgressIndicator(),
+      ),
+      error: (error, stack) => Text('Error loading profile: $error'),
+>>>>>>> c046ac0 (Hub: implement new timeline design with real data integration and scrollable list)
     );
+  }
+  
+  String _formatDuration(DateTime dueDate) {
+    // For now, return a placeholder duration
+    // In a real app, you'd calculate this from start/end times
+    return '1h';
+  }
+}
+
+class _TimelineEvent {
+  const _TimelineEvent({
+    required this.time,
+    required this.duration,
+    required this.title,
+    required this.details,
+    required this.color,
+    required this.participants,
+    required this.status,
+    this.timeUntil,
+    this.isStriped = false,
+  });
+
+  final String time;
+  final String duration;
+  final String title;
+  final String details;
+  final Color color;
+  final List<String> participants;
+  final EventStatus status;
+  final String? timeUntil;
+  final bool isStriped;
+}
+
+enum EventStatus { upcoming, confirmed, pending }
+
+class _TimelineEventCard extends StatelessWidget {
+  const _TimelineEventCard({
+    required this.event,
+    required this.isLast,
+  });
+
+  final _TimelineEvent event;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final spaces = context.spaces;
+    final colors = Theme.of(context).colorScheme;
+    
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : spaces.md),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Vertical colored bar
+          Container(
+            width: 4,
+            height: 100, // Increased height for better proportions
+            decoration: BoxDecoration(
+              color: event.color,
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: event.isStriped
+                ? CustomPaint(
+                    painter: _StripedPainter(color: event.color),
+                  )
+                : null,
+          ),
+          SizedBox(width: spaces.md),
+          
+          // Time and duration column with pill above
+          SizedBox(
+            width: 80, // Fixed width for consistent alignment
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (event.timeUntil != null) ...[
+                  // Time until pill positioned above time
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: spaces.sm,
+                      vertical: spaces.xs,
+                    ),
+                    decoration: BoxDecoration(
+                      color: event.color.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      event.timeUntil!,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: event.color,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: spaces.xs),
+                ],
+                // Time text
+                Text(
+                  event.time,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colors.onSurface,
+                  ),
+                ),
+                SizedBox(height: spaces.xs),
+                // Duration text
+                Text(
+                  event.duration,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: spaces.md),
+          
+          // Event content - no container, direct layout
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Event title
+                Text(
+                  event.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colors.onSurface,
+                  ),
+                ),
+                SizedBox(height: spaces.xs),
+                // Event details
+                Text(
+                  event.details,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+                SizedBox(height: spaces.sm),
+                
+                // Bottom row with avatars and action button
+                Row(
+                  children: [
+                    // Participant avatars
+                    Expanded(
+                      child: Row(
+                        children: [
+                          for (int i = 0; i < event.participants.length; i++)
+                            Padding(
+                              padding: EdgeInsets.only(left: i == 0 ? 0 : spaces.xs),
+                              child: _ParticipantAvatar(
+                                participant: event.participants[i],
+                                status: event.status,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    // Action button (plus icon)
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Colors.pink.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.add,
+                        size: 16,
+                        color: Colors.pink,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ParticipantAvatar extends StatelessWidget {
+  const _ParticipantAvatar({
+    required this.participant,
+    required this.status,
+  });
+
+  final String participant;
+  final EventStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    
+    // Generate consistent colors for initials
+    final colorsList = [
+      Colors.blue,
+      Colors.red,
+      Colors.teal,
+      Colors.pink,
+      Colors.orange,
+      Colors.indigo,
+    ];
+    final colorIndex = participant.hashCode % colorsList.length;
+    final backgroundColor = colorsList[colorIndex];
+    
+    return Stack(
+      children: [
+        CircleAvatar(
+          radius: 16,
+          backgroundColor: backgroundColor,
+          child: Text(
+            participant,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        if (status == EventStatus.confirmed)
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Colors.green,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 1.5),
+              ),
+              child: const Icon(
+                Icons.check,
+                size: 8,
+                color: Colors.white,
+              ),
+            ),
+          )
+        else if (status == EventStatus.pending)
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Colors.grey,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 1.5),
+              ),
+              child: const Icon(
+                Icons.question_mark,
+                size: 8,
+                color: Colors.white,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _StripedPainter extends CustomPainter {
+  const _StripedPainter({required this.color});
+  
+  final Color color;
+  
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+    
+    final stripeWidth = 2.0;
+    final stripeSpacing = 4.0;
+    
+    for (double y = 0; y < size.height; y += stripeSpacing) {
+      canvas.drawLine(
+        Offset(0, y),
+        Offset(stripeWidth, y),
+        paint,
+      );
+    }
+  }
+  
+  @override
+  bool shouldRepaint(covariant _StripedPainter oldDelegate) {
+    return oldDelegate.color != color;
   }
 }
 

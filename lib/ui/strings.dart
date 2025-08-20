@@ -9,12 +9,20 @@ class AppStrings {
   static const calendarTitle = 'Calendar';
   static const shoppingTitle = 'Shopping & Meals';
   static const financeTitle = 'Finance';
+  static const wheresEveryoneTitle = "Where's Everyone?";
+  static const familyStoryTitle = 'Family Story';
+  static const actionablesTitle = 'Actionables';
+  static const todayTitle = 'Today';
 
   // Placeholders / Hints
   static const noFamilyContext = 'No family context.';
   static const presenceComingSoon = 'Presence coming soon';
   static const familyStoryComingSoon = 'Family Story coming soon';
   static const headerSubtitlePlaceholder = '84°F | Dinner plan: Eating out 🍴';
+  static const joinFamilyToSeeAnnouncements = 'Join a family to see announcements.';
+  static const noAnnouncementsYet = 'No announcements yet';
+  static const noMessagesYet = 'No messages yet';
+  static const noTasksYet = 'No tasks for today';
 
   static const searchAnnouncementsHint = 'Search announcements...';
   static const searchMessagesHint = 'Search messages...';
@@ -29,4 +37,12 @@ class AppStrings {
   static const filterThisMonth = 'This Month';
   static const filterYear = 'Year';
   static const filterSummary = 'Summary';
+
+  // Buttons / Labels
+  static const openMessages = 'Open Messages';
+  static const showAll = 'Show all';
+  static const onMyWay = 'On my way';
+  static const newTask = 'New task';
+  static const newEvent = 'New event';
+  static const addListItem = 'Add list item';
 }

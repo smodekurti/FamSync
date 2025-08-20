@@ -299,6 +299,7 @@ class _NowNextStrip extends ConsumerWidget {
         final familyId = profile?.familyId;
         if (familyId == null) return const SizedBox.shrink();
         final tasksAsync = ref.watch(tasksStreamProvider(familyId));
+        final usersAsync = ref.watch(familyUsersProvider(familyId));
         return tasksAsync.when(
           data: (tasks) {
             final now = DateTime.now();
@@ -319,32 +320,57 @@ class _NowNextStrip extends ConsumerWidget {
               );
               if (identical(nextTask, nowTask)) nextTask = null;
             }
-            return Row(
-              children: [
-                if (nowTask != null) ...[
-                  pill(AppStrings.todayNow),
-                  SizedBox(width: spaces.sm),
-                  Expanded(
-                    child: Text(
-                      '${formatTime(nowTask.dueDate!)} • ${nowTask.title}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-                if (nextTask != null) ...[
-                  SizedBox(width: spaces.md),
-                  pill(AppStrings.todayNext, color: colors.secondary),
-                  SizedBox(width: spaces.sm),
-                  Expanded(
-                    child: Text(
-                      '${formatTime(nextTask.dueDate!)} • ${nextTask.title}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ],
+            return usersAsync.when(
+              data: (users) {
+                final Map<String, dynamic> byId = {for (final u in users) u.uid: u};
+                Widget avatarsFor(Task t) {
+                  final ids = t.assignedUids;
+                  final visible = ids.take(3).toList();
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (final id in visible)
+                        Padding(
+                          padding: EdgeInsets.only(left: visible.indexOf(id) == 0 ? 0 : spaces.xs),
+                          child: _SmallAvatar(profile: byId[id]),
+                        ),
+                    ],
+                  );
+                }
+                return Row(
+                  children: [
+                    if (nowTask != null) ...[
+                      pill(AppStrings.todayNow),
+                      SizedBox(width: spaces.sm),
+                      Expanded(
+                        child: Text(
+                          '${formatTime(nowTask.dueDate!)} • ${nowTask.title}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      SizedBox(width: spaces.sm),
+                      if (nowTask.assignedUids.isNotEmpty) avatarsFor(nowTask),
+                    ],
+                    if (nextTask != null) ...[
+                      SizedBox(width: spaces.md),
+                      pill(AppStrings.todayNext, color: colors.secondary),
+                      SizedBox(width: spaces.sm),
+                      Expanded(
+                        child: Text(
+                          '${formatTime(nextTask.dueDate!)} • ${nextTask.title}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      SizedBox(width: spaces.sm),
+                      if (nextTask.assignedUids.isNotEmpty) avatarsFor(nextTask),
+                    ],
+                  ],
+                );
+              },
+              loading: () => const SizedBox(height: 24, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+              error: (e, _) => Text('Error: $e'),
             );
           },
           loading: () => const SizedBox(height: 24, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
@@ -369,6 +395,7 @@ class _TasksTimelinePreview extends ConsumerWidget {
           return const Text(AppStrings.noFamilyContext);
         }
         final tasksAsync = ref.watch(tasksStreamProvider(familyId));
+        final usersAsync = ref.watch(familyUsersProvider(familyId));
         return tasksAsync.when(
           data: (tasks) {
             // Build a lightweight timeline from tasks due today or overdue
@@ -387,41 +414,25 @@ class _TasksTimelinePreview extends ConsumerWidget {
             if (items.isEmpty) {
               return const Text(AppStrings.todayTimelinePlaceholder);
             }
-            return Column(
-              children: [
-                for (final t in items.take(4))
-                  Padding(
-                    padding: EdgeInsets.only(bottom: spaces.sm),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 68,
-                          child: Text(
-                            formatTime(t.dueDate!),
-                            style: Theme.of(context).textTheme.labelLarge,
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(t.title,
-                                  maxLines: 1, overflow: TextOverflow.ellipsis),
-                              if (t.notes.isNotEmpty)
-                                Text(
-                                  t.notes,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
+            return usersAsync.when(
+              data: (users) {
+                final Map<String, dynamic> byId = {for (final u in users) u.uid: u};
+                final visible = items.take(4).toList();
+                return Column(
+                  children: [
+                    for (int i = 0; i < visible.length; i++)
+                      _TimelineItem(
+                        timeText: formatTime(visible[i].dueDate!),
+                        title: visible[i].title,
+                        note: visible[i].notes.isEmpty ? null : visible[i].notes,
+                        assignees: visible[i].assignedUids.map((id) => byId[id]).where((e) => e != null).toList(),
+                        isLast: i == visible.length - 1,
+                      ),
+                  ],
+                );
+              },
+              loading: () => const SizedBox(height: 60, child: Center(child: CircularProgressIndicator())),
+              error: (e, _) => Text('Error: $e'),
             );
           },
           loading: () => const SizedBox(height: 60, child: Center(child: CircularProgressIndicator())),
@@ -430,6 +441,130 @@ class _TasksTimelinePreview extends ConsumerWidget {
       },
       loading: () => const SizedBox(height: 60, child: Center(child: CircularProgressIndicator())),
       error: (e, _) => Text('Error: $e'),
+    );
+  }
+}
+
+class _TimelineItem extends StatelessWidget {
+  const _TimelineItem({
+    required this.timeText,
+    required this.title,
+    this.note,
+    required this.assignees,
+    required this.isLast,
+  });
+  final String timeText;
+  final String title;
+  final String? note;
+  final List<dynamic> assignees; // List<UserProfile?>; kept dynamic to avoid extra imports here
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final spaces = context.spaces;
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : spaces.sm),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 68,
+            child: Text(timeText, style: Theme.of(context).textTheme.labelLarge),
+          ),
+          // Rail + dot
+          Column(
+            children: [
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(color: colors.primary, shape: BoxShape.circle),
+              ),
+              if (!isLast)
+                Container(
+                  width: 2,
+                  height: spaces.lg,
+                  color: colors.outlineVariant,
+                ),
+            ],
+          ),
+          SizedBox(width: spaces.md),
+          // Content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (assignees.isNotEmpty) ...[
+                      SizedBox(width: spaces.sm),
+                      _AvatarRow(profiles: assignees),
+                    ],
+                  ],
+                ),
+                if (note != null) ...[
+                  SizedBox(height: spaces.xs),
+                  Text(
+                    note!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AvatarRow extends StatelessWidget {
+  const _AvatarRow({required this.profiles});
+  final List<dynamic> profiles; // List<UserProfile?>
+  @override
+  Widget build(BuildContext context) {
+    final spaces = context.spaces;
+    final visible = profiles.take(3).toList();
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (int i = 0; i < visible.length; i++)
+          Padding(
+            padding: EdgeInsets.only(left: i == 0 ? 0 : spaces.xs),
+            child: _SmallAvatar(profile: visible[i]),
+          ),
+      ],
+    );
+  }
+}
+
+class _SmallAvatar extends StatelessWidget {
+  const _SmallAvatar({this.profile});
+  final dynamic profile; // UserProfile?
+  @override
+  Widget build(BuildContext context) {
+    final String? photoUrl = profile?.photoUrl as String?;
+    final String label = (profile?.displayName as String?)?.isNotEmpty == true
+        ? (profile!.displayName as String).characters.first
+        : '?';
+    return CircleAvatar(
+      radius: 10,
+      backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+      child: photoUrl == null
+          ? Text(
+              label,
+              style: const TextStyle(fontSize: 10),
+            )
+          : null,
     );
   }
 }

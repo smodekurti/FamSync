@@ -193,7 +193,7 @@ class _TopStrip extends ConsumerWidget {
                       color: Colors.white,
                     ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 1),
               Text(
                 AppStrings.headerSubtitlePlaceholder,
                 maxLines: 1,

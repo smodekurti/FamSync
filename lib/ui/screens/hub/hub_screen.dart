@@ -7,6 +7,7 @@ import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/data/announcements/announcements_repository.dart';
 import 'package:fam_sync/data/messages/messages_repository.dart';
 import 'package:fam_sync/data/tasks/tasks_repository.dart';
+import 'package:fam_sync/domain/models/task.dart';
 import 'package:fam_sync/core/utils/time.dart';
 import 'package:fam_sync/data/users/users_repository.dart';
 import 'package:fam_sync/ui/appbar/fam_app_bar_scaffold.dart';
@@ -264,10 +265,94 @@ class _TodayTimelineCard extends StatelessWidget {
               ],
             ),
             SizedBox(height: spaces.md),
+            _NowNextStrip(),
+            SizedBox(height: spaces.md),
             _TasksTimelinePreview(),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _NowNextStrip extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(userProfileStreamProvider);
+    final spaces = context.spaces;
+    final colors = Theme.of(context).colorScheme;
+    Widget pill(String label, {Color? color}) => Container(
+          padding: EdgeInsets.symmetric(horizontal: spaces.sm, vertical: spaces.xs),
+          decoration: BoxDecoration(
+            color: (color ?? colors.primary).withOpacity(0.12),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: color ?? colors.primary,
+                ),
+          ),
+        );
+    return profileAsync.when(
+      data: (profile) {
+        final familyId = profile?.familyId;
+        if (familyId == null) return const SizedBox.shrink();
+        final tasksAsync = ref.watch(tasksStreamProvider(familyId));
+        return tasksAsync.when(
+          data: (tasks) {
+            final now = DateTime.now();
+            final candidates = tasks
+                .where((t) => !t.completed && t.dueDate != null)
+                .toList()
+              ..sort((a, b) => a.dueDate!.compareTo(b.dueDate!));
+            if (candidates.isEmpty) return const SizedBox.shrink();
+            final overdue = candidates.where((t) => t.dueDate!.isBefore(now)).toList();
+            final upcoming = candidates.where((t) => !t.dueDate!.isBefore(now)).toList();
+            final nowTask = overdue.isNotEmpty ? overdue.last : (upcoming.isNotEmpty ? upcoming.first : null);
+            Task? nextTask;
+            if (nowTask != null) {
+              final base = nowTask.dueDate!;
+              nextTask = candidates.firstWhere(
+                (t) => t.dueDate!.isAfter(base),
+                orElse: () => nowTask,
+              );
+              if (identical(nextTask, nowTask)) nextTask = null;
+            }
+            return Row(
+              children: [
+                if (nowTask != null) ...[
+                  pill(AppStrings.todayNow),
+                  SizedBox(width: spaces.sm),
+                  Expanded(
+                    child: Text(
+                      '${formatTime(nowTask.dueDate!)} • ${nowTask.title}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+                if (nextTask != null) ...[
+                  SizedBox(width: spaces.md),
+                  pill(AppStrings.todayNext, color: colors.secondary),
+                  SizedBox(width: spaces.sm),
+                  Expanded(
+                    child: Text(
+                      '${formatTime(nextTask.dueDate!)} • ${nextTask.title}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ],
+            );
+          },
+          loading: () => const SizedBox(height: 24, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+          error: (e, _) => Text('Error: $e'),
+        );
+      },
+      loading: () => const SizedBox(height: 24, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+      error: (e, _) => Text('Error: $e'),
     );
   }
 }
@@ -481,7 +566,6 @@ class _RecentMessages extends ConsumerWidget {
 class _LogisticsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final spaces = context.spaces;
     final isCompact = context.layout.isSmall;
     final children = <Widget>[

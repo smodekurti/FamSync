@@ -601,34 +601,40 @@ class _TasksTimelinePreview extends ConsumerWidget {
         final usersAsync = ref.watch(familyUsersProvider(familyId));
         return tasksAsync.when(
           data: (tasks) {
-            // Build a lightweight timeline from tasks due today or overdue
-            final now = DateTime.now();
-            bool isSameDay(DateTime a, DateTime b) =>
-                a.year == b.year && a.month == b.month && a.day == b.day;
+            // Build a lightweight timeline from upcoming/incomplete tasks with time
             final items =
-                tasks
-                    .where((t) => !t.completed && t.dueDate != null)
-                    .where(
-                      (t) =>
-                          isSameDay(t.dueDate!, now) ||
-                          t.dueDate!.isBefore(now),
-                    )
-                    .toList()
-                  ..sort((a, b) {
-                    final ad = a.dueDate!;
-                    final bd = b.dueDate!;
-                    return ad.compareTo(bd);
-                  });
+                tasks.where((t) => !t.completed && t.dueDate != null).toList()
+                  ..sort((a, b) => a.dueDate!.compareTo(b.dueDate!));
             if (items.isEmpty) {
               return const Text(AppStrings.todayTimelinePlaceholder);
             }
-            return usersAsync.when(
-              data: (users) {
-                final Map<String, dynamic> byId = {
-                  for (final u in users) u.uid: u,
-                };
-                final visible = items.take(4).toList();
-                return Column(
+            final List<dynamic> users = usersAsync.maybeWhen(
+              data: (u) => u,
+              orElse: () => <dynamic>[],
+            );
+            final Map<String, dynamic> byId = {
+              for (final dynamic u in users) u.uid as String: u,
+            };
+            final visible = items.take(4).toList();
+            final railColor = Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: 0.5);
+            return Stack(
+              fit: StackFit.passthrough,
+              children: [
+                // Continuous rail drawn on top to avoid being dimmed by item shadows
+                Positioned.fill(
+                  left: 5,
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      painter: _VerticalRailPainter(
+                        color: railColor,
+                        strokeWidth: 3,
+                      ),
+                    ),
+                  ),
+                ),
+                Column(
                   children: [
                     for (int i = 0; i < visible.length; i++)
                       _TimelineItem(
@@ -646,13 +652,8 @@ class _TasksTimelinePreview extends ConsumerWidget {
                         leadingIcon: _iconForTask(visible[i].priority),
                       ),
                   ],
-                );
-              },
-              loading: () => const SizedBox(
-                height: 60,
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (e, _) => Text('Error: $e'),
+                ),
+              ],
             );
           },
           loading: () => const SizedBox(
@@ -767,108 +768,94 @@ class _TimelineItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: (dotColor ?? colors.primary).withValues(alpha: 0.25),
+                    color: Colors.black.withValues(alpha: 0.25),
                     blurRadius: 16,
                     spreadRadius: 0,
                   ),
                 ],
                 border: Border.all(
-                  color: (dotColor ?? colors.primary).withValues(alpha: 0.6),
+                  color: colors.outlineVariant.withValues(alpha: 0.6),
                   width: 1.2,
                 ),
               ),
               child: IntrinsicHeight(
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                  // Leading icon spans both lines visually
-                  Container(
-                    width: 36,
-                    height: double.infinity,
-                    decoration: BoxDecoration(
-                      color: colors.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border(
-                        top: BorderSide(color: colors.outlineVariant),
-                        bottom: BorderSide(color: colors.outlineVariant),
-                        left: BorderSide(color: colors.outlineVariant),
-                        right: BorderSide(
-                          color: (dotColor ?? colors.outlineVariant).withValues(alpha: 0.5),
-                          width: 1.2,
-                        ),
+                    // Leading icon only, no decoration/container
+                    Icon(leadingIcon ?? Icons.task_alt, size: 30),
+                    SizedBox(width: spaces.sm),
+                    // Two-line block: title on first, time + avatars on second
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                              ),
+                              if (dotColor != null)
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: spaces.sm,
+                                    vertical: spaces.xs,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: (dotColor!).withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text(
+                                    dotColor == Colors.green
+                                        ? AppStrings.todayNow
+                                        : AppStrings.todayNext,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(color: dotColor),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          SizedBox(height: spaces.xs),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  timeText,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(
+                                        color: colors.onSurfaceVariant,
+                                      ),
+                                ),
+                              ),
+                              if (assignees.isNotEmpty)
+                                _AvatarRow(profiles: assignees),
+                            ],
+                          ),
+                          if (note != null) ...[
+                            SizedBox(height: spaces.xs),
+                            Text(
+                              note!,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ],
                       ),
                     ),
-                    child: Center(
-                      child: Icon(leadingIcon ?? Icons.task_alt, size: 18),
-                    ),
-                  ),
-                  SizedBox(width: spaces.md),
-                  // Two-line block: title on first, time + avatars on second
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.titleSmall,
-                              ),
-                            ),
-                            if (dotColor != null)
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: spaces.sm,
-                                  vertical: spaces.xs,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: (dotColor!).withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: Text(
-                                  dotColor == Colors.green
-                                      ? AppStrings.todayNow
-                                      : AppStrings.todayNext,
-                                  style: Theme.of(context).textTheme.labelSmall
-                                      ?.copyWith(color: dotColor),
-                                ),
-                              ),
-                          ],
-                        ),
-                        SizedBox(height: spaces.xs),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                timeText,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.labelSmall
-                                    ?.copyWith(color: colors.onSurfaceVariant),
-                              ),
-                            ),
-                            if (assignees.isNotEmpty)
-                              _AvatarRow(profiles: assignees),
-                          ],
-                        ),
-                        if (note != null) ...[
-                          SizedBox(height: spaces.xs),
-                          Text(
-                            note!,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -914,6 +901,29 @@ class _SmallAvatar extends StatelessWidget {
           ? Text(label, style: const TextStyle(fontSize: 10))
           : null,
     );
+  }
+}
+
+class _VerticalRailPainter extends CustomPainter {
+  _VerticalRailPainter({required this.color, required this.strokeWidth});
+  final Color color;
+  final double strokeWidth;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    final start = Offset(0, 0);
+    final end = Offset(0, size.height);
+    canvas.drawLine(start, end, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _VerticalRailPainter oldDelegate) {
+    return oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
   }
 }
 

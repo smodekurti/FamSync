@@ -111,7 +111,7 @@ class FamAppBarScaffold extends ConsumerWidget {
                           right: 16,
                           bottom: 64,
                           child: SizedBox(
-                            height: AppSizes(context.layout).touchTarget + 8,
+                            height: AppSizes(context.layout).touchTarget + 24,
                             child: headerBuilder!(context, controller),
                           ),
                         ),

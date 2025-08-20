@@ -19,6 +19,7 @@ class AppStrings {
   static const todayGroceryPickup = 'Grocery pickup';
   static const todaySoccerPractice = 'Soccer practice';
   static const todayDinner = 'Dinner at home';
+  static const todayTimelinePlaceholder = 'Timeline coming soon';
 
   // Placeholders / Hints
   static const noFamilyContext = 'No family context.';

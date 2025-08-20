@@ -54,6 +54,7 @@ class HubScreen extends ConsumerWidget {
               SizedBox(height: spaces.md),
               _LogisticsRow(),
               SizedBox(height: spaces.lg),
+              // Prevent vertical overflow by allowing wrap and intrinsic height
               _ShortcutsDock(),
             ],
           );
@@ -99,11 +100,15 @@ class _SectionCard extends StatelessWidget {
               children: [
                 Icon(icon, color: colors.primary),
                 SizedBox(width: context.spaces.sm),
-                Text(
-                  title,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(color: colors.onSurface),
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleLarge?.copyWith(color: colors.onSurface),
+                  ),
                 ),
               ],
             ),
@@ -197,25 +202,30 @@ class _TopStrip extends ConsumerWidget {
           ),
         ),
         SizedBox(width: spaces.md),
+        // Make trailing avatars scrollable to avoid horizontal overflow
         profileAsync.when(
           data: (profile) {
             final familyId = profile?.familyId;
             if (familyId == null) return const SizedBox.shrink();
             final usersAsync = ref.watch(familyUsersProvider(familyId));
             return usersAsync.when(
-              data: (users) => Row(
-                mainAxisSize: MainAxisSize.min,
-                children: users.take(3).map((u) {
-                  final label = u.displayName.isNotEmpty ? u.displayName[0] : '?';
-                  return Padding(
-                    padding: EdgeInsets.only(left: spaces.xs),
-                    child: CircleAvatar(
+              data: (users) => SizedBox(
+                height: 32,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  shrinkWrap: true,
+                  itemBuilder: (_, i) {
+                    final u = users[i];
+                    final label = u.displayName.isNotEmpty ? u.displayName[0] : '?';
+                    return CircleAvatar(
                       radius: 16,
                       backgroundColor: Colors.white24,
                       child: Text(label, style: const TextStyle(color: Colors.white)),
-                    ),
-                  );
-                }).toList(),
+                    );
+                  },
+                  separatorBuilder: (_, __) => SizedBox(width: spaces.xs),
+                  itemCount: users.length.clamp(0, 6),
+                ),
               ),
               error: (_, __) => const SizedBox.shrink(),
               loading: () => const SizedBox.shrink(),

@@ -1,0 +1,150 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fam_sync/data/events/events_repository.dart';
+import 'package:fam_sync/domain/models/event.dart';
+
+
+// Repository provider
+final eventsRepositoryProvider = Provider<EventsRepository>((ref) {
+  return EventsRepository();
+});
+
+// Calendar view state provider
+final calendarViewProvider = StateProvider<CalendarView>((ref) => CalendarView.month);
+
+// Selected date provider
+final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
+
+// Current month provider
+final currentMonthProvider = StateProvider<DateTime>((ref) => DateTime.now());
+
+// Events for current month provider
+final monthEventsProvider = StreamProvider.family<List<Event>, String>((ref, familyId) {
+  final currentMonth = ref.watch(currentMonthProvider);
+  final repository = ref.watch(eventsRepositoryProvider);
+  return repository.getMonthEventsStream(familyId, currentMonth.year, currentMonth.month);
+});
+
+// Today's events provider
+final todayEventsProvider = StreamProvider.family<List<Event>, String>((ref, familyId) {
+  final repository = ref.watch(eventsRepositoryProvider);
+  return repository.getTodayEventsStream(familyId);
+});
+
+// Upcoming events provider (next 7 days)
+final upcomingEventsProvider = StreamProvider.family<List<Event>, String>((ref, familyId) {
+  final repository = ref.watch(eventsRepositoryProvider);
+  return repository.getUpcomingEventsStream(familyId);
+});
+
+// User events provider
+final userEventsProvider = StreamProvider.family<List<Event>, MapEntry<String, String>>((ref, entry) {
+  final familyId = entry.key;
+  final userId = entry.value;
+  final repository = ref.watch(eventsRepositoryProvider);
+  return repository.getUserEventsStream(familyId, userId);
+});
+
+// Calendar notifier for managing calendar state
+class CalendarNotifier extends StateNotifier<CalendarState> {
+  CalendarNotifier(this.ref) : super(CalendarState.initial());
+
+  final Ref ref;
+
+  void setView(CalendarView view) {
+    state = state.copyWith(currentView: view);
+  }
+
+  void setSelectedDate(DateTime date) {
+    ref.read(selectedDateProvider.notifier).state = date;
+    state = state.copyWith(selectedDate: date);
+  }
+
+  void setCurrentMonth(DateTime month) {
+    ref.read(currentMonthProvider.notifier).state = month;
+    state = state.copyWith(currentMonth: month);
+  }
+
+  void nextMonth() {
+    final current = state.currentMonth;
+    final next = DateTime(current.year, current.month + 1, 1);
+    setCurrentMonth(next);
+  }
+
+  void previousMonth() {
+    final current = state.currentMonth;
+    final previous = DateTime(current.year, current.month - 1, 1);
+    setCurrentMonth(previous);
+  }
+
+  void goToToday() {
+    final today = DateTime.now();
+    setSelectedDate(today);
+    setCurrentMonth(DateTime(today.year, today.month, 1));
+  }
+
+  Future<void> createEvent(Event event) async {
+    final repository = ref.read(eventsRepositoryProvider);
+    await repository.createEvent(event);
+  }
+
+  Future<void> updateEvent(Event event) async {
+    final repository = ref.read(eventsRepositoryProvider);
+    await repository.updateEvent(event);
+  }
+
+  Future<void> deleteEvent(String eventId) async {
+    final repository = ref.read(eventsRepositoryProvider);
+    await repository.deleteEvent(eventId);
+  }
+}
+
+final calendarNotifierProvider = StateNotifierProvider<CalendarNotifier, CalendarState>((ref) {
+  return CalendarNotifier(ref);
+});
+
+// Calendar state
+class CalendarState {
+  final CalendarView currentView;
+  final DateTime selectedDate;
+  final DateTime currentMonth;
+  final bool isLoading;
+  final String? error;
+
+  const CalendarState({
+    required this.currentView,
+    required this.selectedDate,
+    required this.currentMonth,
+    this.isLoading = false,
+    this.error,
+  });
+
+  factory CalendarState.initial() => CalendarState(
+    currentView: CalendarView.month,
+    selectedDate: DateTime.now(),
+    currentMonth: DateTime.now(),
+  );
+
+  CalendarState copyWith({
+    CalendarView? currentView,
+    DateTime? selectedDate,
+    DateTime? currentMonth,
+    bool? isLoading,
+    String? error,
+  }) {
+    return CalendarState(
+      currentView: currentView ?? this.currentView,
+      selectedDate: selectedDate ?? this.selectedDate,
+      currentMonth: currentMonth ?? this.currentMonth,
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+    );
+  }
+}
+
+// Calendar view types
+enum CalendarView {
+  month,
+  week,
+  day,
+  agenda,
+}

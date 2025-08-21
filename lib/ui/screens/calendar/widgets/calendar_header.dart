@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fam_sync/ui/screens/calendar/calendar_utils.dart';
+import 'package:fam_sync/theme/app_theme.dart';
 
 class CalendarHeader extends StatelessWidget {
   final DateTime currentMonth;
@@ -18,6 +19,7 @@ class CalendarHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final spaces = context.spaces;
     
     return Row(
       children: [
@@ -58,7 +60,7 @@ class CalendarHeader extends StatelessWidget {
           onPressed: onToday,
           icon: Icon(
             Icons.today,
-            size: 18,
+            size: spaces.md,
             color: colors.primary,
           ),
           label: Text(

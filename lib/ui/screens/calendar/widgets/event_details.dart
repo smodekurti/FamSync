@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fam_sync/domain/models/event.dart';
 import 'package:fam_sync/ui/screens/calendar/calendar_utils.dart';
 import 'package:fam_sync/ui/screens/calendar/widgets/event_form.dart';
+import 'package:fam_sync/theme/app_theme.dart';
+import 'package:fam_sync/theme/tokens.dart';
 
 class EventDetails extends ConsumerWidget {
   final Event event;
@@ -19,6 +21,7 @@ class EventDetails extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
+    final spaces = context.spaces;
     final eventColor = CalendarUtils.getEventColor(event.category);
     final priorityColor = CalendarUtils.getPriorityColor(event.priority);
     
@@ -39,19 +42,19 @@ class EventDetails extends ConsumerWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(spaces.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Event header with color indicator
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(spaces.md),
               decoration: BoxDecoration(
                 color: eventColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(spaces.sm),
                 border: Border.all(
                   color: eventColor,
-                  width: 2,
+                  width: spaces.xs / 2,
                 ),
               ),
               child: Column(
@@ -66,70 +69,74 @@ class EventDetails extends ConsumerWidget {
                     ),
                   ),
                   
-                  const SizedBox(height: 8),
+                  SizedBox(height: spaces.xs),
                   
                   // Category and Priority
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: EdgeInsets.symmetric(horizontal: spaces.xs, vertical: spaces.xs / 2),
                         decoration: BoxDecoration(
                           color: eventColor,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(spaces.sm),
                         ),
                         child: Text(
                           event.category.name.toUpperCase(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
+                            fontSize: spaces.xs,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: priorityColor,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          event.priority.name.toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                      SizedBox(width: spaces.xs),
+                                              Container(
+                          padding: EdgeInsets.symmetric(horizontal: spaces.xs, vertical: spaces.xs / 2),
+                          decoration: BoxDecoration(
+                            color: priorityColor,
+                            borderRadius: BorderRadius.circular(spaces.sm),
+                          ),
+                          child: Text(
+                            event.priority.name.toUpperCase(),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: spaces.xs,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ],
               ),
             ),
             
-            const SizedBox(height: 24),
+            SizedBox(height: spaces.lg),
             
             // Time and Date
             _buildInfoSection(
               context,
+              spaces,
               title: 'Time & Date',
               icon: Icons.schedule,
               children: [
                 _buildInfoRow(
                   context,
+                  spaces,
                   label: 'Start',
                   value: CalendarUtils.formatDateRange(event.startTime, event.startTime),
                   icon: Icons.play_arrow,
                 ),
                 _buildInfoRow(
                   context,
+                  spaces,
                   label: 'End',
                   value: CalendarUtils.formatDateRange(event.endTime, event.endTime),
                   icon: Icons.stop,
                 ),
                 _buildInfoRow(
                   context,
+                  spaces,
                   label: 'Duration',
                   value: CalendarUtils.getDuration(event.startTime, event.endTime),
                   icon: Icons.timer,
@@ -137,17 +144,19 @@ class EventDetails extends ConsumerWidget {
               ],
             ),
             
-            const SizedBox(height: 16),
+            SizedBox(height: spaces.md),
             
             // Location
             if (event.location != null && event.location!.isNotEmpty)
               _buildInfoSection(
                 context,
+                spaces,
                 title: 'Location',
                 icon: Icons.location_on,
                 children: [
                   _buildInfoRow(
                     context,
+                    spaces,
                     label: 'Address',
                     value: event.location!,
                     icon: Icons.place,
@@ -155,17 +164,18 @@ class EventDetails extends ConsumerWidget {
                 ],
               ),
             
-            const SizedBox(height: 16),
+            SizedBox(height: spaces.md),
             
             // Description
             if (event.description.isNotEmpty)
               _buildInfoSection(
                 context,
+                spaces,
                 title: 'Description',
                 icon: Icons.description,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(left: 16),
+                    padding: EdgeInsets.only(left: spaces.md),
                     child: Text(
                       event.description,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -176,39 +186,40 @@ class EventDetails extends ConsumerWidget {
                 ],
               ),
             
-            const SizedBox(height: 16),
+            SizedBox(height: spaces.md),
             
             // Participants
             if (event.assignedUids.isNotEmpty)
               _buildInfoSection(
                 context,
+                spaces,
                 title: 'Participants',
                 icon: Icons.people,
                 children: [
                   // TODO: Show actual participant names from user profiles
                   Padding(
-                    padding: const EdgeInsets.only(left: 16),
+                    padding: EdgeInsets.only(left: spaces.md),
                     child: Text(
                       '${event.assignedUids.length} participant(s)',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
+                        color: colors.onSurfaceVariant),
                     ),
                   ),
                 ],
               ),
             
-            const SizedBox(height: 16),
+            SizedBox(height: spaces.md),
             
             // Notes
             if (event.notes != null && event.notes!.isNotEmpty)
               _buildInfoSection(
                 context,
+                spaces,
                 title: 'Notes',
                 icon: Icons.note,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(left: 16),
+                    padding: EdgeInsets.only(left: spaces.md),
                     child: Text(
                       event.notes!,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -219,7 +230,7 @@ class EventDetails extends ConsumerWidget {
                 ],
               ),
             
-            const SizedBox(height: 24),
+            SizedBox(height: spaces.lg),
             
             // Action buttons
             Row(
@@ -231,7 +242,7 @@ class EventDetails extends ConsumerWidget {
                     label: const Text('Edit Event'),
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: spaces.md),
                 Expanded(
                   child: FilledButton.icon(
                     onPressed: () => _markAsCompleted(context, ref),
@@ -248,7 +259,8 @@ class EventDetails extends ConsumerWidget {
   }
 
   Widget _buildInfoSection(
-    BuildContext context, {
+    BuildContext context,
+    AppSpacing spaces, {
     required String title,
     required IconData icon,
     required List<Widget> children,
@@ -263,9 +275,9 @@ class EventDetails extends ConsumerWidget {
             Icon(
               icon,
               color: colors.primary,
-              size: 20,
+              size: spaces.md,
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: spaces.xs),
             Text(
               title,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -275,14 +287,15 @@ class EventDetails extends ConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: spaces.xs),
         ...children,
       ],
     );
   }
 
   Widget _buildInfoRow(
-    BuildContext context, {
+    BuildContext context,
+    AppSpacing spaces, {
     required String label,
     required String value,
     required IconData icon,
@@ -290,15 +303,15 @@ class EventDetails extends ConsumerWidget {
     final colors = Theme.of(context).colorScheme;
     
     return Padding(
-      padding: const EdgeInsets.only(left: 16, bottom: 8),
+      padding: EdgeInsets.only(left: spaces.md, bottom: spaces.xs),
       child: Row(
         children: [
           Icon(
             icon,
             color: colors.onSurfaceVariant,
-            size: 16,
+            size: spaces.md,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: spaces.xs),
           Text(
             '$label: ',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(

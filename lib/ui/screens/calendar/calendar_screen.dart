@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fam_sync/theme/app_theme.dart';
 
 import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
 import 'package:fam_sync/ui/appbar/fam_app_bar_scaffold.dart';
@@ -19,55 +20,59 @@ class CalendarScreen extends ConsumerWidget {
     final calendarState = ref.watch(calendarNotifierProvider);
     final calendarNotifier = ref.read(calendarNotifierProvider.notifier);
     
+    final spaces = context.spaces;
     return FamAppBarScaffold(
       title: const FamilyAppBarTitle(fallback: AppStrings.calendarTitle),
-      fixedActions: const [
-        Icon(AppIcons.reminder),
-        SizedBox(width: 8),
-        Icon(AppIcons.add),
-        SizedBox(width: 8),
-        Icon(AppIcons.profile),
+      fixedActions: [
+        const Icon(AppIcons.reminder),
+        SizedBox(width: spaces.xs),
+        const Icon(AppIcons.add),
+        SizedBox(width: spaces.xs),
+        const Icon(AppIcons.profile),
       ],
       extraActions: const [],
-      headerBuilder: (context, controller) => Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        alignment: WrapAlignment.center,
+      headerBuilder: (context, controller) {
+        final spaces = context.spaces;
+        return Wrap(
+          spacing: spaces.sm,
+          runSpacing: spaces.sm,
+          alignment: WrapAlignment.center,
         children: [
           FilledButton.icon(
             onPressed: () => calendarNotifier.goToToday(),
-            icon: const Icon(AppIcons.today, size: 18),
-            label: const Text('Today', style: TextStyle(fontSize: 13)),
+            icon: Icon(AppIcons.today, size: spaces.md),
+            label: Text('Today', style: TextStyle(fontSize: spaces.xs + 1)),
             style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: spaces.sm, vertical: spaces.xs),
             ),
           ),
           OutlinedButton.icon(
             onPressed: () => calendarNotifier.setView(CalendarView.month),
-            icon: const Icon(AppIcons.month, size: 18),
-            label: const Text('Month', style: TextStyle(fontSize: 13)),
+            icon: Icon(AppIcons.month, size: spaces.md),
+            label: Text('Month', style: TextStyle(fontSize: spaces.xs + 1)),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: spaces.sm, vertical: spaces.xs),
             ),
           ),
           OutlinedButton.icon(
             onPressed: () => calendarNotifier.setView(CalendarView.week),
-            icon: const Icon(AppIcons.week, size: 18),
-            label: const Text('Week', style: TextStyle(fontSize: 13)),
+            icon: Icon(AppIcons.week, size: spaces.md),
+            label: Text('Week', style: TextStyle(fontSize: spaces.xs + 1)),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: spaces.sm, vertical: spaces.xs),
             ),
           ),
           OutlinedButton.icon(
             onPressed: () => calendarNotifier.setView(CalendarView.agenda),
-            icon: const Icon(Icons.list, size: 18),
-            label: const Text('Agenda', style: TextStyle(fontSize: 13)),
+            icon: Icon(Icons.list, size: spaces.md),
+            label: Text('Agenda', style: TextStyle(fontSize: spaces.xs + 1)),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: spaces.sm, vertical: spaces.xs),
             ),
           ),
         ],
-      ),
+        );
+      },
       body: _buildCalendarBody(context, ref, calendarState),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showEventForm(context, ref),

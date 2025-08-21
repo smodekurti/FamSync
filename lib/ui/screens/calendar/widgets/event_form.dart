@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fam_sync/domain/models/event.dart';
 import 'package:fam_sync/ui/screens/calendar/calendar_utils.dart';
+import 'package:fam_sync/theme/app_theme.dart';
 
 class EventForm extends ConsumerStatefulWidget {
   final Event? event; // null for new event, Event for editing
@@ -78,6 +79,7 @@ class _EventFormState extends ConsumerState<EventForm> {
 
   @override
   Widget build(BuildContext context) {
+    final spaces = context.spaces;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.event != null ? 'Edit Event' : 'New Event'),
@@ -91,7 +93,7 @@ class _EventFormState extends ConsumerState<EventForm> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(spaces.md),
           children: [
             // Title
             TextFormField(
@@ -108,7 +110,7 @@ class _EventFormState extends ConsumerState<EventForm> {
               },
             ),
             
-            const SizedBox(height: 16),
+            SizedBox(height: spaces.md),
             
             // Description
             TextFormField(
@@ -120,7 +122,7 @@ class _EventFormState extends ConsumerState<EventForm> {
               maxLines: 3,
             ),
             
-            const SizedBox(height: 16),
+            SizedBox(height: spaces.md),
             
             // Start Date & Time
             Row(
@@ -141,7 +143,7 @@ class _EventFormState extends ConsumerState<EventForm> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: spaces.md),
                 Expanded(
                   child: TextFormField(
                     readOnly: true,
@@ -161,7 +163,7 @@ class _EventFormState extends ConsumerState<EventForm> {
               ],
             ),
             
-            const SizedBox(height: 16),
+            SizedBox(height: spaces.md),
             
             // End Date & Time
             Row(
@@ -182,7 +184,7 @@ class _EventFormState extends ConsumerState<EventForm> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: spaces.md),
                 Expanded(
                   child: TextFormField(
                     readOnly: true,
@@ -202,7 +204,7 @@ class _EventFormState extends ConsumerState<EventForm> {
               ],
             ),
             
-            const SizedBox(height: 16),
+            SizedBox(height: spaces.md),
             
             // Location
             TextFormField(
@@ -214,7 +216,7 @@ class _EventFormState extends ConsumerState<EventForm> {
               ),
             ),
             
-            const SizedBox(height: 16),
+            SizedBox(height: spaces.md),
             
             // Category
             DropdownButtonFormField<EventCategory>(
@@ -238,7 +240,7 @@ class _EventFormState extends ConsumerState<EventForm> {
               },
             ),
             
-            const SizedBox(height: 16),
+            SizedBox(height: spaces.md),
             
             // Priority
             DropdownButtonFormField<EventPriority>(
@@ -253,14 +255,14 @@ class _EventFormState extends ConsumerState<EventForm> {
                   child: Row(
                     children: [
                       Container(
-                        width: 12,
-                        height: 12,
+                        width: spaces.xs,
+                        height: spaces.xs,
                         decoration: BoxDecoration(
                           color: CalendarUtils.getPriorityColor(priority),
                           shape: BoxShape.circle,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: spaces.xs),
                       Text(priority.name.toUpperCase()),
                     ],
                   ),

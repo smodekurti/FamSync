@@ -4,6 +4,7 @@ import 'package:fam_sync/domain/models/event.dart';
 import 'package:fam_sync/ui/screens/calendar/calendar_providers.dart';
 import 'package:fam_sync/ui/screens/calendar/calendar_utils.dart';
 import 'package:fam_sync/data/auth/auth_repository.dart';
+import 'package:fam_sync/theme/app_theme.dart';
 
 class WeekView extends ConsumerWidget {
   const WeekView({super.key});
@@ -43,7 +44,7 @@ class WeekView extends ConsumerWidget {
       children: [
         // Week header
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(context.spaces.md),
           child: Row(
             children: [
               IconButton(
@@ -106,24 +107,24 @@ class WeekView extends ConsumerWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          border: Border(
-            right: BorderSide(
-              color: colors.outlineVariant,
-              width: 0.5,
-            ),
+                  border: Border(
+          right: BorderSide(
+            color: colors.outlineVariant,
+            width: context.spaces.xs / 8,
           ),
+        ),
         ),
         child: Column(
           children: [
             // Day header
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: EdgeInsets.symmetric(vertical: context.spaces.xs),
               decoration: BoxDecoration(
                 color: isToday ? colors.primaryContainer : colors.surfaceContainerHighest,
                 border: Border(
                   bottom: BorderSide(
                     color: colors.outlineVariant,
-                    width: 0.5,
+                    width: context.spaces.xs / 8,
                   ),
                 ),
               ),
@@ -171,14 +172,14 @@ class WeekView extends ConsumerWidget {
     final eventColor = CalendarUtils.getEventColor(event.category);
     
     return Container(
-      margin: const EdgeInsets.all(2),
-      padding: const EdgeInsets.all(4),
+      margin: EdgeInsets.all(context.spaces.xs / 4),
+      padding: EdgeInsets.all(context.spaces.xs / 2),
       decoration: BoxDecoration(
         color: eventColor.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(context.spaces.xs / 2),
         border: Border.all(
           color: eventColor,
-          width: 1,
+          width: context.spaces.xs / 4,
         ),
       ),
       child: Column(
@@ -197,7 +198,7 @@ class WeekView extends ConsumerWidget {
             CalendarUtils.formatTime(event.startTime),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: colors.onSurfaceVariant,
-              fontSize: 10,
+              fontSize: context.spaces.xs,
             ),
           ),
         ],

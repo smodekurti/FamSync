@@ -4,6 +4,8 @@ import 'package:fam_sync/domain/models/event.dart';
 import 'package:fam_sync/ui/screens/calendar/calendar_providers.dart';
 import 'package:fam_sync/ui/screens/calendar/calendar_utils.dart';
 import 'package:fam_sync/ui/screens/calendar/widgets/event_details.dart';
+import 'package:fam_sync/theme/app_theme.dart';
+import 'package:fam_sync/theme/tokens.dart';
 import 'package:fam_sync/data/auth/auth_repository.dart';
 
 class AgendaView extends ConsumerWidget {
@@ -11,6 +13,7 @@ class AgendaView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final spaces = context.spaces;
     final familyId = ref.watch(userProfileStreamProvider).when(
       data: (profile) => profile?.familyId,
       loading: () => null,
@@ -24,32 +27,32 @@ class AgendaView extends ConsumerWidget {
     final upcomingEventsAsync = ref.watch(upcomingEventsProvider(familyId));
 
     return upcomingEventsAsync.when(
-      data: (events) => _buildAgendaList(context, ref, events),
+      data: (events) => _buildAgendaList(context, ref, events, spaces),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, __) => const Center(child: Text('Error loading events')),
     );
   }
 
-  Widget _buildAgendaList(BuildContext context, WidgetRef ref, List<Event> events) {
+  Widget _buildAgendaList(BuildContext context, WidgetRef ref, List<Event> events, AppSpacing spaces) {
     if (events.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.event_busy,
-              size: 64,
+              size: spaces.xl * 2,
               color: Colors.grey,
             ),
-            SizedBox(height: 16),
+            SizedBox(height: spaces.md),
             Text(
               'No upcoming events',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: spaces.md,
                 color: Colors.grey,
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: spaces.xs),
             Text(
               'Tap the + button to create your first event',
               style: TextStyle(
@@ -71,18 +74,18 @@ class AgendaView extends ConsumerWidget {
     final sortedDates = groupedEvents.keys.toList()..sort();
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(spaces.md),
       itemCount: sortedDates.length,
       itemBuilder: (context, index) {
         final date = sortedDates[index];
         final dayEvents = groupedEvents[date]!;
         
-        return _buildDateSection(context, date, dayEvents);
+        return _buildDateSection(context, date, dayEvents, spaces);
       },
     );
   }
 
-  Widget _buildDateSection(BuildContext context, DateTime date, List<Event> events) {
+  Widget _buildDateSection(BuildContext context, DateTime date, List<Event> events, AppSpacing spaces) {
     final colors = Theme.of(context).colorScheme;
     final isToday = CalendarUtils.isToday(date);
     
@@ -91,11 +94,11 @@ class AgendaView extends ConsumerWidget {
       children: [
         // Date header
         Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          margin: const EdgeInsets.only(bottom: 8),
+          padding: EdgeInsets.symmetric(vertical: spaces.xs, horizontal: spaces.md),
+          margin: EdgeInsets.only(bottom: spaces.xs),
           decoration: BoxDecoration(
             color: isToday ? colors.primaryContainer : colors.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(spaces.xs),
           ),
           child: Row(
             children: [
@@ -106,9 +109,9 @@ class AgendaView extends ConsumerWidget {
                   color: isToday ? colors.primary : colors.onSurface,
                 ),
               ),
-              const SizedBox(width: 8),
+                            SizedBox(width: spaces.xs),
               Text(
-                                 '${date.day} ${_getMonthName(date.month)}',
+                '${date.day} ${_getMonthName(date.month)}',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: isToday ? colors.primary : colors.onSurfaceVariant,
                 ),
@@ -117,15 +120,15 @@ class AgendaView extends ConsumerWidget {
           ),
         ),
         
-        // Events for this date
-        ...events.map((event) => _buildEventItem(context, event)),
+                          // Events for this date
+                  ...events.map((event) => _buildEventItem(context, event, spaces)),
         
-        const SizedBox(height: 16),
+        SizedBox(height: spaces.md),
       ],
     );
   }
 
-  Widget _buildEventItem(BuildContext context, Event event) {
+  Widget _buildEventItem(BuildContext context, Event event, AppSpacing spaces) {
     final colors = Theme.of(context).colorScheme;
     final eventColor = CalendarUtils.getEventColor(event.category);
     final priorityColor = CalendarUtils.getPriorityColor(event.priority);
@@ -136,12 +139,12 @@ class AgendaView extends ConsumerWidget {
         onTap: () => _showEventDetails(context, event),
         borderRadius: BorderRadius.circular(8),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(spaces.md),
           child: Row(
             children: [
               // Time column
               SizedBox(
-                width: 60,
+                width: spaces.xl * 1.5,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -180,11 +183,11 @@ class AgendaView extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: spaces.xs),
                         // Category indicator
                         Container(
-                          width: 12,
-                          height: 12,
+                          width: spaces.xs,
+                          height: spaces.xs,
                           decoration: BoxDecoration(
                             color: eventColor,
                             shape: BoxShape.circle,
@@ -194,7 +197,7 @@ class AgendaView extends ConsumerWidget {
                     ),
                     
                     if (event.description.isNotEmpty) ...[
-                      const SizedBox(height: 4),
+                      SizedBox(height: spaces.xs / 2),
                       Text(
                         event.description,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -205,7 +208,7 @@ class AgendaView extends ConsumerWidget {
                       ),
                     ],
                     
-                    const SizedBox(height: 8),
+                    SizedBox(height: spaces.xs),
                     
                     // Event metadata
                     Row(
@@ -213,10 +216,10 @@ class AgendaView extends ConsumerWidget {
                         if (event.location != null && event.location!.isNotEmpty) ...[
                           Icon(
                             Icons.location_on,
-                            size: 14,
+                            size: spaces.sm,
                             color: colors.onSurfaceVariant,
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: spaces.xs / 2),
                           Expanded(
                             child: Text(
                               event.location!,
@@ -227,21 +230,21 @@ class AgendaView extends ConsumerWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          SizedBox(width: spaces.md),
                         ],
                         
                         // Priority indicator
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: EdgeInsets.symmetric(horizontal: spaces.xs / 2, vertical: spaces.xs / 4),
                           decoration: BoxDecoration(
                             color: priorityColor,
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(spaces.xs / 2),
                           ),
                           child: Text(
                             event.priority.name.toUpperCase(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
-                              fontSize: 10,
+                              fontSize: spaces.xs,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

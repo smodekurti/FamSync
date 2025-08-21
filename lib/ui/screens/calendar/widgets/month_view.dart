@@ -6,6 +6,7 @@ import 'package:fam_sync/ui/screens/calendar/calendar_utils.dart';
 import 'package:fam_sync/ui/screens/calendar/widgets/calendar_day.dart';
 import 'package:fam_sync/ui/screens/calendar/widgets/calendar_header.dart';
 import 'package:fam_sync/data/auth/auth_repository.dart';
+import 'package:fam_sync/theme/app_theme.dart';
 
 class MonthView extends ConsumerWidget {
   const MonthView({super.key});
@@ -53,7 +54,7 @@ class MonthView extends ConsumerWidget {
           onToday: () => calendarNotifier.goToToday(),
         ),
         
-        const SizedBox(height: 16),
+        SizedBox(height: context.spaces.md),
         
         // Day names header
         Row(
@@ -75,7 +76,7 @@ class MonthView extends ConsumerWidget {
           ],
         ),
         
-        const SizedBox(height: 8),
+        SizedBox(height: context.spaces.xs),
         
         // Calendar grid
         Expanded(

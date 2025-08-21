@@ -140,7 +140,7 @@ class AgendaView extends ConsumerWidget {
           child: Row(
             children: [
               // Time column
-              Container(
+              SizedBox(
                 width: 60,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,7 +227,7 @@ class AgendaView extends ConsumerWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          SizedBox(width: 16),
+                          const SizedBox(width: 16),
                         ],
                         
                         // Priority indicator

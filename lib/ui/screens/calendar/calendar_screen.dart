@@ -29,30 +29,42 @@ class CalendarScreen extends ConsumerWidget {
         Icon(AppIcons.profile),
       ],
       extraActions: const [],
-      headerBuilder: (context, controller) => Row(
+      headerBuilder: (context, controller) => Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        alignment: WrapAlignment.center,
         children: [
           FilledButton.icon(
             onPressed: () => calendarNotifier.goToToday(),
-            icon: const Icon(AppIcons.today),
-            label: const Text('Today'),
+            icon: const Icon(AppIcons.today, size: 18),
+            label: const Text('Today', style: TextStyle(fontSize: 13)),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
           ),
-          const SizedBox(width: 8),
           OutlinedButton.icon(
             onPressed: () => calendarNotifier.setView(CalendarView.month),
-            icon: const Icon(AppIcons.month),
-            label: const Text('Month'),
+            icon: const Icon(AppIcons.month, size: 18),
+            label: const Text('Month', style: TextStyle(fontSize: 13)),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
           ),
-          const SizedBox(width: 8),
           OutlinedButton.icon(
             onPressed: () => calendarNotifier.setView(CalendarView.week),
-            icon: const Icon(AppIcons.week),
-            label: const Text('Week'),
+            icon: const Icon(AppIcons.week, size: 18),
+            label: const Text('Week', style: TextStyle(fontSize: 13)),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
           ),
-          const SizedBox(width: 8),
           OutlinedButton.icon(
             onPressed: () => calendarNotifier.setView(CalendarView.agenda),
-            icon: const Icon(Icons.list),
-            label: const Text('Agenda'),
+            icon: const Icon(Icons.list, size: 18),
+            label: const Text('Agenda', style: TextStyle(fontSize: 13)),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
           ),
         ],
       ),

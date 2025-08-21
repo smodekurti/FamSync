@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fam_sync/theme/app_theme.dart';
-// tokens not directly used here; styling via theme/context extensions
 import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/data/announcements/announcements_repository.dart';
 import 'package:fam_sync/data/messages/messages_repository.dart';
 import 'package:fam_sync/data/tasks/tasks_repository.dart';
-import 'package:fam_sync/domain/models/task.dart';
+
 import 'package:fam_sync/core/utils/time.dart';
 import 'package:fam_sync/data/users/users_repository.dart';
 import 'package:fam_sync/ui/appbar/fam_app_bar_scaffold.dart';
 import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
 import 'package:fam_sync/ui/strings.dart';
 import 'package:fam_sync/ui/icons.dart';
+import 'package:fam_sync/domain/models/announcement.dart';
+import 'package:fam_sync/domain/models/task.dart';
+import 'package:fam_sync/domain/models/user_profile.dart';
 
 class HubScreen extends ConsumerWidget {
   const HubScreen({super.key});
@@ -23,149 +25,33 @@ class HubScreen extends ConsumerWidget {
     final spaces = context.spaces;
     return FamAppBarScaffold(
       title: const FamilyAppBarTitle(fallback: 'Family'),
-      expandedHeight: 240,
-      fixedActions: const [
-        Icon(AppIcons.reminder),
-        SizedBox(width: 16),
-        Icon(AppIcons.add),
-        SizedBox(width: 16),
-        Icon(AppIcons.profile),
-        SizedBox(width: 8),
+      expandedHeight: spaces.xxl * 6, // Responsive header height
+      fixedActions: [
+        const Icon(AppIcons.reminder),
+        SizedBox(width: spaces.sm),
+        const Icon(AppIcons.add),
+        SizedBox(width: spaces.sm),
+        const Icon(AppIcons.profile),
+        SizedBox(width: spaces.xs),
       ],
       headerBuilder: (context, controller) => _TopStrip(),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _TodayTimelineCard(),
-              SizedBox(height: spaces.md),
-              _ActionablesCard(),
-              SizedBox(height: spaces.md),
-              _AnnouncementsMessagesRow(),
-              SizedBox(height: spaces.md),
-              _LogisticsRow(),
-              SizedBox(height: spaces.lg),
-              _ShortcutsDock(),
-            ],
-          );
-        },
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _TodayTimelineCard(),
+          SizedBox(height: spaces.md),
+          _ActionablesCard(),
+          SizedBox(height: spaces.md),
+          _AnnouncementsMessagesRow(),
+          SizedBox(height: spaces.md),
+          _LogisticsRow(),
+          SizedBox(height: spaces.lg),
+          _ShortcutsDock(),
+        ],
       ),
     );
   }
 }
-
-// Old generic card no longer used after redesign; keeping UI-specific cards below
-
-// Replaces bespoke SliverAppBar; header content now supplied via FamAppBarScaffold
-
-// Header content replaced with _TopStrip in FamAppBarScaffold
-
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({
-    required this.title,
-    required this.icon,
-    required this.child,
-  });
-  final String title;
-  final IconData icon;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Card(
-      color: colors.surfaceContainerHigh,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: colors.outlineVariant),
-      ),
-      elevation: 1,
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: EdgeInsets.all(context.spaces.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: colors.primary),
-                SizedBox(width: context.spaces.sm),
-                Expanded(
-                  child: Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleLarge?.copyWith(color: colors.onSurface),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: context.spaces.md),
-            SizedBox(height: context.spaces.sm),
-            child,
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AnnouncementsList extends ConsumerWidget {
-  const _AnnouncementsList({required this.onOpen});
-  final VoidCallback onOpen;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final profileAsync = ref.watch(userProfileStreamProvider);
-    return profileAsync.when(
-      data: (profile) {
-        final familyId = profile?.familyId;
-        if (familyId == null) {
-          return const Center(
-            child: Text(AppStrings.joinFamilyToSeeAnnouncements),
-          );
-        }
-        final recent = ref.watch(recentAnnouncementsProvider(familyId));
-        return recent.when(
-          data: (items) => items.isEmpty
-              ? const Center(child: Text(AppStrings.noAnnouncementsYet))
-              : Column(
-                  children: [
-                    for (final a in items.take(3))
-                      Padding(
-                        padding: EdgeInsets.only(bottom: context.spaces.sm),
-                        child: ListTile(
-                          tileColor: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHighest,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          title: Text(
-                            '${a.authorName}: ${a.text}',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Text(formatRelativeTime(a.createdAt)),
-                          onTap: onOpen,
-                        ),
-                      ),
-                  ],
-                ),
-          error: (e, _) => Text('Error: $e'),
-          loading: () => const Center(child: CircularProgressIndicator()),
-        );
-      },
-      error: (e, _) => Text('Error: $e'),
-      loading: () => const Center(child: CircularProgressIndicator()),
-    );
-  }
-}
-
-// Removed unused placeholders in favor of compact sections
 
 class _TopStrip extends ConsumerWidget {
   @override
@@ -184,24 +70,23 @@ class _TopStrip extends ConsumerWidget {
                 dateStr,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(color: Colors.white),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Colors.white,
+                ),
               ),
-              const SizedBox(height: 1),
+              SizedBox(height: spaces.xs / 4),
               Text(
                 AppStrings.headerSubtitlePlaceholder,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white70,
+                ),
               ),
             ],
           ),
         ),
         SizedBox(width: spaces.md),
-        // Make trailing avatars scrollable to avoid horizontal overflow
         profileAsync.when(
           data: (profile) {
             final familyId = profile?.familyId;
@@ -209,17 +94,15 @@ class _TopStrip extends ConsumerWidget {
             final usersAsync = ref.watch(familyUsersProvider(familyId));
             return usersAsync.when(
               data: (users) => SizedBox(
-                height: 32,
+                height: spaces.lg,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   shrinkWrap: true,
                   itemBuilder: (_, i) {
                     final u = users[i];
-                    final label = u.displayName.isNotEmpty
-                        ? u.displayName[0]
-                        : '?';
+                    final label = u.displayName.isNotEmpty ? u.displayName[0] : '?';
                     return CircleAvatar(
-                      radius: 16,
+                      radius: spaces.md,
                       backgroundColor: Colors.white24,
                       child: Text(
                         label,
@@ -243,17 +126,17 @@ class _TopStrip extends ConsumerWidget {
   }
 }
 
-// _TwoColumn previously used for split layouts; no longer needed in single column
-
-class _TodayTimelineCard extends StatelessWidget {
+class _TodayTimelineCard extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
     final spaces = context.spaces;
+    final profileAsync = ref.watch(userProfileStreamProvider);
+    
     return Card(
       color: colors.surfaceContainerHigh,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(spaces.lg),
         side: BorderSide(color: colors.outlineVariant),
       ),
       elevation: 1,
@@ -272,13 +155,24 @@ class _TodayTimelineCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () => context.go('/calendar'),
                   child: const Text(AppStrings.showAll),
                 ),
               ],
             ),
             SizedBox(height: spaces.md),
-            _TodayTimeline(),
+            profileAsync.when(
+              data: (profile) {
+                final familyId = profile?.familyId;
+                if (familyId == null) {
+                  return const Center(child: Text('No family context.'));
+                }
+                
+                return _TimelineContent(familyId: familyId);
+              },
+              loading: () => const CircularProgressIndicator(),
+              error: (e, _) => Center(child: Text('Error: $e')),
+            ),
           ],
         ),
       ),
@@ -286,278 +180,276 @@ class _TodayTimelineCard extends StatelessWidget {
   }
 }
 
-class _TodayTimeline extends ConsumerWidget {
+class _TimelineContent extends ConsumerWidget {
+  const _TimelineContent({required this.familyId});
+  final String familyId;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final profileAsync = ref.watch(userProfileStreamProvider);
+    final recentAnnouncementsAsync = ref.watch(recentAnnouncementsProvider(familyId));
+    final tasksAsync = ref.watch(tasksStreamProvider(familyId));
     
-    return profileAsync.when(
-      data: (profile) {
-        final familyId = profile?.familyId;
-        if (familyId == null) {
-          return const Text('No family context');
-        }
-        
-        final tasksAsync = ref.watch(tasksStreamProvider(familyId));
-        final usersAsync = ref.watch(familyUsersProvider(familyId));
-        
-        return tasksAsync.when(
+    return Column(
+      children: [
+        // Today's Tasks with Timeline Design
+        tasksAsync.when(
           data: (tasks) {
-            return usersAsync.when(
-              data: (users) {
-                // Filter tasks for today and upcoming
-                final now = DateTime.now();
-                final today = DateTime(now.year, now.month, now.day);
-                final tomorrow = today.add(const Duration(days: 1));
-                
-                final todayTasks = tasks.where((task) => 
-                  !task.completed && 
-                  task.dueDate != null &&
-                  task.dueDate!.isAfter(today.subtract(const Duration(days: 1))) &&
-                  task.dueDate!.isBefore(tomorrow)
-                ).toList();
-                
-                // Sort by due time
-                todayTasks.sort((a, b) => a.dueDate!.compareTo(b.dueDate!));
-                
-                if (todayTasks.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text(
-                      'No tasks scheduled for today',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 16,
-                      ),
-                    ),
+            final today = DateTime.now();
+            final todayTasks = tasks.where((t) =>
+                !t.completed && (t.dueDate == null ||
+                    (t.dueDate!.year == today.year && t.dueDate!.month == today.month && t.dueDate!.day == today.day)))
+                .take(5)
+                .toList();
+            
+            if (todayTasks.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Today\'s Schedule',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: context.spaces.md),
+                ...todayTasks.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final task = entry.value;
+                  final isLast = index == todayTasks.length - 1;
+                  return _TimelineTaskItem(
+                    task: task,
+                    isLast: isLast,
+                    index: index,
                   );
-                }
-                
-                // Convert tasks to timeline events
-                final events = todayTasks.take(6).map((task) {
-                  final assignedUsers = users.where((user) => 
-                    task.assignedUids.contains(user.uid)
-                  ).toList();
-                  
-                  final participants = assignedUsers.map((user) {
-                    final name = user.displayName.isNotEmpty 
-                        ? user.displayName 
-                        : 'Unknown';
-                    return name.length > 2 ? name.substring(0, 2).toUpperCase() : name.toUpperCase();
-                  }).toList();
-                  
-                  // Generate color based on position and priority for better visual variety
-                  Color getTaskColor(int index) {
-                    // Use specific colors for first few events to match the image
-                    if (index == 0) return Colors.green; // First event: green
-                    if (index == 1) return Colors.orange; // Second event: orange  
-                    if (index == 2) return Colors.purple; // Third event: purple
-                    
-                    // For remaining events, use priority-based colors
-                    switch (task.priority) {
-                      case TaskPriority.high:
-                        return Colors.red;
-                      case TaskPriority.medium:
-                        return Colors.orange;
-                      case TaskPriority.low:
-                        return Colors.green;
-                      default:
-                        return Colors.blue;
-                    }
-                  }
-                  
-                  // Calculate time until due
-                  String? getTimeUntil() {
-                    final diff = task.dueDate!.difference(now);
-                    if (diff.isNegative) {
-                      final mins = diff.inMinutes.abs();
-                      if (mins < 60) return '${mins}m overdue';
-                      final hrs = diff.inHours.abs();
-                      return '${hrs}h overdue';
-                    }
-                    final mins = diff.inMinutes;
-                    if (mins < 60) return 'in ${mins}m';
-                    final hrs = diff.inHours;
-                    if (hrs < 24) return 'in ${hrs}h';
-                    return null;
-                  }
-                  
-                  // Determine status
-                  EventStatus getStatus() {
-                    if (task.completed) return EventStatus.confirmed;
-                    if (task.dueDate!.isBefore(now)) return EventStatus.pending;
-                    return EventStatus.upcoming;
-                  }
-                  
-                  return _TimelineEvent(
-                    time: formatTime(task.dueDate!),
-                    duration: _formatDuration(task.dueDate!),
-                    title: task.title,
-                    details: task.notes.isNotEmpty ? task.notes : 'No description',
-                    color: getTaskColor(todayTasks.indexOf(task)),
-                    participants: participants,
-                    status: getStatus(),
-                    timeUntil: getTimeUntil(),
-                    isStriped: task.priority == TaskPriority.high,
-                  );
-                }).toList();
-                
-                // Make timeline scrollable if more than 3 items
-                if (events.length <= 3) {
-                  return Column(
-                    children: [
-                      for (int i = 0; i < events.length; i++)
-                        _TimelineEventCard(
-                          event: events[i],
-                          isLast: i == events.length - 1,
-                        ),
-                    ],
-                  );
-                } else {
-                  // Scrollable timeline for more than 3 items
-                  return Container(
-                    height: 320, // Fixed height for 3 items + some padding
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          for (int i = 0; i < events.length; i++)
-                            _TimelineEventCard(
-                              event: events[i],
-                              isLast: i == events.length - 1,
-                            ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-              },
-              loading: () => const Center(
-                child: CircularProgressIndicator(),
-              ),
-              error: (error, stack) => Text('Error loading users: $error'),
+                }),
+              ],
             );
           },
-          loading: () => const Center(
-            child: CircularProgressIndicator(),
-          ),
-          error: (error, stack) => Text('Error loading tasks: $error'),
-        );
-      },
-      loading: () => const Center(
-        child: CircularProgressIndicator(),
-      ),
-      error: (error, stack) => Text('Error loading profile: $error'),
+          loading: () => const LinearProgressIndicator(),
+          error: (e, _) => Text('Tasks error: $e'),
+        ),
+        
+        // Recent Announcements
+        recentAnnouncementsAsync.when(
+          data: (announcements) {
+            if (announcements.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: context.spaces.lg),
+                Text(
+                  'Recent Updates',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: context.spaces.sm),
+                ...announcements.take(3).map((announcement) => _TimelineAnnouncementItem(announcement: announcement)),
+              ],
+            );
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (e, _) => const SizedBox.shrink(),
+        ),
+        
+        // Show message if no timeline items
+        Builder(
+          builder: (context) {
+            final hasTasks = tasksAsync.value?.any((t) {
+              final today = DateTime.now();
+              return !t.completed && (t.dueDate == null ||
+                  (t.dueDate!.year == today.year && t.dueDate!.month == today.month && t.dueDate!.day == today.day));
+            }) ?? false;
+            
+            if (!hasTasks) {
+              return Center(
+                child: Padding(
+                  padding: EdgeInsets.all(context.spaces.lg),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.schedule_outlined,
+                        size: context.spaces.xl * 2.4,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      SizedBox(height: context.spaces.sm),
+                      Text(
+                        'No activities for today',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
+      ],
     );
   }
-  
-  String _formatDuration(DateTime dueDate) {
-    // For now, return a placeholder duration
-    // In a real app, you'd calculate this from start/end times
-    return '1h';
-  }
 }
 
-class _TimelineEvent {
-  const _TimelineEvent({
-    required this.time,
-    required this.duration,
-    required this.title,
-    required this.details,
-    required this.color,
-    required this.participants,
-    required this.status,
-    this.timeUntil,
-    this.isStriped = false,
-  });
 
-  final String time;
-  final String duration;
-  final String title;
-  final String details;
-  final Color color;
-  final List<String> participants;
-  final EventStatus status;
-  final String? timeUntil;
-  final bool isStriped;
-}
 
-enum EventStatus { upcoming, confirmed, pending }
-
-class _TimelineEventCard extends StatelessWidget {
-  const _TimelineEventCard({
-    required this.event,
-    required this.isLast,
-  });
-
-  final _TimelineEvent event;
-  final bool isLast;
+class _TimelineAnnouncementItem extends StatelessWidget {
+  const _TimelineAnnouncementItem({required this.announcement});
+  final Announcement announcement;
 
   @override
   Widget build(BuildContext context) {
-    final spaces = context.spaces;
     final colors = Theme.of(context).colorScheme;
+    final spaces = context.spaces;
+    
+    return Container(
+      margin: EdgeInsets.only(bottom: spaces.sm),
+      padding: EdgeInsets.all(spaces.sm),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(spaces.sm),
+        border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.6)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 4,
+            spreadRadius: 0,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Announcement icon with colored background
+          Container(
+            width: spaces.xl * 2,
+            height: spaces.xl * 2,
+            decoration: BoxDecoration(
+              color: colors.secondary.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(spaces.lg),
+            ),
+            child: Icon(
+              Icons.announcement,
+              color: colors.secondary,
+              size: context.spaces.lg,
+            ),
+          ),
+          
+          SizedBox(width: spaces.md),
+          
+          // Announcement content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  announcement.text,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: spaces.xs),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.person_outline,
+                      size: context.spaces.md,
+                      color: colors.onSurfaceVariant,
+                    ),
+                    SizedBox(width: spaces.xs),
+                    Text(
+                      announcement.authorName,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(width: spaces.sm),
+                    Icon(
+                      Icons.access_time,
+                      size: context.spaces.md,
+                      color: colors.onSurfaceVariant,
+                    ),
+                    SizedBox(width: spaces.xs),
+                    Text(
+                      formatRelativeTime(announcement.createdAt),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TimelineTaskItem extends StatelessWidget {
+  const _TimelineTaskItem({
+    required this.task,
+    required this.isLast,
+    required this.index,
+  });
+  
+  final Task task;
+  final bool isLast;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final spaces = context.spaces;
+    
+    // Generate consistent colors for different task types (matching the image)
+    final timelineColors = [
+      Colors.purple, // Purple for special meetings (like "Dan Putz/Vasu Weekly 1:1")
+      Colors.green,  // Green for most events
+      Colors.green,  // Green for most events
+      Colors.green,  // Green for most events
+      Colors.green,  // Green for most events
+    ];
+    final taskColor = timelineColors[index % timelineColors.length];
+    
+    // Calculate time and duration
+    final now = DateTime.now();
+    final dueTime = task.dueDate ?? now;
+    final timeString = formatTime(dueTime);
+    final durationString = _calculateDuration(task);
     
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : spaces.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Vertical colored bar
-          Container(
-            width: 4,
-            height: 100, // Increased height for better proportions
-            decoration: BoxDecoration(
-              color: event.color,
-              borderRadius: BorderRadius.circular(2),
-            ),
-            child: event.isStriped
-                ? CustomPaint(
-                    painter: _StripedPainter(color: event.color),
-                  )
-                : null,
-          ),
-          SizedBox(width: spaces.md),
-          
-          // Time and duration column with pill above
+          // Time and Duration Column (Left) - clean and simple like the image
           SizedBox(
-            width: 80, // Fixed width for consistent alignment
+            width: context.layout.isSmall ? spaces.xl * 2.5 : spaces.xl * 3.5, // Adaptive width for different screen sizes
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (event.timeUntil != null) ...[
-                  // Time until pill positioned above time
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: spaces.sm,
-                      vertical: spaces.xs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: event.color.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      event.timeUntil!,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: event.color,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: spaces.xs),
-                ],
-                // Time text
                 Text(
-                  event.time,
+                  timeString,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colors.onSurface,
                   ),
                 ),
-                SizedBox(height: spaces.xs),
-                // Duration text
                 Text(
-                  event.duration,
+                  durationString,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colors.onSurfaceVariant,
                   ),
@@ -565,69 +457,53 @@ class _TimelineEventCard extends StatelessWidget {
               ],
             ),
           ),
+          
           SizedBox(width: spaces.md),
           
-          // Event content - no container, direct layout
+          // Vertical Timeline Bar (Middle) - precise height to cover content
+          Container(
+            width: spaces.xs, // Responsive bar width
+            height: _calculateDynamicBarHeight(task, context),
+            decoration: BoxDecoration(
+              color: taskColor,
+              borderRadius: BorderRadius.circular(spaces.xs / 2),
+            ),
+          ),
+          
+          SizedBox(width: context.layout.isSmall ? spaces.md : spaces.lg),
+          
+          // Task Details (Right) - clean and simple like the image
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Event title
+                // Task title - bold like in the image
                 Text(
-                  event.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  task.title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
                     color: colors.onSurface,
                   ),
-                ),
-                SizedBox(height: spaces.xs),
-                // Event details
-                Text(
-                  event.details,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                  ),
                 ),
-                SizedBox(height: spaces.sm),
                 
-                // Bottom row with avatars and action button
-                Row(
-                  children: [
-                    // Participant avatars
-                    Expanded(
-                      child: Row(
-                        children: [
-                          for (int i = 0; i < event.participants.length; i++)
-                            Padding(
-                              padding: EdgeInsets.only(left: i == 0 ? 0 : spaces.xs),
-                              child: _ParticipantAvatar(
-                                participant: event.participants[i],
-                                status: event.status,
-                              ),
-                            ),
-                        ],
-                      ),
+                // Task details/notes - smaller text like location/type in image
+                if (task.notes.isNotEmpty) ...[
+                  SizedBox(height: spaces.xs),
+                  Text(
+                    task.notes,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
                     ),
-                    // Action button (plus icon)
-                    Container(
-                      width: 24,
-                      height: 24,
-                                              decoration: BoxDecoration(
-                          color: Colors.pink.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                      child: const Icon(
-                        Icons.add,
-                        size: 16,
-                        color: Colors.pink,
-                      ),
-                    ),
-                  ],
-                ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                
+                // Participant avatars below the description
+                SizedBox(height: spaces.xs),
+                _buildParticipants(),
               ],
             ),
           ),
@@ -635,368 +511,173 @@ class _TimelineEventCard extends StatelessWidget {
       ),
     );
   }
-}
+  
+  String _calculateDuration(Task task) {
+    // Calculate actual duration based on task data
+    if (task.dueDate != null) {
+      // If there's a due date, estimate duration based on task complexity
+      if (task.notes.length > 100) return '1h';
+      if (task.notes.length > 50) return '45m';
+      if (task.notes.length > 20) return '30m';
+      return '15m';
+    }
+    // Default duration for tasks without due dates
+    return '30m';
+  }
+  
+  double _calculateDynamicBarHeight(Task task, BuildContext context) {
+    // Calculate responsive bar height to cover content exactly like in the image
+    final spaces = context.spaces;
+    double baseHeight = spaces.lg * 2; // Responsive base height for title
+    
+    // Add height for notes if they exist
+    if (task.notes.isNotEmpty) {
+      if (task.notes.length > 50) {
+        baseHeight += spaces.md; // Long notes
+      } else if (task.notes.length > 20) {
+        baseHeight += spaces.sm; // Medium notes
+      } else {
+        baseHeight += spaces.xs;  // Short notes
+      }
+    }
+    
+    // Add height for the participant avatars row
+    baseHeight += spaces.lg; // Responsive space for avatars row
+    
+    return baseHeight;
+  }
+  
 
-class _ParticipantAvatar extends StatelessWidget {
-  const _ParticipantAvatar({
-    required this.participant,
-    required this.status,
-  });
-
-  final String participant;
-  final EventStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    // Generate consistent colors for initials
-    final colorsList = [
+  
+  Widget _buildParticipants() {
+    // Show real participant information based on task data
+    // Use task.assignedUids to show actual assignees
+    return Consumer(
+      builder: (context, ref, child) {
+        // Get family members to show assignees
+        final profileAsync = ref.watch(userProfileStreamProvider);
+        return profileAsync.when(
+          data: (profile) {
+            final familyId = profile?.familyId;
+            if (familyId == null) return const SizedBox.shrink();
+            
+            final usersAsync = ref.watch(familyUsersProvider(familyId));
+            return usersAsync.when(
+              data: (users) {
+                if (users.isEmpty) return const SizedBox.shrink();
+                
+                // Filter users to only show assigned users (from task.assignedUids)
+                final assignedUsers = users.where((user) => 
+                    task.assignedUids.contains(user.uid)).toList();
+                
+                if (assignedUsers.isEmpty) return const SizedBox.shrink();
+                
+                // Show up to 4 assignee avatars with slight overlap (like in the image)
+                final displayUsers = assignedUsers.take(4).toList();
+                return SizedBox(
+                  height: context.spaces.lg, // Responsive height for the Stack
+                  child: Stack(
+                    children: [
+                      for (int i = 0; i < displayUsers.length; i++)
+                        Positioned(
+                          left: i * (context.layout.isSmall ? context.spaces.sm.toDouble() : context.spaces.md.toDouble()), // Adaptive overlap for different screen sizes
+                          child: _buildFamilyMemberAvatar(displayUsers[i], context),
+                        ),
+                      // Show count of additional assignees if any (like "+5" in the image)
+                      if (assignedUsers.length > 4)
+                        Positioned(
+                          left: displayUsers.length * (context.layout.isSmall ? context.spaces.sm.toDouble() : context.spaces.md.toDouble()),
+                          child: Container(
+                            width: context.spaces.lg,
+                            height: context.spaces.lg,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.withValues(alpha: 0.3),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                '+${assignedUsers.length - 4}',
+                                style: TextStyle(
+                                  fontSize: context.spaces.xs + 2,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+            );
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+        );
+      },
+    );
+  }
+  
+  Widget _buildFamilyMemberAvatar(UserProfile user, BuildContext context) {
+    // Generate consistent colors for family members
+    final colors = [
       Colors.blue,
-      Colors.red,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
       Colors.teal,
       Colors.pink,
-      Colors.orange,
-      Colors.indigo,
     ];
-    final colorIndex = participant.hashCode % colorsList.length;
-    final backgroundColor = colorsList[colorIndex];
+    final colorIndex = user.hashCode % colors.length;
+    final avatarColor = colors[colorIndex];
+    
+    // Get initial from display name
+    final initial = user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : '?';
     
     return Stack(
       children: [
-        CircleAvatar(
-          radius: 16,
-          backgroundColor: backgroundColor,
-          child: Text(
-            participant,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+        Container(
+          width: context.spaces.lg,
+          height: context.spaces.lg,
+          decoration: BoxDecoration(
+            color: avatarColor,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              initial,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: context.spaces.xs + 2,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
-        if (status == EventStatus.confirmed)
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                color: Colors.green,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1.5),
-              ),
-              child: const Icon(
-                Icons.check,
-                size: 8,
-                color: Colors.white,
-              ),
+        // Green checkmark overlay - responsive size
+        Positioned(
+          right: 0,
+          bottom: 0,
+          child: Container(
+            width: context.spaces.xs + 2,
+            height: context.spaces.xs + 2,
+            decoration: BoxDecoration(
+              color: Colors.green,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: context.spaces.xs / 3),
             ),
-          )
-        else if (status == EventStatus.pending)
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                color: Colors.grey,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1.5),
-              ),
-              child: const Icon(
-                Icons.question_mark,
-                size: 8,
-                color: Colors.white,
-              ),
+            child: Icon(
+              Icons.check,
+              size: context.spaces.xs,
+              color: Colors.white,
             ),
           ),
+        ),
       ],
     );
-  }
-}
-
-class _StripedPainter extends CustomPainter {
-  const _StripedPainter({required this.color});
-  
-  final Color color;
-  
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1
-      ..style = PaintingStyle.stroke;
-    
-    final stripeWidth = 2.0;
-    final stripeSpacing = 4.0;
-    
-    for (double y = 0; y < size.height; y += stripeSpacing) {
-      canvas.drawLine(
-        Offset(0, y),
-        Offset(stripeWidth, y),
-        paint,
-      );
-    }
-  }
-  
-  @override
-  bool shouldRepaint(covariant _StripedPainter oldDelegate) {
-    return oldDelegate.color != color;
-  }
-}
-
-IconData _iconForTask(TaskPriority p) {
-  switch (p) {
-    case TaskPriority.high:
-      return Icons.priority_high_rounded;
-    case TaskPriority.medium:
-      return Icons.task_alt;
-    case TaskPriority.low:
-      return Icons.check_circle_outline;
-  }
-}
-
-class _TimelineItem extends StatelessWidget {
-  const _TimelineItem({
-    required this.timeText,
-    required this.title,
-    this.note,
-    required this.assignees,
-    required this.isLast,
-    this.showDateCapsule = false,
-    this.dotColor,
-    this.leadingIcon,
-  });
-  final String timeText;
-  final String title;
-  final String? note;
-  final List<dynamic>
-  assignees; // List<UserProfile?>; kept dynamic to avoid extra imports here
-  final bool isLast;
-  final bool showDateCapsule;
-  final Color? dotColor;
-  final IconData? leadingIcon;
-
-  @override
-  Widget build(BuildContext context) {
-    final spaces = context.spaces;
-    final colors = Theme.of(context).colorScheme;
-    return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : spaces.sm),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (showDateCapsule) ...[
-            Container(
-              width: 44,
-              padding: EdgeInsets.symmetric(vertical: spaces.xs),
-              decoration: BoxDecoration(
-                color: colors.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    formatMonthAbbrev(DateTime.now()),
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                  Text(
-                    formatDayNumber(DateTime.now()),
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(width: spaces.sm),
-          ],
-          // Rail + dot
-          Column(
-            children: [
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: dotColor ?? colors.primary,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              if (!isLast)
-                Container(
-                  width: 2,
-                  height: spaces.xxl,
-                  color: (dotColor ?? colors.primary).withValues(alpha: 0.4),
-                ),
-            ],
-          ),
-          SizedBox(width: spaces.md),
-          // Content card with neon-like outline
-          Expanded(
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: spaces.md,
-                vertical: spaces.sm,
-              ),
-              decoration: BoxDecoration(
-                color: colors.surface,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.25),
-                    blurRadius: 16,
-                    spreadRadius: 0,
-                  ),
-                ],
-                border: Border.all(
-                  color: colors.outlineVariant.withValues(alpha: 0.6),
-                  width: 1.2,
-                ),
-              ),
-              child: IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Leading icon only, no decoration/container
-                    Icon(leadingIcon ?? Icons.task_alt, size: 30),
-                    SizedBox(width: spaces.sm),
-                    // Two-line block: title on first, time + avatars on second
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.titleSmall,
-                                ),
-                              ),
-                              if (dotColor != null)
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: spaces.sm,
-                                    vertical: spaces.xs,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: (dotColor!).withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(999),
-                                  ),
-                                  child: Text(
-                                    dotColor == Colors.green
-                                        ? AppStrings.todayNow
-                                        : AppStrings.todayNext,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelSmall
-                                        ?.copyWith(color: dotColor),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          SizedBox(height: spaces.xs),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  timeText,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.labelSmall
-                                      ?.copyWith(
-                                        color: colors.onSurfaceVariant,
-                                      ),
-                                ),
-                              ),
-                              if (assignees.isNotEmpty)
-                                _AvatarRow(profiles: assignees),
-                            ],
-                          ),
-                          if (note != null) ...[
-                            SizedBox(height: spaces.xs),
-                            Text(
-                              note!,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AvatarRow extends StatelessWidget {
-  const _AvatarRow({required this.profiles});
-  final List<dynamic> profiles; // List<UserProfile?>
-  @override
-  Widget build(BuildContext context) {
-    final spaces = context.spaces;
-    final visible = profiles.take(3).toList();
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (int i = 0; i < visible.length; i++)
-          Padding(
-            padding: EdgeInsets.only(left: i == 0 ? 0 : spaces.xs),
-            child: _SmallAvatar(profile: visible[i]),
-          ),
-      ],
-    );
-  }
-}
-
-class _SmallAvatar extends StatelessWidget {
-  const _SmallAvatar({this.profile});
-  final dynamic profile; // UserProfile?
-  @override
-  Widget build(BuildContext context) {
-    final String? photoUrl = profile?.photoUrl as String?;
-    final String label = (profile?.displayName as String?)?.isNotEmpty == true
-        ? (profile!.displayName as String).characters.first
-        : '?';
-    return CircleAvatar(
-      radius: 10,
-      backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
-      child: photoUrl == null
-          ? Text(label, style: const TextStyle(fontSize: 10))
-          : null,
-    );
-  }
-}
-
-class _VerticalRailPainter extends CustomPainter {
-  _VerticalRailPainter({required this.color, required this.strokeWidth});
-  final Color color;
-  final double strokeWidth;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    final start = Offset(0, 0);
-    final end = Offset(0, size.height);
-    canvas.drawLine(start, end, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _VerticalRailPainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
   }
 }
 
@@ -1009,7 +690,7 @@ class _ActionablesCard extends ConsumerWidget {
     return Card(
       color: colors.surfaceContainerHigh,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(spaces.lg),
         side: BorderSide(color: colors.outlineVariant),
       ),
       elevation: 1,
@@ -1022,35 +703,24 @@ class _ActionablesCard extends ConsumerWidget {
               children: [
                 const Icon(Icons.task_alt),
                 SizedBox(width: spaces.sm),
-                Text(
-                  AppStrings.actionablesTitle,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
+                Text(AppStrings.actionablesTitle, style: Theme.of(context).textTheme.titleLarge),
               ],
             ),
             SizedBox(height: spaces.md),
             profileAsync.when(
               data: (profile) {
                 final familyId = profile?.familyId;
-                if (familyId == null)
-                  return const Text(AppStrings.noFamilyContext);
+                if (familyId == null) return const Text(AppStrings.noFamilyContext);
                 final tasksAsync = ref.watch(tasksStreamProvider(familyId));
                 return tasksAsync.when(
                   data: (tasks) {
                     final today = DateTime.now();
-                    final todayTasks = tasks
-                        .where(
-                          (t) =>
-                              !t.completed &&
-                              (t.dueDate == null ||
-                                  (t.dueDate!.year == today.year &&
-                                      t.dueDate!.month == today.month &&
-                                      t.dueDate!.day == today.day)),
-                        )
+                    final todayTasks = tasks.where((t) =>
+                        !t.completed && (t.dueDate == null ||
+                            (t.dueDate!.year == today.year && t.dueDate!.month == today.month && t.dueDate!.day == today.day)))
                         .take(3)
                         .toList();
-                    if (todayTasks.isEmpty)
-                      return const Text(AppStrings.noTasksYet);
+                    if (todayTasks.isEmpty) return const Text(AppStrings.noTasksYet);
                     return Column(
                       children: [
                         for (final t in todayTasks)
@@ -1058,29 +728,17 @@ class _ActionablesCard extends ConsumerWidget {
                             dense: true,
                             contentPadding: EdgeInsets.zero,
                             leading: const Icon(Icons.check_box_outline_blank),
-                            title: Text(
-                              t.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: t.dueDate != null
-                                ? Text(formatDateTime(t.dueDate!))
-                                : null,
+                            title: Text(t.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            subtitle: t.dueDate != null ? Text(formatDateTime(t.dueDate!)) : null,
                           ),
                       ],
                     );
                   },
-                  loading: () => const SizedBox(
-                    height: 48,
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
+                  loading: () => SizedBox(height: context.spaces.xl * 1.5, child: const Center(child: CircularProgressIndicator())),
                   error: (e, _) => Text('Error: $e'),
                 );
               },
-              loading: () => const SizedBox(
-                height: 48,
-                child: Center(child: CircularProgressIndicator()),
-              ),
+              loading: () => SizedBox(height: context.spaces.xl * 1.5, child: const Center(child: CircularProgressIndicator())),
               error: (e, _) => Text('Error: $e'),
             ),
           ],
@@ -1094,76 +752,190 @@ class _AnnouncementsMessagesRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final spaces = context.spaces;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Row(
       children: [
-        _SectionCard(
-          title: AppStrings.announcementsTitle,
-          icon: Icons.campaign,
-          child: _AnnouncementsList(onOpen: () => context.go('/announcements')),
+        Expanded(
+          child: _AnnouncementsCard(),
         ),
-        SizedBox(height: spaces.md),
-        _SectionCard(
-          title: AppStrings.messagesTitle,
-          icon: Icons.message,
-          child: _RecentMessages(onOpen: () => context.go('/messages')),
+        SizedBox(width: spaces.md),
+        Expanded(
+          child: _MessagesCard(),
         ),
       ],
     );
   }
 }
 
-class _RecentMessages extends ConsumerWidget {
-  const _RecentMessages({required this.onOpen});
-  final VoidCallback onOpen;
+class _AnnouncementsCard extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
+    final spaces = context.spaces;
+    return Card(
+      color: colors.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(spaces.lg),
+        side: BorderSide(color: colors.outlineVariant),
+      ),
+      elevation: 1,
+      child: InkWell(
+        onTap: () => context.go('/announcements'),
+        borderRadius: BorderRadius.circular(spaces.lg),
+        child: Padding(
+          padding: EdgeInsets.all(spaces.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.announcement),
+                  SizedBox(width: spaces.sm),
+                  Expanded(
+                    child: Text(
+                      AppStrings.announcementsTitle,
+                      style: Theme.of(context).textTheme.titleLarge,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: spaces.md),
+              _AnnouncementsList(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AnnouncementsList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(userProfileStreamProvider);
     return profileAsync.when(
       data: (profile) {
         final familyId = profile?.familyId;
-        if (familyId == null)
-          return const Center(child: Text(AppStrings.noFamilyContext));
-        final stream = ref.watch(messagesStreamProvider(familyId));
-        return stream.when(
-          data: (messages) {
-            if (messages.isEmpty)
-              return const Center(child: Text(AppStrings.noMessagesYet));
-            return Column(
-              children: [
-                for (final m in messages.take(3))
-                  ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: const CircleAvatar(child: Icon(Icons.person)),
-                    title: Text(
-                      m.authorName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(
-                      m.text,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: Text(formatRelativeTime(m.createdAt)),
-                    onTap: onOpen,
-                  ),
-              ],
-            );
-          },
-          loading: () => const SizedBox(
-            height: 48,
-            child: Center(child: CircularProgressIndicator()),
-          ),
+        if (familyId == null) {
+          return const Center(child: Text(AppStrings.joinFamilyToSeeAnnouncements));
+        }
+        final recent = ref.watch(recentAnnouncementsProvider(familyId));
+        return recent.when(
+          data: (items) => items.isEmpty
+              ? const Center(child: Text(AppStrings.noAnnouncementsYet))
+              : Column(
+                  children: [
+                    for (final a in items.take(3))
+                      Padding(
+                        padding: EdgeInsets.only(bottom: context.spaces.sm),
+                        child: ListTile(
+                          tileColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(context.spaces.sm),
+                          ),
+                          title: Text(
+                            '${a.authorName}: ${a.text}',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(formatRelativeTime(a.createdAt)),
+                        ),
+                      ),
+                  ],
+                ),
           error: (e, _) => Text('Error: $e'),
+          loading: () => const Center(child: CircularProgressIndicator()),
         );
       },
-      loading: () => const SizedBox(
-        height: 48,
-        child: Center(child: CircularProgressIndicator()),
-      ),
       error: (e, _) => Text('Error: $e'),
+      loading: () => const Center(child: CircularProgressIndicator()),
+    );
+  }
+}
+
+class _MessagesCard extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
+    final spaces = context.spaces;
+    return Card(
+      color: colors.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(spaces.lg),
+        side: BorderSide(color: colors.outlineVariant),
+      ),
+      elevation: 1,
+      child: InkWell(
+        onTap: () => context.go('/messages'),
+        borderRadius: BorderRadius.circular(spaces.lg),
+        child: Padding(
+          padding: EdgeInsets.all(spaces.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.message),
+                  SizedBox(width: spaces.sm),
+                  Expanded(
+                    child: Text(
+                      AppStrings.messagesTitle,
+                      style: Theme.of(context).textTheme.titleLarge,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: spaces.md),
+              _MessagesList(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MessagesList extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(userProfileStreamProvider);
+    return profileAsync.when(
+      data: (profile) {
+        final familyId = profile?.familyId;
+        if (familyId == null) {
+          return const Center(child: Text(AppStrings.joinFamilyToSeeAnnouncements));
+        }
+        final recent = ref.watch(messagesStreamProvider(familyId));
+        return recent.when(
+          data: (items) => items.isEmpty
+              ? const Center(child: Text(AppStrings.noMessagesYet))
+              : Column(
+                  children: [
+                    for (final m in items.take(3))
+                      Padding(
+                        padding: EdgeInsets.only(bottom: context.spaces.sm),
+                        child: ListTile(
+                          tileColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(context.spaces.sm),
+                          ),
+                          title: Text(
+                            '${m.authorName}: ${m.text}',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(formatRelativeTime(m.createdAt)),
+                        ),
+                      ),
+                  ],
+                ),
+          error: (e, _) => Text('Error: $e'),
+          loading: () => const Center(child: CircularProgressIndicator()),
+        );
+      },
+      error: (e, _) => Text('Error: $e'),
+      loading: () => const Center(child: CircularProgressIndicator()),
     );
   }
 }
@@ -1172,54 +944,21 @@ class _LogisticsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final spaces = context.spaces;
-    final isCompact = context.layout.isSmall;
-    final children = <Widget>[
-      Expanded(
-        child: _MiniInfoCard(
-          leading: const Icon(Icons.list_alt),
-          title: AppStrings.shoppingShortTitle,
-          subtitle: AppStrings.shoppingUrgentSummary,
-          trailing: TextButton(
-            onPressed: () {},
-            child: const Text(AppStrings.showAll),
-          ),
+    return Row(
+      children: [
+        Expanded(
+          child: _ShoppingCard(),
         ),
-      ),
-      SizedBox(width: spaces.md),
-      Expanded(
-        child: _MiniInfoCard(
-          leading: const Icon(Icons.local_shipping_outlined),
-          title: AppStrings.deliveriesShortTitle,
-          subtitle: AppStrings.deliveriesNextSummary,
+        SizedBox(width: spaces.md),
+        Expanded(
+          child: _FinanceCard(),
         ),
-      ),
-    ];
-    if (isCompact) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(children: [children[0]]),
-          SizedBox(height: spaces.md),
-          Row(children: [children[2]]),
-        ],
-      );
-    }
-    return Row(children: children);
+      ],
+    );
   }
 }
 
-class _MiniInfoCard extends StatelessWidget {
-  const _MiniInfoCard({
-    required this.leading,
-    required this.title,
-    required this.subtitle,
-    this.trailing,
-  });
-  final Widget leading;
-  final String title;
-  final String subtitle;
-  final Widget? trailing;
-
+class _ShoppingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -1227,39 +966,78 @@ class _MiniInfoCard extends StatelessWidget {
     return Card(
       color: colors.surfaceContainerHigh,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(spaces.lg),
         side: BorderSide(color: colors.outlineVariant),
       ),
       elevation: 1,
-      child: Padding(
-        padding: EdgeInsets.all(spaces.lg),
-        child: Row(
-          children: [
-            leading,
-            SizedBox(width: spaces.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+      child: InkWell(
+        onTap: () => context.go('/shopping'),
+        borderRadius: BorderRadius.circular(spaces.lg),
+        child: Padding(
+          padding: EdgeInsets.all(spaces.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  SizedBox(height: spaces.xs),
-                  Text(
-                    subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                  const Icon(Icons.shopping_cart),
+                  SizedBox(width: spaces.sm),
+                  Expanded(
+                    child: Text(
+                      AppStrings.shoppingTitle,
+                      style: Theme.of(context).textTheme.titleLarge,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
-            ),
-            if (trailing != null) ...[SizedBox(width: spaces.sm), trailing!],
-          ],
+              SizedBox(height: spaces.md),
+              const Text('Shopping list coming soon...'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FinanceCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final spaces = context.spaces;
+    return Card(
+      color: colors.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(spaces.lg),
+        side: BorderSide(color: colors.outlineVariant),
+      ),
+      elevation: 1,
+      child: InkWell(
+        onTap: () => context.go('/finance'),
+        borderRadius: BorderRadius.circular(spaces.lg),
+        child: Padding(
+          padding: EdgeInsets.all(spaces.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.account_balance_wallet),
+                  SizedBox(width: spaces.sm),
+                  Expanded(
+                    child: Text(
+                      AppStrings.financeTitle,
+                      style: Theme.of(context).textTheme.titleLarge,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: spaces.md),
+              const Text('Finance tracking coming soon...'),
+            ],
+          ),
         ),
       ),
     );
@@ -1287,6 +1065,7 @@ class _ShortcutChip extends StatelessWidget {
   const _ShortcutChip({required this.icon, required this.label});
   final IconData icon;
   final String label;
+  
   @override
   Widget build(BuildContext context) {
     return ActionChip(

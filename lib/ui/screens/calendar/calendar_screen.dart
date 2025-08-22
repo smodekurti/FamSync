@@ -114,7 +114,7 @@ class CalendarScreen extends ConsumerWidget {
                 colors.onPrimary,
                 () => ref.read(calendarNotifierProvider.notifier).goToToday(),
               ),
-              SizedBox(width: spaces.xs),
+              SizedBox(width: spaces.sm),
               _buildViewToggleButton(context, colors),
             ],
           ),
@@ -133,15 +133,15 @@ class CalendarScreen extends ConsumerWidget {
     return Tooltip(
       message: tooltip,
       child: SizedBox(
-        width: context.spaces.lg,
-        height: context.spaces.lg,
+        width: context.spaces.xl,
+        height: context.spaces.xl,
         child: IconButton(
           onPressed: onPressed,
-          icon: Icon(icon, color: color, size: 18),
+          icon: Icon(icon, color: color, size: 20),
           padding: EdgeInsets.all(context.spaces.xs / 2),
           constraints: BoxConstraints(
-            maxWidth: context.spaces.lg,
-            maxHeight: context.spaces.lg,
+            maxWidth: context.spaces.xl,
+            maxHeight: context.spaces.xl,
           ),
         ),
       ),
@@ -194,7 +194,8 @@ class CalendarScreen extends ConsumerWidget {
   Widget _buildViewToggleButton(BuildContext context, ColorScheme colors) {
     return Container(
       constraints: BoxConstraints(
-        maxWidth: context.spaces.xl * 1.5,
+        minWidth: context.spaces.xl * 2.5,
+        maxWidth: context.spaces.xl * 3.5,
       ),
       padding: EdgeInsets.symmetric(
         horizontal: context.spaces.sm,
@@ -212,15 +213,12 @@ class CalendarScreen extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Flexible(
-            child: Text(
-              'Month',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colors.onPrimary,
-                fontWeight: FontWeight.w500,
-                fontSize: 12,
-              ),
-              overflow: TextOverflow.ellipsis,
+          Text(
+            'Month',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: colors.onPrimary,
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
             ),
           ),
           SizedBox(width: context.spaces.xs / 2),

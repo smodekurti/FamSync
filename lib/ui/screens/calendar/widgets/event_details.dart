@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fam_sync/domain/models/event.dart';
 import 'package:fam_sync/ui/screens/calendar/calendar_utils.dart';
 import 'package:fam_sync/ui/screens/calendar/widgets/event_form.dart';
+import 'package:fam_sync/ui/screens/calendar/calendar_providers.dart';
 import 'package:fam_sync/theme/app_theme.dart';
 import 'package:fam_sync/theme/tokens.dart';
 
@@ -347,7 +348,7 @@ class EventDetails extends ConsumerWidget {
   }
 
   void _deleteEvent(BuildContext context, WidgetRef ref) {
-    showDialog(
+    showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Event'),
@@ -358,11 +359,39 @@ class EventDetails extends ConsumerWidget {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              // TODO: Implement delete functionality
+            onPressed: () async {
               Navigator.of(context).pop();
-              onDeleted?.call();
-              Navigator.of(context).pop();
+              
+              try {
+                // Use the calendar notifier for proper state management
+                await ref.read(calendarNotifierProvider.notifier).deleteEvent(event.id, event.familyId);
+                
+                // Show success message
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Event "${event.title}" deleted successfully'),
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                    ),
+                  );
+                }
+                
+                // Close the details screen and notify parent
+                onDeleted?.call();
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+              } catch (error) {
+                // Show error message
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to delete event: $error'),
+                      backgroundColor: Theme.of(context).colorScheme.error,
+                    ),
+                  );
+                }
+              }
             },
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,

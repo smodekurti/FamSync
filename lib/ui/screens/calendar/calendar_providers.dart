@@ -121,16 +121,14 @@ class CalendarNotifier extends StateNotifier<CalendarState> {
     ref.invalidate(upcomingEventsProvider(event.familyId));
   }
 
-  Future<void> deleteEvent(String eventId) async {
+  Future<void> deleteEvent(String eventId, String familyId) async {
     final repository = ref.read(eventsRepositoryProvider);
-    await repository.deleteEvent(eventId);
+    await repository.deleteEvent(eventId, familyId);
     
     // Invalidate the events streams using familyId from state
-    if (state.familyId != null) {
-      ref.invalidate(monthEventsProvider(state.familyId!));
-      ref.invalidate(todayEventsProvider(state.familyId!));
-      ref.invalidate(upcomingEventsProvider(state.familyId!));
-    }
+    ref.invalidate(monthEventsProvider(familyId));
+    ref.invalidate(todayEventsProvider(familyId));
+    ref.invalidate(upcomingEventsProvider(familyId));
   }
 }
 

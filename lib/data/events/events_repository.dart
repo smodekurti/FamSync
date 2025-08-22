@@ -18,8 +18,9 @@ class EventsRepository {
   Stream<List<Event>> getEventsStream(String familyId, DateTime start, DateTime end) {
     try {
       return _firestore
-        .collection('events')
-          .where('familyId', isEqualTo: familyId)
+        .collection('families')
+          .doc(familyId)
+          .collection('events')
           .snapshots()
           .handleError((error) {
             throw Exception('Failed to fetch events: $error');
@@ -55,8 +56,9 @@ class EventsRepository {
   // Get all events for a family
   Stream<List<Event>> getAllEventsStream(String familyId) {
     return _firestore
+        .collection('families')
+        .doc(familyId)
         .collection('events')
-        .where('familyId', isEqualTo: familyId)
         .orderBy('startTime')
         .snapshots()
         .map((snapshot) => snapshot.docs
@@ -67,8 +69,9 @@ class EventsRepository {
   // Get events for a specific user
   Stream<List<Event>> getUserEventsStream(String familyId, String userId) {
     return _firestore
+        .collection('families')
+        .doc(familyId)
         .collection('events')
-        .where('familyId', isEqualTo: familyId)
         .where('assignedUids', arrayContains: userId)
         .orderBy('startTime')
         .snapshots()
@@ -80,7 +83,11 @@ class EventsRepository {
   // Create a new event
   Future<void> createEvent(Event event) async {
     try {
-      final docRef = _firestore.collection('events').doc();
+      final docRef = _firestore
+          .collection('families')
+          .doc(event.familyId)
+          .collection('events')
+          .doc();
       final eventData = event.copyWith(
         id: docRef.id,
         createdAt: DateTime.now(),
@@ -100,14 +107,18 @@ class EventsRepository {
     ).toJson();
     
     await _firestore
+        .collection('families')
+        .doc(event.familyId)
         .collection('events')
         .doc(event.id)
         .update(eventData);
   }
 
   // Delete an event
-  Future<void> deleteEvent(String eventId) async {
+  Future<void> deleteEvent(String eventId, String familyId) async {
     await _firestore
+        .collection('families')
+        .doc(familyId)
         .collection('events')
         .doc(eventId)
         .delete();

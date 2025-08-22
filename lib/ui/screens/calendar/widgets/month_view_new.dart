@@ -1078,9 +1078,24 @@ class MonthViewNew extends ConsumerWidget {
 
   // Delete event functionality
   void _deleteEvent(BuildContext context, WidgetRef ref, Event event) {
-    final eventsRepository = ref.read(eventsRepositoryProvider);
+    final familyId = ref.read(userProfileStreamProvider).when(
+      data: (profile) => profile?.familyId,
+      loading: () => null,
+      error: (_, __) => null,
+    );
     
-    eventsRepository.deleteEvent(event.id).then((_) {
+    if (familyId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No family context available'),
+          backgroundColor: context.colors.error,
+        ),
+      );
+      return;
+    }
+    
+    // Use the calendar notifier for proper state management
+    ref.read(calendarNotifierProvider.notifier).deleteEvent(event.id, familyId).then((_) {
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1088,9 +1103,6 @@ class MonthViewNew extends ConsumerWidget {
           backgroundColor: context.colors.primary,
         ),
       );
-      
-      // Refresh the calendar data
-      ref.invalidate(monthEventsProvider);
     }).catchError((error) {
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(

@@ -14,6 +14,7 @@ import 'package:fam_sync/ui/screens/announcements/announcements_screen.dart';
 import 'package:fam_sync/ui/screens/messages/messages_screen.dart';
 import 'package:fam_sync/ui/screens/settings/settings_screen.dart';
 import 'package:fam_sync/ui/screens/splash/splash_screen.dart';
+import 'package:fam_sync/ui/screens/auth/login_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -23,6 +24,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/splash',
         pageBuilder: (context, state) =>
             const NoTransitionPage(child: SplashScreen()),
+      ),
+      GoRoute(
+        path: '/auth',
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: LoginScreen()),
       ),
       GoRoute(
         path: '/onboarding',

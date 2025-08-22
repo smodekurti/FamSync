@@ -25,6 +25,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _vibrationEnabled = true;
   bool _darkModeEnabled = false;
   final String _language = 'English';
+  bool _isSigningOut = false;
 
   @override
   Widget build(BuildContext context) {
@@ -44,28 +45,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       extraActions: const [],
       padding: EdgeInsets.all(spaces.md),
       headerBuilder: (context, controller) => _settingsHeader(profileAsync: profileAsync),
-      body: profileAsync.when(
-        data: (profile) {
-          if (profile == null) {
-            return const Center(child: Text('No profile found'));
-          }
+      body: _isSigningOut 
+          ? _buildSigningOutContent(context)
+          : profileAsync.when(
+              data: (profile) {
+                if (profile == null) {
+                  return const Center(child: Text('No profile found'));
+                }
 
-          final familyId = profile.familyId;
-          if (familyId == null) {
-            return const Center(child: Text('No family context'));
-          }
+                final familyId = profile.familyId;
+                if (familyId == null) {
+                  return const Center(child: Text('No family context'));
+                }
 
-          final familyAsync = ref.watch(familyStreamProvider(familyId));
+                final familyAsync = ref.watch(familyStreamProvider(familyId));
 
-          return familyAsync.when(
-            data: (family) => _buildSettingsContent(context, profile, family),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const Center(child: Text('Error loading family')),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Center(child: Text('Error loading profile')),
-      ),
+                return familyAsync.when(
+                  data: (family) => _buildSettingsContent(context, profile, family),
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (_, __) => const Center(child: Text('Error loading family')),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, __) => const Center(child: Text('Error loading profile')),
+            ),
     );
   }
 
@@ -256,9 +259,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           width: double.infinity,
           padding: EdgeInsets.symmetric(horizontal: spaces.md),
           child: OutlinedButton.icon(
-            onPressed: () => _signOut(context),
-            icon: const Icon(Icons.logout),
-            label: const Text('Sign Out'),
+            onPressed: _isSigningOut ? null : () => _signOut(context),
+            icon: _isSigningOut 
+                ? SizedBox(
+                    width: spaces.md,
+                    height: spaces.md,
+                    child: CircularProgressIndicator(
+                      strokeWidth: spaces.xs / 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(colors.error),
+                    ),
+                  )
+                : const Icon(Icons.logout),
+            label: Text(_isSigningOut ? 'Signing Out...' : 'Sign Out'),
             style: OutlinedButton.styleFrom(
               foregroundColor: colors.error,
               side: BorderSide(color: colors.error),
@@ -364,6 +376,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _signOut(BuildContext context) async {
+    if (_isSigningOut) return; // Prevent multiple sign-out attempts
+    
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -383,15 +397,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
 
     if (confirmed == true) {
+      setState(() => _isSigningOut = true);
+      
       try {
-        await ref.read(authRepositoryProvider).signOut();
-        // Don't navigate manually - let AuthGate handle the auth state change
-        // The signOut() will trigger authStateChanges() which will automatically
-        // redirect to the appropriate screen via AuthGate
-      } catch (e) {
+        // Show loading state
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error signing out: $e')),
+            const SnackBar(
+              content: Text('Signing out...'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+        
+        // Perform sign-out
+        await ref.read(authRepositoryProvider).signOut();
+        
+        // Success - AuthGate will handle navigation automatically
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Signed out successfully'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isSigningOut = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error signing out: $e'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
           );
         }
       }
@@ -470,6 +509,43 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSigningOutContent(BuildContext context) {
+    final spaces = context.spaces;
+    final colors = context.colors;
+    
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: spaces.xxl * 4,
+            height: spaces.xxl * 4,
+            child: CircularProgressIndicator(
+              strokeWidth: spaces.sm,
+              valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
+            ),
+          ),
+          SizedBox(height: spaces.lg),
+          Text(
+            'Signing out...',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: colors.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: spaces.sm),
+          Text(
+            'Please wait while we securely sign you out',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: colors.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 }

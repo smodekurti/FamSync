@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fam_sync/theme/app_theme.dart';
+import 'package:fam_sync/ui/strings.dart';
 import 'package:fam_sync/data/auth/auth_repository.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -137,6 +138,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Widget build(BuildContext context) {
     final spaces = context.spaces;
     final colors = context.colors;
+    final layout = context.layout;
     
     return Scaffold(
       body: Container(
@@ -165,22 +167,22 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       child: Transform.rotate(
                         angle: _logoRotation.value * 0.1,
                         child: Container(
-                          width: spaces.xxl * 8,
-                          height: spaces.xxl * 8,
+                          width: layout.isSmall ? spaces.xxl * 6 : spaces.xxl * 8,
+                          height: layout.isSmall ? spaces.xxl * 6 : spaces.xxl * 8,
                           decoration: BoxDecoration(
                             color: colors.onPrimary,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
                                 color: colors.onPrimary.withValues(alpha: 0.3),
-                                blurRadius: spaces.xl * 2,
+                                blurRadius: layout.isSmall ? spaces.xl : spaces.xl * 2,
                                 spreadRadius: spaces.sm,
                               ),
                             ],
                           ),
                           child: Icon(
                             Icons.family_restroom,
-                            size: spaces.xxl * 4,
+                            size: layout.isSmall ? spaces.xxl * 3 : spaces.xxl * 4,
                             color: colors.primary,
                           ),
                         ),
@@ -189,7 +191,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   },
                 ),
                 
-                SizedBox(height: spaces.xxl * 2),
+                SizedBox(height: layout.isSmall ? spaces.xxl : spaces.xxl * 2),
                 
                 // App Name
                 AnimatedBuilder(
@@ -198,11 +200,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     return Transform.translate(
                       offset: Offset(0, _textSlide.value),
                       child: Text(
-                        'FamSync',
+                        AppStrings.splashTitle,
                         style: Theme.of(context).textTheme.displayLarge?.copyWith(
                           color: colors.onPrimary,
                           fontWeight: FontWeight.bold,
                           letterSpacing: spaces.xs / 2,
+                          fontSize: layout.isSmall 
+                              ? Theme.of(context).textTheme.displayMedium?.fontSize
+                              : Theme.of(context).textTheme.displayLarge?.fontSize,
                         ),
                       ),
                     );
@@ -218,10 +223,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     return Opacity(
                       opacity: _fadeAnimation.value,
                       child: Text(
-                        'Organize. Communicate. Connect.',
+                        AppStrings.splashTagline,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: colors.onPrimary.withValues(alpha: 0.9),
                           fontWeight: FontWeight.w500,
+                          fontSize: layout.isSmall 
+                              ? Theme.of(context).textTheme.titleSmall?.fontSize
+                              : Theme.of(context).textTheme.titleMedium?.fontSize,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -229,7 +237,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   },
                 ),
                 
-                SizedBox(height: spaces.xxl * 3),
+                SizedBox(height: layout.isSmall ? spaces.xxl * 2 : spaces.xxl * 3),
                 
                 // Loading indicator
                 AnimatedBuilder(

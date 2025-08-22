@@ -20,7 +20,7 @@ class EventsRepository {
       return _firestore
         .collection('families')
           .doc(familyId)
-          .collection('events')
+        .collection('events')
           .snapshots()
           .handleError((error) {
             throw Exception('Failed to fetch events: $error');

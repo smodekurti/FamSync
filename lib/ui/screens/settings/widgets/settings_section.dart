@@ -17,12 +17,13 @@ class SettingsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final spaces = context.spaces;
     final colors = context.colors;
+    final layout = context.layout;
 
     return Card(
       elevation: 0,
       color: Colors.transparent,
       child: Padding(
-        padding: EdgeInsets.all(spaces.md),
+        padding: EdgeInsets.all(layout.isSmall ? spaces.sm : spaces.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -32,19 +33,24 @@ class SettingsSection extends StatelessWidget {
                 Icon(
                   icon,
                   color: colors.primary,
-                  size: spaces.lg,
+                  size: layout.isSmall ? spaces.md : spaces.lg,
                 ),
                 SizedBox(width: spaces.sm),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colors.onSurface,
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colors.onSurface,
+                      fontSize: layout.isSmall 
+                          ? Theme.of(context).textTheme.titleSmall?.fontSize
+                          : Theme.of(context).textTheme.titleMedium?.fontSize,
+                    ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: spaces.md),
+            SizedBox(height: layout.isSmall ? spaces.sm : spaces.md),
             
             // Section Content
             ...children,

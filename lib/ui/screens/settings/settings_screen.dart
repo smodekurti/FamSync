@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fam_sync/theme/app_theme.dart';
 import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
 import 'package:fam_sync/ui/appbar/fam_app_bar_scaffold.dart';
+import 'package:fam_sync/ui/strings.dart';
+import 'package:fam_sync/ui/widgets/responsive_error_widget.dart';
 
 import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/data/family/family_repository.dart';
@@ -26,15 +29,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _darkModeEnabled = false;
   final String _language = 'English';
   bool _isSigningOut = false;
+  Object? _signOutError;
 
   @override
   Widget build(BuildContext context) {
     final spaces = context.spaces;
+    final layout = context.layout;
     final profileAsync = ref.watch(userProfileStreamProvider);
 
     return FamAppBarScaffold(
-      title: const FamilyAppBarTitle(fallback: 'Settings'),
-      expandedHeight: spaces.xxl * 6, // Same height as Hub screen
+      title: const FamilyAppBarTitle(fallback: AppStrings.settingsTitle),
+      expandedHeight: layout.isSmall ? spaces.xxl * 4 : spaces.xxl * 6,
       fixedActions: [
         const Icon(Icons.settings),
         SizedBox(width: spaces.sm),
@@ -47,28 +52,102 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       headerBuilder: (context, controller) => _settingsHeader(profileAsync: profileAsync),
       body: _isSigningOut 
           ? _buildSigningOutContent(context)
-          : profileAsync.when(
-              data: (profile) {
-                if (profile == null) {
-                  return const Center(child: Text('No profile found'));
-                }
+          : _signOutError != null
+              ? _buildSignOutErrorContent(context)
+              : profileAsync.when(
+                  data: (profile) {
+                    if (profile == null) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.person_off,
+                              size: spaces.xxl * 2,
+                              color: context.colors.onSurfaceVariant,
+                            ),
+                            SizedBox(height: spaces.md),
+                            Text(
+                              AppStrings.noProfileFound,
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: context.colors.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
 
-                final familyId = profile.familyId;
-                if (familyId == null) {
-                  return const Center(child: Text('No family context'));
-                }
+                    final familyId = profile.familyId;
+                    if (familyId == null) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.family_restroom_outlined,
+                              size: spaces.xxl * 2,
+                              color: context.colors.onSurfaceVariant,
+                            ),
+                            SizedBox(height: spaces.md),
+                            Text(
+                              AppStrings.noFamilyContext,
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: context.colors.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
 
-                final familyAsync = ref.watch(familyStreamProvider(familyId));
+                    final familyAsync = ref.watch(familyStreamProvider(familyId));
 
-                return familyAsync.when(
-                  data: (family) => _buildSettingsContent(context, profile, family),
+                    return familyAsync.when(
+                      data: (family) => _buildSettingsContent(context, profile, family),
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (_, __) => Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: spaces.xxl * 2,
+                              color: context.colors.error,
+                            ),
+                            SizedBox(height: spaces.md),
+                            Text(
+                              AppStrings.errorLoadingFamily,
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: context.colors.error,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                   loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (_, __) => const Center(child: Text('Error loading family')),
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (_, __) => const Center(child: Text('Error loading profile')),
-            ),
+                  error: (_, __) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: spaces.xxl * 2,
+                          color: context.colors.error,
+                        ),
+                        SizedBox(height: spaces.md),
+                        Text(
+                          AppStrings.errorLoadingProfile,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: context.colors.error,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
     );
   }
 
@@ -79,207 +158,211 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   ) {
     final spaces = context.spaces;
     final colors = context.colors;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Profile Header
-        ProfileHeader(profile: profile, family: family),
-        SizedBox(height: spaces.lg),
+    final layout = context.layout;
+    
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Profile Header
+          ProfileHeader(profile: profile, family: family),
+          SizedBox(height: spaces.lg),
 
-        // Profile & Family Management
-        SettingsSection(
-          title: 'Profile & Family',
-          icon: Icons.family_restroom,
-          children: [
-            SettingsTile(
-              icon: Icons.person,
-              title: 'Edit Profile',
-              subtitle: 'Change your name, email, and photo',
-              onTap: () => _editProfile(context, profile),
-            ),
-            SettingsTile(
-              icon: Icons.family_restroom,
-              title: 'Family Settings',
-              subtitle: family?.name ?? 'Family',
-              onTap: () => _editFamilySettings(context, family),
-            ),
-            SettingsTile(
-              icon: Icons.person_add,
-              title: 'Invite Members',
-              subtitle: 'Send invite codes to new family members',
-              onTap: () => _inviteMembers(context, family),
-            ),
-            if (profile.role == UserRole.parent) ...[
+          // Profile & Family Management
+          SettingsSection(
+            title: AppStrings.profileFamilyTitle,
+            icon: Icons.family_restroom,
+            children: [
               SettingsTile(
-                icon: Icons.manage_accounts,
-                title: 'Manage Members',
-                subtitle: 'Remove members or change roles',
-                onTap: () => _manageMembers(context, family),
+                icon: Icons.person,
+                title: AppStrings.editProfileTitle,
+                subtitle: AppStrings.editProfileSubtitle,
+                onTap: () => _editProfile(context, profile),
               ),
+              SettingsTile(
+                icon: Icons.family_restroom,
+                title: AppStrings.familySettingsTitle,
+                subtitle: family?.name ?? 'Family',
+                onTap: () => _editFamilySettings(context, family),
+              ),
+              SettingsTile(
+                icon: Icons.person_add,
+                title: AppStrings.inviteMembersTitle,
+                subtitle: AppStrings.inviteMembersSubtitle,
+                onTap: () => _inviteMembers(context, family),
+              ),
+              if (profile.role == UserRole.parent) ...[
+                SettingsTile(
+                  icon: Icons.manage_accounts,
+                  title: AppStrings.manageMembersTitle,
+                  subtitle: AppStrings.manageMembersSubtitle,
+                  onTap: () => _manageMembers(context, family),
+                ),
+              ],
             ],
-          ],
-        ),
-        SizedBox(height: spaces.md),
+          ),
+          SizedBox(height: spaces.md),
 
-        // App Preferences
-        SettingsSection(
-          title: 'App Preferences',
-          icon: Icons.settings,
-          children: [
-            SettingsTile(
-              icon: Icons.palette,
-              title: 'Theme',
-              subtitle: _darkModeEnabled ? 'Dark Mode' : 'Light Mode',
-              trailing: Switch(
-                value: _darkModeEnabled,
-                onChanged: (value) {
-                  setState(() {
-                    _darkModeEnabled = value;
-                  });
-                  // TODO: Implement theme switching
-                },
-              ),
-            ),
-            SettingsTile(
-              icon: Icons.language,
-              title: 'Language',
-              subtitle: _language,
-              onTap: () => _selectLanguage(context),
-            ),
-            SettingsTile(
-              icon: Icons.text_fields,
-              title: 'Font Size',
-              subtitle: 'Adjust text size for better readability',
-              onTap: () => _adjustFontSize(context),
-            ),
-          ],
-        ),
-        SizedBox(height: spaces.md),
-
-        // Notifications
-        SettingsSection(
-          title: 'Notifications',
-          icon: Icons.notifications,
-          children: [
-            SettingsTile(
-              icon: Icons.notifications_active,
-              title: 'Push Notifications',
-              subtitle: 'Receive notifications on your device',
-              trailing: Switch(
-                value: _notificationsEnabled,
-                onChanged: (value) {
-                  setState(() {
-                    _notificationsEnabled = value;
-                  });
-                  // TODO: Implement notification toggle
-                },
-              ),
-            ),
-            if (_notificationsEnabled) ...[
+          // App Preferences
+          SettingsSection(
+            title: AppStrings.appPreferencesTitle,
+            icon: Icons.settings,
+            children: [
               SettingsTile(
-                icon: Icons.volume_up,
-                title: 'Sound',
-                subtitle: 'Play sound for notifications',
+                icon: Icons.palette,
+                title: AppStrings.themeTitle,
+                subtitle: _darkModeEnabled ? AppStrings.darkMode : AppStrings.lightMode,
                 trailing: Switch(
-                  value: _soundEnabled,
+                  value: _darkModeEnabled,
                   onChanged: (value) {
                     setState(() {
-                      _soundEnabled = value;
+                      _darkModeEnabled = value;
                     });
-                    // TODO: Implement sound toggle
+                    // TODO: Implement theme switching
                   },
                 ),
               ),
               SettingsTile(
-                icon: Icons.vibration,
-                title: 'Vibration',
-                subtitle: 'Vibrate for notifications',
+                icon: Icons.language,
+                title: AppStrings.languageTitle,
+                subtitle: _language,
+                onTap: () => _selectLanguage(context),
+              ),
+              SettingsTile(
+                icon: Icons.text_fields,
+                title: AppStrings.fontSizeTitle,
+                subtitle: AppStrings.fontSizeSubtitle,
+                onTap: () => _adjustFontSize(context),
+              ),
+            ],
+          ),
+          SizedBox(height: spaces.md),
+
+          // Notifications
+          SettingsSection(
+            title: AppStrings.notificationsTitle,
+            icon: Icons.notifications,
+            children: [
+              SettingsTile(
+                icon: Icons.notifications_active,
+                title: AppStrings.pushNotificationsTitle,
+                subtitle: AppStrings.pushNotificationsSubtitle,
                 trailing: Switch(
-                  value: _vibrationEnabled,
+                  value: _notificationsEnabled,
                   onChanged: (value) {
                     setState(() {
-                      _vibrationEnabled = value;
+                      _notificationsEnabled = value;
                     });
-                    // TODO: Implement vibration toggle
+                    // TODO: Implement notification toggle
                   },
                 ),
               ),
+              if (_notificationsEnabled) ...[
+                SettingsTile(
+                  icon: Icons.volume_up,
+                  title: AppStrings.soundTitle,
+                  subtitle: AppStrings.soundSubtitle,
+                  trailing: Switch(
+                    value: _soundEnabled,
+                    onChanged: (value) {
+                      setState(() {
+                        _soundEnabled = value;
+                      });
+                      // TODO: Implement sound toggle
+                    },
+                  ),
+                ),
+                SettingsTile(
+                  icon: Icons.vibration,
+                  title: AppStrings.vibrationTitle,
+                  subtitle: AppStrings.vibrationSubtitle,
+                  trailing: Switch(
+                    value: _vibrationEnabled,
+                    onChanged: (value) {
+                      setState(() {
+                        _vibrationEnabled = value;
+                      });
+                      // TODO: Implement vibration toggle
+                    },
+                  ),
+                ),
+                SettingsTile(
+                  icon: Icons.event,
+                  title: AppStrings.eventRemindersTitle,
+                  subtitle: AppStrings.eventRemindersSubtitle,
+                  onTap: () => _configureEventReminders(context),
+                ),
+                SettingsTile(
+                  icon: Icons.task,
+                  title: AppStrings.taskNotificationsTitle,
+                  subtitle: AppStrings.taskNotificationsSubtitle,
+                  onTap: () => _configureTaskNotifications(context),
+                ),
+              ],
+            ],
+          ),
+          SizedBox(height: spaces.md),
+
+          // Support & About
+          SettingsSection(
+            title: AppStrings.supportAboutTitle,
+            icon: Icons.help,
+            children: [
               SettingsTile(
-                icon: Icons.event,
-                title: 'Event Reminders',
-                subtitle: 'Get notified before events',
-                onTap: () => _configureEventReminders(context),
+                icon: Icons.help_outline,
+                title: AppStrings.helpFaqTitle,
+                subtitle: AppStrings.helpFaqSubtitle,
+                onTap: () => _showHelp(context),
               ),
               SettingsTile(
-                icon: Icons.task,
-                title: 'Task Notifications',
-                subtitle: 'Get notified about task deadlines',
-                onTap: () => _configureTaskNotifications(context),
+                icon: Icons.bug_report,
+                title: AppStrings.reportBugTitle,
+                subtitle: AppStrings.reportBugSubtitle,
+                onTap: () => _reportBug(context),
+              ),
+              SettingsTile(
+                icon: Icons.feedback,
+                title: AppStrings.sendFeedbackTitle,
+                subtitle: AppStrings.sendFeedbackSubtitle,
+                onTap: () => _sendFeedback(context),
+              ),
+              SettingsTile(
+                icon: Icons.info,
+                title: AppStrings.aboutTitle,
+                subtitle: AppStrings.aboutSubtitle,
+                onTap: () => _showAbout(context),
               ),
             ],
-          ],
-        ),
-        SizedBox(height: spaces.md),
+          ),
+          SizedBox(height: layout.isSmall ? spaces.md : spaces.lg),
 
-        // Support & About
-        SettingsSection(
-          title: 'Support & About',
-          icon: Icons.help,
-          children: [
-            SettingsTile(
-              icon: Icons.help_outline,
-              title: 'Help & FAQ',
-              subtitle: 'Get help with using FamSync',
-              onTap: () => _showHelp(context),
-            ),
-            SettingsTile(
-              icon: Icons.bug_report,
-              title: 'Report Bug',
-              subtitle: 'Help us improve by reporting issues',
-              onTap: () => _reportBug(context),
-            ),
-            SettingsTile(
-              icon: Icons.feedback,
-              title: 'Send Feedback',
-              subtitle: 'Share your thoughts and suggestions',
-              onTap: () => _sendFeedback(context),
-            ),
-            SettingsTile(
-              icon: Icons.info,
-              title: 'About',
-              subtitle: 'App version and information',
-              onTap: () => _showAbout(context),
-            ),
-          ],
-        ),
-        SizedBox(height: spaces.lg),
-
-        // Sign Out Button
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: spaces.md),
-          child: OutlinedButton.icon(
-            onPressed: _isSigningOut ? null : () => _signOut(context),
-            icon: _isSigningOut 
-                ? SizedBox(
-                    width: spaces.md,
-                    height: spaces.md,
-                    child: CircularProgressIndicator(
-                      strokeWidth: spaces.xs / 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(colors.error),
-                    ),
-                  )
-                : const Icon(Icons.logout),
-            label: Text(_isSigningOut ? 'Signing Out...' : 'Sign Out'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: colors.error,
-              side: BorderSide(color: colors.error),
-              padding: EdgeInsets.symmetric(vertical: spaces.md),
+          // Sign Out Button
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: spaces.md),
+            child: OutlinedButton.icon(
+              onPressed: _isSigningOut ? null : () => _signOut(context),
+              icon: _isSigningOut 
+                  ? SizedBox(
+                      width: spaces.md,
+                      height: spaces.md,
+                      child: CircularProgressIndicator(
+                        strokeWidth: spaces.xs / 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(colors.error),
+                      ),
+                    )
+                  : const Icon(Icons.logout),
+              label: Text(_isSigningOut ? AppStrings.signingOut : AppStrings.signOut),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: colors.error,
+                side: BorderSide(color: colors.error),
+                padding: EdgeInsets.symmetric(vertical: spaces.md),
+              ),
             ),
           ),
-        ),
-        SizedBox(height: spaces.xl),
-      ],
+          SizedBox(height: layout.isSmall ? spaces.lg : spaces.xl),
+        ],
+      ),
     );
   }
 
@@ -287,90 +370,90 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void _editProfile(BuildContext context, UserProfile profile) {
     // TODO: Navigate to profile editing screen
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile editing coming soon!')),
+      SnackBar(content: Text('${AppStrings.editProfileTitle} coming soon!')),
     );
   }
 
   void _editFamilySettings(BuildContext context, models.Family? family) {
     // TODO: Navigate to family settings screen
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Family settings coming soon!')),
+      SnackBar(content: Text('${AppStrings.familySettingsTitle} coming soon!')),
     );
   }
 
   void _inviteMembers(BuildContext context, models.Family? family) {
     // TODO: Show invite members dialog
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Invite members coming soon!')),
+      SnackBar(content: Text('${AppStrings.inviteMembersTitle} coming soon!')),
     );
   }
 
   void _manageMembers(BuildContext context, models.Family? family) {
     // TODO: Navigate to member management screen
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Member management coming soon!')),
+      SnackBar(content: Text('${AppStrings.manageMembersTitle} coming soon!')),
     );
   }
 
   void _selectLanguage(BuildContext context) {
     // TODO: Show language selection dialog
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Language selection coming soon!')),
+      SnackBar(content: Text('${AppStrings.languageTitle} selection coming soon!')),
     );
   }
 
   void _adjustFontSize(BuildContext context) {
     // TODO: Show font size adjustment dialog
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Font size adjustment coming soon!')),
+      SnackBar(content: Text('${AppStrings.fontSizeTitle} adjustment coming soon!')),
     );
   }
 
   void _configureEventReminders(BuildContext context) {
     // TODO: Show event reminder configuration
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Event reminders configuration coming soon!')),
+      SnackBar(content: Text('${AppStrings.eventRemindersTitle} configuration coming soon!')),
     );
   }
 
   void _configureTaskNotifications(BuildContext context) {
     // TODO: Show task notification configuration
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Task notifications configuration coming soon!')),
+      SnackBar(content: Text('${AppStrings.taskNotificationsTitle} configuration coming soon!')),
     );
   }
 
   void _showHelp(BuildContext context) {
     // TODO: Navigate to help screen
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Help & FAQ coming soon!')),
+      SnackBar(content: Text('${AppStrings.helpFaqTitle} coming soon!')),
     );
   }
 
   void _reportBug(BuildContext context) {
     // TODO: Show bug report dialog
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Bug reporting coming soon!')),
+      SnackBar(content: Text('${AppStrings.reportBugTitle} coming soon!')),
     );
   }
 
   void _sendFeedback(BuildContext context) {
     // TODO: Show feedback dialog
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Feedback submission coming soon!')),
+      SnackBar(content: Text('${AppStrings.sendFeedbackTitle} coming soon!')),
     );
   }
 
   void _showAbout(BuildContext context) {
     showAboutDialog(
       context: context,
-      applicationName: 'FamSync',
+      applicationName: AppStrings.appName,
       applicationVersion: '1.0.0',
       applicationIcon: const Icon(Icons.family_restroom),
       children: [
-        const Text('A family organization and communication app.'),
+        Text(AppStrings.appDescription),
         SizedBox(height: context.spaces.md),
-        const Text('Built with Flutter and Firebase.'),
+        Text(AppStrings.appBuiltWith),
       ],
     );
   }
@@ -381,55 +464,70 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out?'),
+        title: Text(AppStrings.signOutTitle),
+        content: Text(AppStrings.signOutSubtitle),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(AppStrings.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Sign Out'),
+            child: Text(AppStrings.signOut),
           ),
         ],
       ),
     );
 
     if (confirmed == true) {
-      setState(() => _isSigningOut = true);
+      setState(() {
+        _isSigningOut = true;
+        _signOutError = null; // Clear any previous errors
+      });
       
       try {
         // Show loading state
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Signing out...'),
-              duration: Duration(seconds: 2),
+            SnackBar(
+              content: Text(AppStrings.signingOut),
+              duration: const Duration(seconds: 2),
             ),
           );
         }
+        
+        print('Starting sign out process...'); // Debug log
         
         // Perform sign-out
         await ref.read(authRepositoryProvider).signOut();
         
+        print('Sign out completed successfully'); // Debug log
+        
         // Success - AuthGate will handle navigation automatically
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Signed out successfully'),
+            SnackBar(
+              content: Text(AppStrings.signOutSuccess),
               backgroundColor: Colors.green,
-              duration: Duration(seconds: 1),
+              duration: const Duration(seconds: 1),
             ),
           );
         }
       } catch (e) {
+        print('Sign out error: $e'); // Debug log
+        
         if (mounted) {
-          setState(() => _isSigningOut = false);
+          setState(() {
+            _isSigningOut = false;
+            _signOutError = e; // Store the error for display
+          });
+          
+          // Show error message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error signing out: $e'),
+              content: Text(AppStrings.errorSignOutRetry),
               backgroundColor: Theme.of(context).colorScheme.error,
+              duration: const Duration(seconds: 3),
             ),
           );
         }
@@ -459,6 +557,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Widget _buildHeaderContent(UserProfile profile, models.Family? family) {
     final spaces = context.spaces;
+    final layout = context.layout;
+    
     return Row(
       children: [
         Expanded(
@@ -467,7 +567,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Settings & Preferences',
+                AppStrings.settingsHeaderTitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -477,8 +577,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               SizedBox(height: spaces.xs / 4),
               Text(
-                'Manage your profile, family, and app settings',
-                maxLines: 1,
+                AppStrings.settingsHeaderSubtitle,
+                maxLines: layout.isSmall ? 1 : 2,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Colors.white70,
@@ -515,14 +615,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _buildSigningOutContent(BuildContext context) {
     final spaces = context.spaces;
     final colors = context.colors;
+    final layout = context.layout;
     
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
-            width: spaces.xxl * 4,
-            height: spaces.xxl * 4,
+            width: layout.isSmall ? spaces.xxl * 3 : spaces.xxl * 4,
+            height: layout.isSmall ? spaces.xxl * 3 : spaces.xxl * 4,
             child: CircularProgressIndicator(
               strokeWidth: spaces.sm,
               valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
@@ -530,7 +631,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           SizedBox(height: spaces.lg),
           Text(
-            'Signing out...',
+            AppStrings.signingOut,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: colors.onSurface,
               fontWeight: FontWeight.w600,
@@ -538,7 +639,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           SizedBox(height: spaces.sm),
           Text(
-            'Please wait while we securely sign you out',
+            AppStrings.signingOutMessage,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: colors.onSurfaceVariant,
             ),
@@ -547,5 +648,79 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildSignOutErrorContent(BuildContext context) {
+    final spaces = context.spaces;
+    final layout = context.layout;
+    
+    return ResponsiveErrorWidget(
+      error: _signOutError!,
+      onRetry: () => _retrySignOut(context),
+      actions: [
+        // Force Sign Out Button
+        SizedBox(
+          width: layout.isSmall ? double.infinity : spaces.xxl * 12,
+          height: spaces.xxl * 1.5,
+          child: OutlinedButton(
+            onPressed: () => _showForceSignOutDialog(context),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: context.colors.error,
+              side: BorderSide(color: context.colors.error),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(spaces.sm),
+              ),
+            ),
+            child: Text(
+              AppStrings.errorSignOutForce,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showForceSignOutDialog(BuildContext context) {
+    showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppStrings.errorSignOutForce),
+        content: Text(AppStrings.errorSignOutForceMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(AppStrings.errorSignOutForceCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: context.colors.error,
+              foregroundColor: context.colors.onError,
+            ),
+            child: Text(AppStrings.errorSignOutForceConfirm),
+          ),
+        ],
+      ),
+    ).then((confirmed) {
+      if (confirmed == true) {
+        _forceSignOut(context);
+      }
+    });
+  }
+
+  void _forceSignOut(BuildContext context) {
+    // Force close the app to bypass any remaining issues
+    // This is a last resort when normal sign out fails
+    SystemNavigator.pop();
+  }
+
+  void _retrySignOut(BuildContext context) {
+    setState(() {
+      _signOutError = null;
+    });
+    _signOut(context);
   }
 }

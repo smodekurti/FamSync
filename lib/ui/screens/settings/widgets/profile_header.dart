@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fam_sync/theme/app_theme.dart';
+import 'package:fam_sync/ui/strings.dart';
 import 'package:fam_sync/domain/models/user_profile.dart';
 import 'package:fam_sync/domain/models/family.dart' as models;
 
@@ -17,18 +18,19 @@ class ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final spaces = context.spaces;
     final colors = context.colors;
+    final layout = context.layout;
 
     return Card(
       elevation: 0,
       color: Colors.transparent,
       child: Padding(
-        padding: EdgeInsets.all(spaces.lg),
+        padding: EdgeInsets.all(layout.isSmall ? spaces.md : spaces.lg),
         child: Row(
           children: [
             // Profile Avatar
             Container(
-              width: spaces.xxl * 2,
-              height: spaces.xxl * 2,
+              width: layout.isSmall ? spaces.xxl * 1.5 : spaces.xxl * 2,
+              height: layout.isSmall ? spaces.xxl * 1.5 : spaces.xxl * 2,
               decoration: BoxDecoration(
                 color: colors.primary,
                 shape: BoxShape.circle,
@@ -41,6 +43,9 @@ class ProfileHeader extends StatelessWidget {
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     color: colors.onPrimary,
                     fontWeight: FontWeight.bold,
+                    fontSize: layout.isSmall 
+                        ? Theme.of(context).textTheme.titleLarge?.fontSize
+                        : Theme.of(context).textTheme.headlineMedium?.fontSize,
                   ),
                 ),
               ),
@@ -60,6 +65,9 @@ class ProfileHeader extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: colors.onPrimary,
+                      fontSize: layout.isSmall 
+                          ? Theme.of(context).textTheme.titleMedium?.fontSize
+                          : Theme.of(context).textTheme.titleLarge?.fontSize,
                     ),
                   ),
                   SizedBox(height: spaces.xs),
@@ -67,6 +75,9 @@ class ProfileHeader extends StatelessWidget {
                     profile.email,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: colors.onPrimaryContainer,
+                      fontSize: layout.isSmall 
+                          ? Theme.of(context).textTheme.bodySmall?.fontSize
+                          : Theme.of(context).textTheme.bodyMedium?.fontSize,
                     ),
                   ),
                   SizedBox(height: spaces.xs),
@@ -74,14 +85,20 @@ class ProfileHeader extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.family_restroom,
-                        size: spaces.sm,
+                        size: layout.isSmall ? spaces.xs : spaces.sm,
                         color: colors.onPrimaryContainer,
                       ),
                       SizedBox(width: spaces.xs / 2),
-                      Text(
-                        family?.name ?? 'Family',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colors.onPrimaryContainer,
+                      Expanded(
+                        child: Text(
+                          family?.name ?? 'Family',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: colors.onPrimaryContainer,
+                            fontSize: layout.isSmall 
+                                ? Theme.of(context).textTheme.bodySmall?.fontSize
+                                : Theme.of(context).textTheme.bodyMedium?.fontSize,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       SizedBox(width: spaces.xs),
@@ -99,6 +116,9 @@ class ProfileHeader extends StatelessWidget {
                           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: colors.onPrimary,
                             fontWeight: FontWeight.bold,
+                            fontSize: layout.isSmall 
+                                ? (Theme.of(context).textTheme.labelSmall?.fontSize ?? 12) * 0.8
+                                : Theme.of(context).textTheme.labelSmall?.fontSize,
                           ),
                         ),
                       ),
@@ -116,7 +136,7 @@ class ProfileHeader extends StatelessWidget {
               icon: Icon(
                 Icons.edit,
                 color: colors.onPrimary,
-                size: spaces.md,
+                size: layout.isSmall ? spaces.sm : spaces.md,
               ),
             ),
           ],

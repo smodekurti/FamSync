@@ -23,6 +23,7 @@ class SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final spaces = context.spaces;
     final colors = context.colors;
+    final layout = context.layout;
 
     return Column(
       children: [
@@ -32,13 +33,13 @@ class SettingsTile extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.symmetric(
               horizontal: spaces.sm,
-              vertical: spaces.md,
+              vertical: layout.isSmall ? spaces.sm : spaces.md,
             ),
             child: Row(
               children: [
                 // Icon
                 Container(
-                  padding: EdgeInsets.all(spaces.sm),
+                  padding: EdgeInsets.all(layout.isSmall ? spaces.xs : spaces.sm),
                   decoration: BoxDecoration(
                     color: colors.primaryContainer,
                     borderRadius: BorderRadius.circular(spaces.sm),
@@ -46,7 +47,7 @@ class SettingsTile extends StatelessWidget {
                   child: Icon(
                     icon,
                     color: colors.onPrimaryContainer,
-                    size: spaces.md,
+                    size: layout.isSmall ? spaces.sm : spaces.md,
                   ),
                 ),
                 SizedBox(width: spaces.md),
@@ -61,6 +62,9 @@ class SettingsTile extends StatelessWidget {
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: colors.onSurface,
+                          fontSize: layout.isSmall 
+                              ? Theme.of(context).textTheme.labelLarge?.fontSize
+                              : Theme.of(context).textTheme.titleSmall?.fontSize,
                         ),
                       ),
                       SizedBox(height: spaces.xs / 2),
@@ -68,8 +72,11 @@ class SettingsTile extends StatelessWidget {
                         subtitle,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colors.onSurfaceVariant,
+                          fontSize: layout.isSmall 
+                              ? Theme.of(context).textTheme.labelSmall?.fontSize
+                              : Theme.of(context).textTheme.bodySmall?.fontSize,
                         ),
-                        maxLines: 2,
+                        maxLines: layout.isSmall ? 1 : 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -85,7 +92,7 @@ class SettingsTile extends StatelessWidget {
                   Icon(
                     Icons.chevron_right,
                     color: colors.onSurfaceVariant,
-                    size: spaces.md,
+                    size: layout.isSmall ? spaces.sm : spaces.md,
                   ),
                 ],
               ],
@@ -98,7 +105,7 @@ class SettingsTile extends StatelessWidget {
           Divider(
             height: 1,
             color: colors.outline.withValues(alpha: 0.1),
-            indent: spaces.xl * 2,
+            indent: layout.isSmall ? spaces.lg : spaces.xl * 2,
           ),
       ],
     );

@@ -71,6 +71,38 @@ class AppSpacing {
       : layout.isMedium
       ? 32
       : 40;
+
+  // Responsive spacing helpers
+  double responsiveSpacing({
+    required double mobile,
+    double? tablet,
+    double? desktop,
+  }) {
+    return layout.responsiveValue(
+      mobile: mobile,
+      tablet: tablet,
+      desktop: desktop,
+    );
+  }
+
+  // Common responsive spacing patterns
+  double get cardPadding => responsiveSpacing(
+    mobile: 12.0,
+    tablet: 16.0,
+    desktop: 20.0,
+  );
+
+  double get sectionSpacing => responsiveSpacing(
+    mobile: 16.0,
+    tablet: 24.0,
+    desktop: 32.0,
+  );
+
+  double get contentSpacing => responsiveSpacing(
+    mobile: 8.0,
+    tablet: 12.0,
+    desktop: 16.0,
+  );
 }
 
 class AppSizes {
@@ -104,4 +136,36 @@ class AppSizes {
       : layout.isMedium
       ? 180
       : 200;
+
+  // Responsive size helpers
+  double responsiveSize({
+    required double mobile,
+    double? tablet,
+    double? desktop,
+  }) {
+    return layout.responsiveValue(
+      mobile: mobile,
+      tablet: tablet,
+      desktop: desktop,
+    );
+  }
+
+  // Common responsive size patterns
+  double get avatarSize => responsiveSize(
+    mobile: 48.0,
+    tablet: 64.0,
+    desktop: 80.0,
+  );
+
+  double get buttonHeight => responsiveSize(
+    mobile: 44.0,
+    tablet: 48.0,
+    desktop: 52.0,
+  );
+
+  double get inputHeight => responsiveSize(
+    mobile: 48.0,
+    tablet: 52.0,
+    desktop: 56.0,
+  );
 }

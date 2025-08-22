@@ -38,6 +38,52 @@ class AppLayout {
                 : AppSizeClass.xlarge;
     return AppLayout._(sizeClass, width);
   }
+
+  // Helper methods for responsive design
+  bool get isMobile => isSmall;
+  bool get isTablet => isMedium || isLarge;
+  bool get isDesktop => isXLarge;
+  
+  // Responsive value helper
+  T responsiveValue<T>({
+    required T mobile,
+    T? tablet,
+    T? desktop,
+  }) {
+    if (isMobile) return mobile;
+    if (isTablet) return tablet ?? mobile;
+    if (isDesktop) return desktop ?? tablet ?? mobile;
+    return mobile;
+  }
+}
+
+// Extension for easier responsive access
+extension ResponsiveExtension on BuildContext {
+  bool get isMobile => MediaQuery.sizeOf(this).width < 600;
+  bool get isTablet => MediaQuery.sizeOf(this).width >= 600 && MediaQuery.sizeOf(this).width < 1200;
+  bool get isDesktop => MediaQuery.sizeOf(this).width >= 1200;
+  
+  // Responsive padding helpers
+  EdgeInsets get responsivePadding {
+    if (isMobile) {
+      return const EdgeInsets.all(16.0);
+    } else if (isTablet) {
+      return const EdgeInsets.all(24.0);
+    } else {
+      return const EdgeInsets.all(32.0);
+    }
+  }
+  
+  // Responsive margin helpers
+  EdgeInsets get responsiveMargin {
+    if (isMobile) {
+      return const EdgeInsets.all(8.0);
+    } else if (isTablet) {
+      return const EdgeInsets.all(16.0);
+    } else {
+      return const EdgeInsets.all(24.0);
+    }
+  }
 }
 
 

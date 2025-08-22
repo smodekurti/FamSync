@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/theme/app_theme.dart';
 import 'package:fam_sync/ui/screens/auth/login_screen.dart';
+import 'package:fam_sync/ui/widgets/responsive_error_widget.dart';
+import 'package:fam_sync/ui/strings.dart';
 
 class AuthGate extends ConsumerWidget {
   const AuthGate({super.key, required this.child});
@@ -26,39 +28,41 @@ class AuthGate extends ConsumerWidget {
         }
         return child;
       },
-      error: (e, _) => _ErrorRetryWidget(error: e.toString()),
+      error: (e, _) => _ErrorRetryWidget(error: e),
       loading: () => const Center(child: CircularProgressIndicator()),
     );
   }
 }
 
-
-
 class _ErrorRetryWidget extends ConsumerWidget {
   const _ErrorRetryWidget({required this.error});
-  final String error;
+  final Object error;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(context.spaces.lg),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Temporary issue', style: Theme.of(context).textTheme.headlineSmall),
-              SizedBox(height: context.spaces.md),
-              Text(error, textAlign: TextAlign.center),
-              SizedBox(height: context.spaces.lg),
-              FilledButton(
-                onPressed: () => ref.refresh(userProfileStreamProvider),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      ),
+    // Check if this is a sign-out related error
+    final errorString = error.toString().toLowerCase();
+    final isSignOutError = errorString.contains('permission-denied') || 
+                           errorString.contains('permission_denied') ||
+                           errorString.contains('sign-out') ||
+                           errorString.contains('signout');
+    
+    if (isSignOutError) {
+      // For sign-out errors, show a more specific message and redirect to login
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          context.go('/auth');
+        }
+      });
+      return const LoginScreen();
+    }
+    
+    // For other errors, show the responsive error widget
+    return ResponsiveErrorWidget(
+      error: error,
+      onRetry: () => ref.refresh(userProfileStreamProvider),
+      title: AppStrings.errorTitle,
+      subtitle: AppStrings.errorSubtitle,
     );
   }
 }

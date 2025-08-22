@@ -23,7 +23,7 @@ class CalendarScreen extends ConsumerWidget {
     
     return FamAppBarScaffold(
       title: const FamilyAppBarTitle(fallback: AppStrings.calendarTitle),
-      expandedHeight: spaces.xxl * 6, // Responsive header height matching Hub
+      expandedHeight: _getResponsiveHeaderHeight(context), // Responsive header height
       fixedActions: [
         const Icon(AppIcons.reminder),
         SizedBox(width: spaces.sm),
@@ -42,13 +42,6 @@ class CalendarScreen extends ConsumerWidget {
   Widget _buildCalendarBody(BuildContext context, WidgetRef ref, CalendarState state) {
     return const MonthViewNew();
   }
-
-
-    
-
-
-
-
 
   void _showEventForm(BuildContext context, WidgetRef ref) {
     final selectedDate = ref.read(selectedDateProvider);
@@ -91,7 +84,7 @@ class CalendarScreen extends ConsumerWidget {
             _formatDateAndTime(now),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: colors.onPrimary,
-              fontWeight: FontWeight.w600,
+              fontWeight: _getResponsiveFontWeight(context),
               fontSize: _getResponsiveFontSize(context, 18, 22, 26),
             ),
           ),
@@ -130,9 +123,42 @@ class CalendarScreen extends ConsumerWidget {
 
   double _getResponsiveFontSize(BuildContext context, double small, double medium, double large) {
     final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth < 360) return small;      // Small phones
-    if (screenWidth < 600) return medium;     // Medium phones
-    return large;                             // Large phones/tablets
+    final spaces = context.spaces;
+    
+    // Use responsive breakpoints based on design tokens
+    if (screenWidth < spaces.xxl * 10) return small;      // Small phones
+    if (screenWidth < spaces.xxl * 20) return medium;     // Medium phones
+    return large;                                          // Large phones/tablets
+  }
+
+  FontWeight _getResponsiveFontWeight(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final spaces = context.spaces;
+    
+    // Responsive font weights based on screen size
+    if (screenWidth < spaces.xxl * 10) return FontWeight.w500;  // Small phones
+    if (screenWidth < spaces.xxl * 20) return FontWeight.w600;  // Medium phones
+    return FontWeight.w700;                                     // Large phones/tablets
+  }
+
+  double _getResponsiveAlpha(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final spaces = context.spaces;
+    
+    // Responsive alpha values for better contrast on different screen sizes
+    if (screenWidth < spaces.xxl * 10) return 0.95;  // Small phones - higher contrast
+    if (screenWidth < spaces.xxl * 20) return 0.9;   // Medium phones
+    return 0.85;                                     // Large phones/tablets - lower contrast
+  }
+
+  double _getResponsiveHeaderHeight(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final spaces = context.spaces;
+    
+    // Responsive header height based on screen size
+    if (screenWidth < spaces.xxl * 10) return spaces.xxl * 5;   // Small phones - compact
+    if (screenWidth < spaces.xxl * 20) return spaces.xxl * 6;   // Medium phones - standard
+    return spaces.xxl * 7;                                      // Large phones/tablets - spacious
   }
 
   Widget _buildHouseholdEventsInfo(BuildContext context, WidgetRef ref, String? familyId, DateTime selectedDate) {
@@ -166,8 +192,8 @@ class CalendarScreen extends ConsumerWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: colors.onPrimary.withValues(alpha: 0.9),
-                    fontWeight: FontWeight.w500,
+                    color: colors.onPrimary.withValues(alpha: _getResponsiveAlpha(context)),
+                    fontWeight: _getResponsiveFontWeight(context),
                     fontSize: _getResponsiveFontSize(context, 14, 16, 18),
                   ),
                 );
@@ -175,8 +201,8 @@ class CalendarScreen extends ConsumerWidget {
               loading: () => Text(
                 'Loading family info...',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: colors.onPrimary.withValues(alpha: 0.9),
-                  fontWeight: FontWeight.w500,
+                  color: colors.onPrimary.withValues(alpha: _getResponsiveAlpha(context)),
+                  fontWeight: _getResponsiveFontWeight(context),
                   fontSize: _getResponsiveFontSize(context, 14, 16, 18),
                 ),
               ),
@@ -187,8 +213,8 @@ class CalendarScreen extends ConsumerWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: colors.onPrimary.withValues(alpha: 0.9),
-                    fontWeight: FontWeight.w500,
+                    color: colors.onPrimary.withValues(alpha: _getResponsiveAlpha(context)),
+                    fontWeight: _getResponsiveFontWeight(context),
                     fontSize: _getResponsiveFontSize(context, 14, 16, 18),
                   ),
                 );
@@ -198,16 +224,16 @@ class CalendarScreen extends ConsumerWidget {
           loading: () => Text(
             'Loading events...',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: colors.onPrimary.withValues(alpha: 0.9),
-              fontWeight: FontWeight.w500,
+              color: colors.onPrimary.withValues(alpha: _getResponsiveAlpha(context)),
+              fontWeight: _getResponsiveFontWeight(context),
               fontSize: _getResponsiveFontSize(context, 14, 16, 18),
             ),
           ),
           error: (_, __) => Text(
             'Unable to load events',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: colors.onPrimary.withValues(alpha: 0.9),
-              fontWeight: FontWeight.w500,
+              color: colors.onPrimary.withValues(alpha: _getResponsiveAlpha(context)),
+              fontWeight: _getResponsiveFontWeight(context),
               fontSize: _getResponsiveFontSize(context, 14, 16, 18),
             ),
           ),

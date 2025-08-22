@@ -385,9 +385,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (confirmed == true) {
       try {
         await ref.read(authRepositoryProvider).signOut();
-        if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/auth');
-        }
+        // Don't navigate manually - let AuthGate handle the auth state change
+        // The signOut() will trigger authStateChanges() which will automatically
+        // redirect to the appropriate screen via AuthGate
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

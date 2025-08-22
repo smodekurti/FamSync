@@ -35,12 +35,12 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
 
     return FamAppBarScaffold(
       title: const FamilyAppBarTitle(fallback: AppStrings.announcementsTitle),
-      fixedActions: const [
-        Icon(Icons.notifications_none),
-        SizedBox(width: 8),
-        Icon(Icons.add),
-        SizedBox(width: 8),
-        Icon(Icons.person_outline),
+      fixedActions: [
+        const Icon(Icons.notifications_none),
+        SizedBox(width: spaces.sm),
+        const Icon(Icons.add),
+        SizedBox(width: spaces.sm),
+        const Icon(Icons.person_outline),
       ],
       extraActions: const [],
       headerBuilder: (context, controller) => TextField(

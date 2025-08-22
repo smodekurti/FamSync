@@ -10,14 +10,15 @@ class ShoppingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spaces = context.spaces;
     return FamAppBarScaffold(
       title: const FamilyAppBarTitle(fallback: AppStrings.shoppingTitle),
-      fixedActions: const [
-        Icon(AppIcons.reminder),
-        SizedBox(width: 8),
-        Icon(AppIcons.add),
-        SizedBox(width: 8),
-        Icon(AppIcons.profile),
+      fixedActions: [
+        const Icon(AppIcons.reminder),
+        SizedBox(width: spaces.sm),
+        const Icon(AppIcons.add),
+        SizedBox(width: spaces.sm),
+        const Icon(AppIcons.profile),
       ],
       extraActions: const [],
       headerBuilder: (context, controller) {
@@ -48,7 +49,7 @@ class ShoppingScreen extends StatelessWidget {
                             icon: const Icon(AppIcons.filter),
                             label: const Text('Filters'),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: spaces.sm),
                           FilledButton.icon(
                             onPressed: () => controller.toggleSearch(true),
                             icon: const Icon(AppIcons.search),
@@ -63,7 +64,7 @@ class ShoppingScreen extends StatelessWidget {
       },
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final isWide = constraints.maxWidth > 700;
+          final isWide = constraints.maxWidth > context.spaces.xxl * 20;
           return Padding(
             padding: EdgeInsets.all(context.spaces.md),
             child: isWide

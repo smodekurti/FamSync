@@ -10,14 +10,15 @@ class FinanceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spaces = context.spaces;
     return FamAppBarScaffold(
       title: const FamilyAppBarTitle(fallback: AppStrings.financeTitle),
-      fixedActions: const [
-        Icon(AppIcons.reminder),
-        SizedBox(width: 8),
-        Icon(AppIcons.add),
-        SizedBox(width: 8),
-        Icon(AppIcons.profile),
+      fixedActions: [
+        const Icon(AppIcons.reminder),
+        SizedBox(width: spaces.sm),
+        const Icon(AppIcons.add),
+        SizedBox(width: spaces.sm),
+        const Icon(AppIcons.profile),
       ],
       extraActions: const [],
       headerBuilder: (context, controller) => Row(
@@ -27,13 +28,13 @@ class FinanceScreen extends StatelessWidget {
             icon: const Icon(AppIcons.calendar),
             label: const Text(AppStrings.filterThisMonth),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: spaces.sm),
           OutlinedButton.icon(
             onPressed: () {},
             icon: const Icon(AppIcons.summary),
             label: const Text(AppStrings.filterSummary),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: spaces.sm),
           Expanded(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
@@ -67,7 +68,7 @@ class FinanceScreen extends StatelessWidget {
         padding: EdgeInsets.all(context.spaces.md),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final isCompact = constraints.maxWidth < 380;
+            final isCompact = constraints.maxWidth < context.spaces.xxl * 12;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -124,7 +125,7 @@ class _StatCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title, style: Theme.of(context).textTheme.labelLarge),
-              const SizedBox(height: 8),
+              SizedBox(height: context.spaces.sm),
               Text(value, style: Theme.of(context).textTheme.headlineSmall),
             ],
           ),

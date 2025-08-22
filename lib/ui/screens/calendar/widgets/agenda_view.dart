@@ -29,30 +29,28 @@ class AgendaView extends ConsumerWidget {
     return upcomingEventsAsync.when(
       data: (events) => _buildAgendaList(context, ref, events, spaces),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(
+      error: (_, __) => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.error_outline,
-              size: 48,
-              color: Colors.red,
+              size: context.spaces.xxl,
+              color: Theme.of(context).colorScheme.error,
             ),
-            SizedBox(height: 16),
+            SizedBox(height: context.spaces.md),
             Text(
               'Unable to load events',
-              style: TextStyle(
-                fontSize: 18,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: Colors.red,
+                color: Theme.of(context).colorScheme.error,
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: context.spaces.sm),
             Text(
               'Please check your connection and try again',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),
@@ -71,21 +69,20 @@ class AgendaView extends ConsumerWidget {
             Icon(
               Icons.event_busy,
               size: spaces.xl * 2,
-              color: Colors.grey,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             SizedBox(height: spaces.md),
             Text(
               'No upcoming events',
-              style: TextStyle(
-                fontSize: spaces.md,
-                color: Colors.grey,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             SizedBox(height: spaces.xs),
-            const Text(
+            Text(
               'Tap the + button to create your first event',
-              style: TextStyle(
-                color: Colors.grey,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -163,10 +160,10 @@ class AgendaView extends ConsumerWidget {
     final priorityColor = CalendarUtils.getPriorityColor(event.priority);
     
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: EdgeInsets.only(bottom: spaces.sm),
       child: InkWell(
         onTap: () => _showEventDetails(context, event),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(spaces.sm),
         child: Padding(
           padding: EdgeInsets.all(spaces.md),
           child: Row(
@@ -271,9 +268,8 @@ class AgendaView extends ConsumerWidget {
                           ),
                           child: Text(
                             event.priority.name.toUpperCase(),
-                            style: TextStyle(
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               color: Colors.white,
-                              fontSize: spaces.xs,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

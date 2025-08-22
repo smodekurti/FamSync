@@ -26,8 +26,6 @@ class CalendarScreen extends ConsumerWidget {
       fixedActions: [
         const Icon(AppIcons.reminder),
         SizedBox(width: spaces.sm),
-        const Icon(AppIcons.add),
-        SizedBox(width: spaces.sm),
         const Icon(AppIcons.profile),
         SizedBox(width: spaces.xs),
       ],
@@ -72,7 +70,6 @@ class CalendarScreen extends ConsumerWidget {
   Widget _calendarHeader(BuildContext context, WidgetRef ref) {
     final spaces = context.spaces;
     final colors = Theme.of(context).colorScheme;
-    final now = DateTime.now();
     final selectedDate = ref.watch(selectedDateProvider);
     final familyId = ref.watch(userProfileStreamProvider).when(
       data: (profile) => profile?.familyId,
@@ -82,98 +79,44 @@ class CalendarScreen extends ConsumerWidget {
     
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: spaces.sm),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
         children: [
-          // First row: Time and Current Date
-          LayoutBuilder(
-            builder: (context, constraints) {
-              return Row(
-                children: [
-                  // Current time - fixed width
-                  SizedBox(
-                    width: spaces.xl * 2,
-                    child: Text(
-                      _formatTime(now),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: colors.onPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
+          // Calendar-specific context
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Primary: Family event summary
+                _buildFamilyEventInfo(context, ref, familyId, selectedDate),
+                if (familyId != null) SizedBox(height: spaces.xs / 2),
+                // Secondary: Selected date context (if different from today)
+                if (!_isToday(selectedDate))
+                  Text(
+                    'Viewing ${_formatSelectedDate(selectedDate)}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colors.onPrimary.withValues(alpha: 0.7),
+                      fontStyle: FontStyle.italic,
                     ),
                   ),
-                  SizedBox(width: spaces.sm),
-                  // Current date - flexible
-                  Expanded(
-                    child: Text(
-                      _formatDate(now),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: colors.onPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  // Quick action buttons - fixed width
-                  SizedBox(
-                    width: spaces.xl * 2,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        _buildQuickActionButton(
-                          context,
-                          Icons.add,
-                          'Add Event',
-                          colors.onPrimary,
-                          () => _showEventForm(context, ref),
-                        ),
-                        SizedBox(width: spaces.xs),
-                        _buildQuickActionButton(
-                          context,
-                          Icons.today,
-                          'Today',
-                          colors.onPrimary,
-                          () => ref.read(calendarNotifierProvider.notifier).goToToday(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
+              ],
+            ),
           ),
-          SizedBox(height: spaces.xs),
-          // Second row: Month/Year, Family Info, and Event Count
-          LayoutBuilder(
-            builder: (context, constraints) {
-              return Row(
-                children: [
-                  // Month and Year - fixed width
-                  SizedBox(
-                    width: spaces.xl * 3,
-                    child: Text(
-                      _formatMonthYear(selectedDate),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colors.onPrimary.withValues(alpha: 0.9),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: spaces.sm),
-                  // Family name and event count - flexible
-                  Expanded(
-                    child: _buildFamilyEventInfo(context, ref, familyId, selectedDate),
-                  ),
-                  // View toggle - fixed width
-                  SizedBox(
-                    width: spaces.xl * 2,
-                    child: _buildViewToggleButton(context, colors),
-                  ),
-                ],
-              );
-            },
+          // Calendar actions
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildQuickActionButton(
+                context,
+                Icons.today,
+                'Go to Today',
+                colors.onPrimary,
+                () => ref.read(calendarNotifierProvider.notifier).goToToday(),
+              ),
+              SizedBox(width: spaces.xs),
+              _buildViewToggleButton(context, colors),
+            ],
           ),
         ],
       ),
@@ -291,29 +234,25 @@ class CalendarScreen extends ConsumerWidget {
     );
   }
 
-  String _formatTime(DateTime time) {
-    final hour = time.hour;
-    final minute = time.minute;
-    final period = hour >= 12 ? 'PM' : 'AM';
-    final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
-    return '${displayHour}:${minute.toString().padLeft(2, '0')} $period';
-  }
 
-  String _formatDate(DateTime date) {
-    final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    final months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    
-    return '${days[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}';
-  }
-
-  String _formatMonthYear(DateTime date) {
-    final months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    return '${months[date.month - 1]} ${date.year}';
-  }
 
   String _getFamilyName(BuildContext context) {
     // This would ideally come from a family provider
     // For now, return a placeholder
     return 'FamSync';
+  }
+
+  bool _isToday(DateTime date) {
+    final now = DateTime.now();
+    return date.year == now.year && 
+           date.month == now.month && 
+           date.day == now.day;
+  }
+
+  String _formatSelectedDate(DateTime date) {
+    final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    return '${days[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}';
   }
 }

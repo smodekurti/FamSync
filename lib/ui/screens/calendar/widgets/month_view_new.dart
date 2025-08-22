@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_neat_and_clean_calendar/flutter_neat_and_clean_calendar.dart';
 import 'dart:ui';
@@ -17,7 +16,6 @@ class MonthViewNew extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentMonth = ref.watch(currentMonthProvider);
     final selectedDate = ref.watch(selectedDateProvider);
     final familyId = ref.watch(userProfileStreamProvider).when(
       data: (profile) => profile?.familyId,
@@ -34,17 +32,8 @@ class MonthViewNew extends ConsumerWidget {
       ref.read(calendarNotifierProvider.notifier).setFamilyId(familyId);
     });
 
-    final monthEventsAsync = ref.watch(monthEventsProvider(familyId));
+        final monthEventsAsync = ref.watch(monthEventsProvider(familyId));
     
-    // Debug logging
-    monthEventsAsync.whenData((events) {
-      print('📅 MonthViewNew: Received ${events.length} events for ${currentMonth.year}-${currentMonth.month}');
-      if (events.isNotEmpty) {
-        print('📅 First event: ${events.first.title} on ${events.first.startTime}');
-        print('📅 Event category: ${events.first.category}, priority: ${events.first.priority}');
-      }
-    });
-
     return monthEventsAsync.when(
       data: (events) => _buildCalendarView(context, ref, events, selectedDate),
       loading: () => Center(
@@ -57,7 +46,7 @@ class MonthViewNew extends ConsumerWidget {
               'Loading calendar events...',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -70,7 +59,7 @@ class MonthViewNew extends ConsumerWidget {
             Icon(
               Icons.error_outline,
               size: 48,
-              color: Colors.red,
+              color: Theme.of(context).colorScheme.error,
             ),
             SizedBox(height: 16),
             Text(
@@ -78,7 +67,7 @@ class MonthViewNew extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.red,
+                color: Theme.of(context).colorScheme.error,
               ),
             ),
             SizedBox(height: 8),
@@ -86,7 +75,7 @@ class MonthViewNew extends ConsumerWidget {
               'Please check your connection and try again',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),
@@ -99,26 +88,7 @@ class MonthViewNew extends ConsumerWidget {
               },
               child: Text('Retry'),
             ),
-            if (kDebugMode) ...[
-              SizedBox(height: 16),
-              Text(
-                'Debug Info:',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Family ID: $familyId\nMonth: ${currentMonth.year}-${currentMonth.month}\nError: $error',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+
           ],
         ),
       ),
@@ -167,7 +137,6 @@ class MonthViewNew extends ConsumerWidget {
               color: colors.onSurface,
               fontWeight: FontWeight.bold,
               fontSize: 16,
-              backgroundColor: Colors.white,
             ),
             bottomBarColor: colors.surfaceContainerHighest,
             bottomBarArrowColor: colors.onSurfaceVariant,
@@ -176,10 +145,8 @@ class MonthViewNew extends ConsumerWidget {
               ref.read(calendarNotifierProvider.notifier).setSelectedDate(date);
             },
             onMonthChanged: (date) {
-              print('📅 Month changed to: ${date.year}-${date.month}');
               // Update the current month provider to trigger stream rebuild
               ref.read(currentMonthProvider.notifier).state = date;
-              print('📅 Updated currentMonthProvider to: ${date.year}-${date.month}');
               
               // Force a rebuild by invalidating the provider
               final currentFamilyId = ref.read(userProfileStreamProvider).when(
@@ -188,7 +155,6 @@ class MonthViewNew extends ConsumerWidget {
                 error: (_, __) => null,
               );
               if (currentFamilyId != null) {
-                print('📅 Force invalidating monthEventsProvider for family: $currentFamilyId');
                 ref.invalidate(monthEventsProvider(currentFamilyId));
               }
             },
@@ -230,15 +196,7 @@ class MonthViewNew extends ConsumerWidget {
                      eventDate.day == selectedDate.day;
             }).toList();
             
-            // Debug logging for date filtering
-            if (kDebugMode) {
-              print('📅 Selected date: ${selectedDate.year}-${selectedDate.month}-${selectedDate.day}');
-              print('📅 Total month events: ${events.length}');
-              print('📅 Events for selected date: ${selectedDateEvents.length}');
-              if (selectedDateEvents.isNotEmpty) {
-                print('📅 Selected date events: ${selectedDateEvents.map((e) => '${e.title} on ${e.startTime}').join(', ')}');
-              }
-            }
+
             
             if (selectedDateEvents.isEmpty) {
               return const SizedBox.shrink();
@@ -247,7 +205,7 @@ class MonthViewNew extends ConsumerWidget {
             return Container(
               margin: EdgeInsets.symmetric(horizontal: spaces.sm, vertical: spaces.xs),
               decoration: BoxDecoration(
-                color: const Color(0xFFF9F5FC),
+                color: colors.surfaceContainerLowest,
                 borderRadius: BorderRadius.circular(spaces.sm),
               ),
               child: ListView.builder(
@@ -294,7 +252,7 @@ class MonthViewNew extends ConsumerWidget {
   }
 
   Color _getEventColor(EventCategory category, EventPriority priority) {
-    // Base color based on category
+    // Base color based on category using theme colors
     Color baseColor;
     switch (category) {
       case EventCategory.school:
@@ -326,17 +284,17 @@ class MonthViewNew extends ConsumerWidget {
     // Adjust color based on priority
     switch (priority) {
       case EventPriority.urgent:
-        return baseColor.withValues(alpha: 1.0); // Most vibrant
+        return baseColor.withValues(alpha: 1.0);
       case EventPriority.high:
-        return baseColor.withValues(alpha: 0.9); // More vibrant
+        return baseColor.withValues(alpha: 0.9);
       case EventPriority.medium:
-        return baseColor.withValues(alpha: 0.7); // Standard
+        return baseColor.withValues(alpha: 0.7);
       case EventPriority.low:
-        return baseColor.withValues(alpha: 0.5); // More muted
+        return baseColor.withValues(alpha: 0.5);
     }
   }
 
-  // Get priority color for chips
+  // Get priority color for chips using theme colors
   Color _getPriorityColor(EventPriority priority) {
     switch (priority) {
       case EventPriority.urgent:
@@ -364,7 +322,7 @@ class MonthViewNew extends ConsumerWidget {
   // Build creator avatar using the same pattern as Hub timeline
   Widget _buildEventCreatorAvatar(UserProfile user, BuildContext context) {
     // Generate consistent colors for family members (same as Hub timeline)
-    final colors = [
+    final avatarColors = [
       Colors.blue,
       Colors.green,
       Colors.orange,
@@ -372,8 +330,8 @@ class MonthViewNew extends ConsumerWidget {
       Colors.teal,
       Colors.pink,
     ];
-    final colorIndex = user.hashCode % colors.length;
-    final avatarColor = colors[colorIndex];
+    final colorIndex = user.hashCode % avatarColors.length;
+    final avatarColor = avatarColors[colorIndex];
     
     // Get initial from display name (same as Hub timeline)
     final initial = user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : '?';

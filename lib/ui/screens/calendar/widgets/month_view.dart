@@ -33,13 +33,7 @@ class MonthView extends ConsumerWidget {
 
     final monthEventsAsync = ref.watch(monthEventsProvider(familyId));
     
-    // Debug logging
-    monthEventsAsync.whenData((events) {
-      print('📅 MonthView: Received ${events.length} events for ${currentMonth.year}-${currentMonth.month}');
-      if (events.isNotEmpty) {
-        print('📅 First event: ${events.first.title} on ${events.first.startTime}');
-      }
-    });
+
 
     return monthEventsAsync.when(
       data: (events) => _buildMonthGrid(context, ref, currentMonth, selectedDate, events),

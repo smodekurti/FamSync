@@ -26,6 +26,8 @@ final currentMonthProvider = StateProvider<DateTime>((ref) => DateTime.now());
 // Events for current month provider
 final monthEventsProvider = StreamProvider.family<List<Event>, String>((ref, familyId) {
   final currentMonth = ref.watch(currentMonthProvider);
+  print('🔄 monthEventsProvider rebuilding for family: $familyId, month: ${currentMonth.year}-${currentMonth.month}');
+  
   final repository = ref.watch(eventsRepositoryProvider);
   return repository.getMonthEventsStream(familyId, currentMonth.year, currentMonth.month);
 });

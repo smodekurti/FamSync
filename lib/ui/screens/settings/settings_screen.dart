@@ -357,7 +357,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       applicationIcon: const Icon(Icons.family_restroom),
       children: [
         const Text('A family organization and communication app.'),
-        const SizedBox(height: 16),
+        SizedBox(height: context.spaces.md),
         const Text('Built with Flutter and Firebase.'),
       ],
     );

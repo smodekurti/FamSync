@@ -20,7 +20,7 @@ class ProfileHeader extends StatelessWidget {
 
     return Card(
       elevation: 0,
-      color: colors.primaryContainer,
+      color: Colors.transparent,
       child: Padding(
         padding: EdgeInsets.all(spaces.lg),
         child: Row(

@@ -20,7 +20,7 @@ class SettingsSection extends StatelessWidget {
 
     return Card(
       elevation: 0,
-      color: colors.surfaceContainerHighest,
+      color: Colors.transparent,
       child: Padding(
         padding: EdgeInsets.all(spaces.md),
         child: Column(

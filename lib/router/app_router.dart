@@ -12,6 +12,7 @@ import 'package:fam_sync/ui/screens/auth/auth_gate.dart';
 import 'package:fam_sync/ui/screens/onboarding/onboarding_screen.dart';
 import 'package:fam_sync/ui/screens/announcements/announcements_screen.dart';
 import 'package:fam_sync/ui/screens/messages/messages_screen.dart';
+import 'package:fam_sync/ui/screens/settings/settings_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -78,6 +79,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 path: '/finance',
                 pageBuilder: (context, state) =>
                     const NoTransitionPage(child: FinanceScreen()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/settings',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: SettingsScreen()),
               ),
             ],
           ),

@@ -33,6 +33,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return FamAppBarScaffold(
       title: const FamilyAppBarTitle(fallback: 'Settings'),
+      expandedHeight: spaces.xxl * 6, // Same height as Hub screen
       fixedActions: [
         const Icon(Icons.settings),
         SizedBox(width: spaces.sm),
@@ -41,6 +42,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         const Icon(Icons.person_outline),
       ],
       extraActions: const [],
+      padding: EdgeInsets.all(spaces.md),
+      headerBuilder: (context, controller) => _settingsHeader(profileAsync: profileAsync),
       body: profileAsync.when(
         data: (profile) {
           if (profile == null) {
@@ -73,8 +76,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   ) {
     final spaces = context.spaces;
     final colors = context.colors;
-    return ListView(
-      padding: EdgeInsets.all(spaces.md),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Profile Header
         ProfileHeader(profile: profile, family: family),
@@ -393,5 +396,80 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         }
       }
     }
+  }
+
+  Widget _settingsHeader({required AsyncValue<UserProfile?> profileAsync}) {
+    return profileAsync.when(
+      data: (profile) {
+        if (profile == null) return const SizedBox.shrink();
+        
+        final familyId = profile.familyId;
+        if (familyId == null) return const SizedBox.shrink();
+        
+        final familyAsync = ref.watch(familyStreamProvider(familyId));
+        return familyAsync.when(
+          data: (family) => _buildHeaderContent(profile, family),
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildHeaderContent(UserProfile profile, models.Family? family) {
+    final spaces = context.spaces;
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Settings & Preferences',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: spaces.xs / 4),
+              Text(
+                'Manage your profile, family, and app settings',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white70,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: spaces.md),
+        // Profile Avatar Preview
+        Container(
+          width: spaces.lg,
+          height: spaces.lg,
+          decoration: BoxDecoration(
+            color: Colors.white24,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              profile.displayName.isNotEmpty 
+                  ? profile.displayName[0].toUpperCase() 
+                  : '?',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

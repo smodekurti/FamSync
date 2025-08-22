@@ -7,7 +7,7 @@ class MainShell extends StatelessWidget {
 
   final StatefulNavigationShell shell;
 
-  static const _routes = ['/hub', '/calendar', '/tasks', '/shopping', '/finance'];
+  static const _routes = ['/hub', '/calendar', '/tasks', '/shopping', '/finance', '/settings'];
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +30,7 @@ class MainShell extends StatelessWidget {
                     NavigationRailDestination(icon: Icon(Icons.checklist_outlined), selectedIcon: Icon(Icons.checklist), label: Text('Tasks')),
                     NavigationRailDestination(icon: Icon(Icons.shopping_cart_outlined), selectedIcon: Icon(Icons.shopping_cart), label: Text('Shopping')),
                     NavigationRailDestination(icon: Icon(Icons.account_balance_wallet_outlined), selectedIcon: Icon(Icons.account_balance_wallet), label: Text('Finance')),
+                    NavigationRailDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: Text('Settings')),
                   ],
                 ),
               Expanded(child: shell),
@@ -46,6 +47,7 @@ class MainShell extends StatelessWidget {
                     NavigationDestination(icon: Icon(Icons.checklist_outlined), selectedIcon: Icon(Icons.checklist), label: 'Tasks'),
                     NavigationDestination(icon: Icon(Icons.shopping_cart_outlined), selectedIcon: Icon(Icons.shopping_cart), label: 'Shopping'),
                     NavigationDestination(icon: Icon(Icons.account_balance_wallet_outlined), selectedIcon: Icon(Icons.account_balance_wallet), label: 'Finance'),
+                    NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: 'Settings'),
                   ],
                 ),
         );

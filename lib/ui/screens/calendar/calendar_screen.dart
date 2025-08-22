@@ -80,74 +80,103 @@ class CalendarScreen extends ConsumerWidget {
       error: (_, __) => null,
     );
     
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // First row: Time and Current Date
-        Row(
-          children: [
-            // Current time
-            Text(
-              _formatTime(now),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: colors.onPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(width: spaces.md),
-            // Current date
-            Expanded(
-              child: Text(
-                _formatDate(now),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: colors.onPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            // Quick action buttons
-            _buildQuickActionButton(
-              context,
-              Icons.add,
-              'Add Event',
-              colors.onPrimary,
-              () => _showEventForm(context, ref),
-            ),
-            SizedBox(width: spaces.xs),
-            _buildQuickActionButton(
-              context,
-              Icons.today,
-              'Today',
-              colors.onPrimary,
-              () => ref.read(calendarNotifierProvider.notifier).goToToday(),
-            ),
-          ],
-        ),
-        SizedBox(height: spaces.xs / 2),
-        // Second row: Month/Year, Family Info, and Event Count
-        Row(
-          children: [
-            // Month and Year
-            Text(
-              _formatMonthYear(selectedDate),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colors.onPrimary.withValues(alpha: 0.9),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(width: spaces.md),
-            // Family name and event count
-            Expanded(
-              child: _buildFamilyEventInfo(context, ref, familyId, selectedDate),
-            ),
-            // View toggle (placeholder for future implementation)
-            _buildViewToggleButton(context, colors),
-          ],
-        ),
-      ],
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: spaces.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // First row: Time and Current Date
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Row(
+                children: [
+                  // Current time - fixed width
+                  SizedBox(
+                    width: spaces.xl * 2,
+                    child: Text(
+                      _formatTime(now),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: colors.onPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: spaces.sm),
+                  // Current date - flexible
+                  Expanded(
+                    child: Text(
+                      _formatDate(now),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: colors.onPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  // Quick action buttons - fixed width
+                  SizedBox(
+                    width: spaces.xl * 2,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        _buildQuickActionButton(
+                          context,
+                          Icons.add,
+                          'Add Event',
+                          colors.onPrimary,
+                          () => _showEventForm(context, ref),
+                        ),
+                        SizedBox(width: spaces.xs),
+                        _buildQuickActionButton(
+                          context,
+                          Icons.today,
+                          'Today',
+                          colors.onPrimary,
+                          () => ref.read(calendarNotifierProvider.notifier).goToToday(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          SizedBox(height: spaces.xs),
+          // Second row: Month/Year, Family Info, and Event Count
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Row(
+                children: [
+                  // Month and Year - fixed width
+                  SizedBox(
+                    width: spaces.xl * 3,
+                    child: Text(
+                      _formatMonthYear(selectedDate),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colors.onPrimary.withValues(alpha: 0.9),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: spaces.sm),
+                  // Family name and event count - flexible
+                  Expanded(
+                    child: _buildFamilyEventInfo(context, ref, familyId, selectedDate),
+                  ),
+                  // View toggle - fixed width
+                  SizedBox(
+                    width: spaces.xl * 2,
+                    child: _buildViewToggleButton(context, colors),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -160,13 +189,17 @@ class CalendarScreen extends ConsumerWidget {
   ) {
     return Tooltip(
       message: tooltip,
-      child: IconButton(
-        onPressed: onPressed,
-        icon: Icon(icon, color: color, size: 20),
-        padding: EdgeInsets.all(context.spaces.xs),
-        constraints: BoxConstraints(
-          minWidth: context.spaces.lg,
-          minHeight: context.spaces.lg,
+      child: SizedBox(
+        width: context.spaces.lg,
+        height: context.spaces.lg,
+        child: IconButton(
+          onPressed: onPressed,
+          icon: Icon(icon, color: color, size: 18),
+          padding: EdgeInsets.all(context.spaces.xs / 2),
+          constraints: BoxConstraints(
+            maxWidth: context.spaces.lg,
+            maxHeight: context.spaces.lg,
+          ),
         ),
       ),
     );
@@ -217,9 +250,12 @@ class CalendarScreen extends ConsumerWidget {
 
   Widget _buildViewToggleButton(BuildContext context, ColorScheme colors) {
     return Container(
+      constraints: BoxConstraints(
+        maxWidth: context.spaces.xl * 1.5,
+      ),
       padding: EdgeInsets.symmetric(
         horizontal: context.spaces.sm,
-        vertical: context.spaces.xs,
+        vertical: context.spaces.xs / 2,
       ),
       decoration: BoxDecoration(
         color: colors.onPrimary.withValues(alpha: 0.2),
@@ -231,19 +267,24 @@ class CalendarScreen extends ConsumerWidget {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            'Month',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: colors.onPrimary,
-              fontWeight: FontWeight.w500,
+          Flexible(
+            child: Text(
+              'Month',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colors.onPrimary,
+                fontWeight: FontWeight.w500,
+                fontSize: 12,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          SizedBox(width: context.spaces.xs),
+          SizedBox(width: context.spaces.xs / 2),
           Icon(
             Icons.keyboard_arrow_down,
             color: colors.onPrimary,
-            size: 16,
+            size: 14,
           ),
         ],
       ),

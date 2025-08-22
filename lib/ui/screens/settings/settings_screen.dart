@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fam_sync/theme/app_theme.dart';
 import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
 import 'package:fam_sync/ui/appbar/fam_app_bar_scaffold.dart';
-import 'package:fam_sync/ui/strings.dart';
-import 'package:fam_sync/ui/icons.dart';
+
 import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/data/family/family_repository.dart';
 import 'package:fam_sync/domain/models/user_profile.dart';
@@ -25,12 +24,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _soundEnabled = true;
   bool _vibrationEnabled = true;
   bool _darkModeEnabled = false;
-  String _language = 'English';
+  final String _language = 'English';
 
   @override
   Widget build(BuildContext context) {
     final spaces = context.spaces;
-    final colors = context.colors;
     final profileAsync = ref.watch(userProfileStreamProvider);
 
     return FamAppBarScaffold(
@@ -57,7 +55,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           final familyAsync = ref.watch(familyStreamProvider(familyId));
 
           return familyAsync.when(
-            data: (family) => _buildSettingsContent(context, profile, family, spaces, colors),
+            data: (family) => _buildSettingsContent(context, profile, family),
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (_, __) => const Center(child: Text('Error loading family')),
           );
@@ -72,9 +70,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     BuildContext context,
     UserProfile profile,
     models.Family? family,
-    dynamic spaces,
-    ColorScheme colors,
   ) {
+    final spaces = context.spaces;
+    final colors = context.colors;
     return ListView(
       padding: EdgeInsets.all(spaces.md),
       children: [
@@ -278,21 +276,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _editFamilySettings(BuildContext context, Family? family) {
+  void _editFamilySettings(BuildContext context, models.Family? family) {
     // TODO: Navigate to family settings screen
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Family settings coming soon!')),
     );
   }
 
-  void _inviteMembers(BuildContext context, Family? family) {
+  void _inviteMembers(BuildContext context, models.Family? family) {
     // TODO: Show invite members dialog
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Invite members coming soon!')),
     );
   }
 
-  void _manageMembers(BuildContext context, Family? family) {
+  void _manageMembers(BuildContext context, models.Family? family) {
     // TODO: Navigate to member management screen
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Member management coming soon!')),

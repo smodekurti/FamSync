@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fam_sync/theme/app_theme.dart';
 import 'package:fam_sync/domain/models/user_profile.dart';
-import 'package:fam_sync/domain/models/family.dart';
+import 'package:fam_sync/domain/models/family.dart' as models;
 
 class ProfileHeader extends StatelessWidget {
   const ProfileHeader({
@@ -11,7 +11,7 @@ class ProfileHeader extends StatelessWidget {
   });
 
   final UserProfile profile;
-  final Family? family;
+  final models.Family? family;
 
   @override
   Widget build(BuildContext context) {

@@ -10,6 +10,7 @@ import 'package:fam_sync/ui/screens/calendar/widgets/month_view_new.dart';
 import 'package:fam_sync/ui/screens/calendar/widgets/event_form.dart';
 
 import 'package:fam_sync/data/auth/auth_repository.dart';
+import 'package:fam_sync/data/family/family_repository.dart';
 
 class CalendarScreen extends ConsumerWidget {
   const CalendarScreen({super.key});
@@ -70,6 +71,7 @@ class CalendarScreen extends ConsumerWidget {
   Widget _calendarHeader(BuildContext context, WidgetRef ref) {
     final spaces = context.spaces;
     final colors = Theme.of(context).colorScheme;
+    final now = DateTime.now();
     final selectedDate = ref.watch(selectedDateProvider);
     final familyId = ref.watch(userProfileStreamProvider).when(
       data: (profile) => profile?.familyId,
@@ -79,81 +81,69 @@ class CalendarScreen extends ConsumerWidget {
     
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: spaces.sm),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Calendar-specific context
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Primary: Family event summary
-                _buildFamilyEventInfo(context, ref, familyId, selectedDate),
-                if (familyId != null) SizedBox(height: spaces.xs / 2),
-                // Secondary: Selected date context (if different from today)
-                if (!_isToday(selectedDate))
-                  Text(
-                    'Viewing ${_formatSelectedDate(selectedDate)}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colors.onPrimary.withValues(alpha: 0.7),
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-              ],
+          // First line: Date and Time
+          Text(
+            _formatDateAndTime(now),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: colors.onPrimary,
+              fontWeight: FontWeight.w600,
+              fontSize: _getResponsiveFontSize(context, 18, 22, 26),
             ),
           ),
-          // Calendar actions
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildQuickActionButton(
-                context,
-                Icons.today,
-                'Go to Today',
-                colors.onPrimary,
-                () => ref.read(calendarNotifierProvider.notifier).goToToday(),
-              ),
-              SizedBox(width: spaces.sm),
-              _buildViewToggleButton(context, colors),
-            ],
-          ),
+          SizedBox(height: spaces.xs / 2),
+          // Second line: Household name and events for the day
+          _buildHouseholdEventsInfo(context, ref, familyId, selectedDate),
         ],
       ),
     );
   }
 
-  Widget _buildQuickActionButton(
-    BuildContext context,
-    IconData icon,
-    String tooltip,
-    Color color,
-    VoidCallback onPressed,
-  ) {
-    return Tooltip(
-      message: tooltip,
-      child: SizedBox(
-        width: context.spaces.xl,
-        height: context.spaces.xl,
-        child: IconButton(
-          onPressed: onPressed,
-          icon: Icon(icon, color: color, size: 20),
-          padding: EdgeInsets.all(context.spaces.xs / 2),
-          constraints: BoxConstraints(
-            maxWidth: context.spaces.xl,
-            maxHeight: context.spaces.xl,
-          ),
-        ),
-      ),
-    );
+
+
+
+
+
+
+  String _formatDateAndTime(DateTime dateTime) {
+    final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    final dayName = days[dateTime.weekday - 1];
+    final monthName = months[dateTime.month - 1];
+    final day = dateTime.day;
+    final hour = dateTime.hour;
+    final minute = dateTime.minute;
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    final minuteString = minute.toString().padLeft(2, '0');
+    final timeString = '${displayHour}:$minuteString $period';
+    final dateString = '$dayName, $monthName $day';
+    final fullString = '$dateString • $timeString';
+    
+    return fullString;
   }
 
-    Widget _buildFamilyEventInfo(BuildContext context, WidgetRef ref, String? familyId, DateTime selectedDate) {
+  double _getResponsiveFontSize(BuildContext context, double small, double medium, double large) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth < 360) return small;      // Small phones
+    if (screenWidth < 600) return medium;     // Medium phones
+    return large;                             // Large phones/tablets
+  }
+
+  Widget _buildHouseholdEventsInfo(BuildContext context, WidgetRef ref, String? familyId, DateTime selectedDate) {
     if (familyId == null) return const SizedBox.shrink();
+    
+    final colors = Theme.of(context).colorScheme;
     
     return Consumer(
       builder: (context, ref, child) {
         final eventsAsync = ref.watch(monthEventsProvider(familyId));
+        final familyAsync = ref.watch(familyStreamProvider(familyId));
         final now = DateTime.now();
         
         return eventsAsync.when(
@@ -165,92 +155,64 @@ class CalendarScreen extends ConsumerWidget {
                      eventDate.day == now.day;
             }).toList();
             
-            return Text(
-              '${_getFamilyName(context)} - ${todayEvents.isEmpty ? 'No Events Today' : '${todayEvents.length} Events Today'}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8),
+            final eventText = todayEvents.isEmpty ? 'No Events Today' : '${todayEvents.length} Events Today';
+            
+            return familyAsync.when(
+              data: (family) {
+                final householdName = family?.name ?? 'Family';
+                final displayText = '$householdName • $eventText';
+                return Text(
+                  displayText,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: colors.onPrimary.withValues(alpha: 0.9),
+                    fontWeight: FontWeight.w500,
+                    fontSize: _getResponsiveFontSize(context, 14, 16, 18),
+                  ),
+                );
+              },
+              loading: () => Text(
+                'Loading family info...',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: colors.onPrimary.withValues(alpha: 0.9),
+                  fontWeight: FontWeight.w500,
+                  fontSize: _getResponsiveFontSize(context, 14, 16, 18),
+                ),
               ),
+              error: (_, __) {
+                final displayText = 'Family • $eventText';
+                return Text(
+                  displayText,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: colors.onPrimary.withValues(alpha: 0.9),
+                    fontWeight: FontWeight.w500,
+                    fontSize: _getResponsiveFontSize(context, 14, 16, 18),
+                  ),
+                );
+              },
             );
           },
           loading: () => Text(
             'Loading events...',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: colors.onPrimary.withValues(alpha: 0.9),
+              fontWeight: FontWeight.w500,
+              fontSize: _getResponsiveFontSize(context, 14, 16, 18),
             ),
           ),
           error: (_, __) => Text(
             'Unable to load events',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: colors.onPrimary.withValues(alpha: 0.9),
+              fontWeight: FontWeight.w500,
+              fontSize: _getResponsiveFontSize(context, 14, 16, 18),
             ),
           ),
         );
       },
     );
-  }
-
-  Widget _buildViewToggleButton(BuildContext context, ColorScheme colors) {
-    return Container(
-      constraints: BoxConstraints(
-        minWidth: context.spaces.xl * 2.5,
-        maxWidth: context.spaces.xl * 3.5,
-      ),
-      padding: EdgeInsets.symmetric(
-        horizontal: context.spaces.sm,
-        vertical: context.spaces.xs / 2,
-      ),
-      decoration: BoxDecoration(
-        color: colors.onPrimary.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(context.spaces.sm),
-        border: Border.all(
-          color: colors.onPrimary.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Month',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: colors.onPrimary,
-              fontWeight: FontWeight.w500,
-              fontSize: 12,
-            ),
-          ),
-          SizedBox(width: context.spaces.xs / 2),
-          Icon(
-            Icons.keyboard_arrow_down,
-            color: colors.onPrimary,
-            size: 14,
-          ),
-        ],
-      ),
-    );
-  }
-
-
-
-  String _getFamilyName(BuildContext context) {
-    // This would ideally come from a family provider
-    // For now, return a placeholder
-    return 'FamSync';
-  }
-
-  bool _isToday(DateTime date) {
-    final now = DateTime.now();
-    return date.year == now.year && 
-           date.month == now.month && 
-           date.day == now.day;
-  }
-
-  String _formatSelectedDate(DateTime date) {
-    final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
-    return '${days[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}';
   }
 }

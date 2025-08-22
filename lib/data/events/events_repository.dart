@@ -18,7 +18,7 @@ class EventsRepository {
   Stream<List<Event>> getEventsStream(String familyId, DateTime start, DateTime end) {
     try {
       return _firestore
-          .collection('events')
+        .collection('events')
           .where('familyId', isEqualTo: familyId)
           .snapshots()
           .handleError((error) {
@@ -118,7 +118,7 @@ class EventsRepository {
     final now = DateTime.now();
     final startOfDay = DateTime(now.year, now.month, now.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
-    
+
     return getEventsStream(familyId, startOfDay, endOfDay);
   }
 

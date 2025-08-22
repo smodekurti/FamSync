@@ -13,11 +13,17 @@ import 'package:fam_sync/ui/screens/onboarding/onboarding_screen.dart';
 import 'package:fam_sync/ui/screens/announcements/announcements_screen.dart';
 import 'package:fam_sync/ui/screens/messages/messages_screen.dart';
 import 'package:fam_sync/ui/screens/settings/settings_screen.dart';
+import 'package:fam_sync/ui/screens/splash/splash_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/hub',
+    initialLocation: '/splash',
     routes: [
+      GoRoute(
+        path: '/splash',
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: SplashScreen()),
+      ),
       GoRoute(
         path: '/onboarding',
         pageBuilder: (context, state) =>

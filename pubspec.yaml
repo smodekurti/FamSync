@@ -57,6 +57,7 @@ dependencies:
   workmanager: ^0.5.2
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
+  flutter_neat_and_clean_calendar: ^0.4.16
 
 dev_dependencies:
   flutter_test:

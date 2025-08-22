@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fam_sync/domain/models/event.dart';
 import 'package:fam_sync/ui/screens/calendar/calendar_utils.dart';
+import 'package:fam_sync/ui/screens/calendar/calendar_providers.dart';
+import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/theme/app_theme.dart';
 
 class EventForm extends ConsumerStatefulWidget {
@@ -321,12 +323,72 @@ class _EventFormState extends ConsumerState<EventForm> {
     }
   }
 
-  void _saveEvent() {
+  Future<void> _saveEvent() async {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement event saving logic
-      // This will be connected to the calendar notifier
-      widget.onSaved?.call();
-      Navigator.of(context).pop();
+      try {
+        // Get current user ID and family ID
+        final userProfile = ref.read(userProfileStreamProvider).value;
+        if (userProfile?.familyId == null || userProfile?.uid == null) {
+          throw Exception('User not in a family or user ID missing');
+        }
+
+        // Create the event object
+        final event = Event(
+          id: widget.event?.id ?? '', // Will be set by repository
+          title: _titleController.text.trim(),
+          description: _descriptionController.text.trim(),
+          startTime: DateTime(
+            _startDate.year,
+            _startDate.month,
+            _startDate.day,
+            _startTime.hour,
+            _startTime.minute,
+          ),
+          endTime: DateTime(
+            _endDate.year,
+            _endDate.month,
+            _endDate.day,
+            _endTime.hour,
+            _endTime.minute,
+          ),
+          category: _category,
+          priority: _priority,
+          location: _locationController.text.trim().isEmpty ? null : _locationController.text.trim(),
+          assignedUids: _assignedUids,
+          familyId: userProfile!.familyId!,
+          createdByUid: userProfile.uid!,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        // Save the event using the calendar notifier
+        final calendarNotifier = ref.read(calendarNotifierProvider.notifier);
+        await calendarNotifier.createEvent(event);
+
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Event saved successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+
+        // Call the onSaved callback and close the form
+        widget.onSaved?.call();
+        Navigator.of(context).pop();
+      } catch (e) {
+        // Show error message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error saving event: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 }

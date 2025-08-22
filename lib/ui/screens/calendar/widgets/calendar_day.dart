@@ -27,6 +27,12 @@ class CalendarDay extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final spaces = context.spaces;
     
+    // Debug logging for events
+    if (events.isNotEmpty) {
+      print('📅 CalendarDay: ${date.day}/${date.month} has ${events.length} events');
+      print('📅 First event: ${events.first.title}');
+    }
+    
     return GestureDetector(
       onTap: () => _handleTap(context),
       child: Container(

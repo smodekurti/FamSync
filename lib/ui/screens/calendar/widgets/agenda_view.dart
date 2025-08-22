@@ -29,7 +29,36 @@ class AgendaView extends ConsumerWidget {
     return upcomingEventsAsync.when(
       data: (events) => _buildAgendaList(context, ref, events, spaces),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(child: Text('Error loading events')),
+      error: (_, __) => const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Colors.red,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Unable to load events',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.red,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Please check your connection and try again',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -53,7 +82,7 @@ class AgendaView extends ConsumerWidget {
               ),
             ),
             SizedBox(height: spaces.xs),
-            Text(
+            const Text(
               'Tap the + button to create your first event',
               style: TextStyle(
                 color: Colors.grey,

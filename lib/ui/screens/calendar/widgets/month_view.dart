@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fam_sync/domain/models/event.dart';
 import 'package:fam_sync/ui/screens/calendar/calendar_providers.dart';
@@ -25,12 +26,74 @@ class MonthView extends ConsumerWidget {
       return const Center(child: Text('No family context'));
     }
 
+    // Set the familyId in the calendar state for proper stream invalidation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(calendarNotifierProvider.notifier).setFamilyId(familyId);
+    });
+
     final monthEventsAsync = ref.watch(monthEventsProvider(familyId));
+    
+    // Debug logging
+    monthEventsAsync.whenData((events) {
+      print('📅 MonthView: Received ${events.length} events for ${currentMonth.year}-${currentMonth.month}');
+      if (events.isNotEmpty) {
+        print('📅 First event: ${events.first.title} on ${events.first.startTime}');
+      }
+    });
 
     return monthEventsAsync.when(
       data: (events) => _buildMonthGrid(context, ref, currentMonth, selectedDate, events),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(child: Text('Error loading events')),
+      error: (error, stackTrace) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Colors.red,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Unable to load events',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.red,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Database connection issue - check console for details',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            if (kDebugMode) ...[
+              SizedBox(height: 16),
+              Text(
+                'Debug Info:',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Family ID: $familyId\nMonth: ${currentMonth.year}-${currentMonth.month}',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.grey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
@@ -59,12 +122,12 @@ class MonthView extends ConsumerWidget {
         // Day names header
         Row(
           children: [
-            for (int i = 0; i < 7; i++)
+            for (String dayName in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(
-                    CalendarUtils.getDayName(dates[i]),
+                    dayName,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w600,

@@ -91,7 +91,9 @@ class CalendarUtils {
         event.startTime.day,
       );
       final targetDate = DateTime(date.year, date.month, date.day);
-      return eventDate.isAtSameMomentAs(targetDate);
+      return eventDate.year == targetDate.year && 
+             eventDate.month == targetDate.month && 
+             eventDate.day == targetDate.day;
     }).toList();
   }
 
@@ -141,13 +143,13 @@ class CalendarUtils {
 
   // Get day name
   static String getDayName(DateTime date) {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return days[date.weekday - 1];
   }
 
   // Get full day name
   static String getFullDayName(DateTime date) {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     return days[date.weekday - 1];
   }
 

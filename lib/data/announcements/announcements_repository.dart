@@ -64,12 +64,16 @@ final currentUserProfileProvider = userProfileStreamProvider;
 
 final announcementsStreamProvider =
     StreamProvider.family<List<Announcement>, String>((ref, familyId) {
+      // Watch auth state to ensure this provider gets invalidated when auth changes
+      ref.watch(authStateProvider);
       final repo = ref.watch(announcementsRepositoryProvider);
       return repo.watchAnnouncements(familyId);
     });
 
 final recentAnnouncementsProvider =
     StreamProvider.family<List<Announcement>, String>((ref, familyId) {
+      // Watch auth state to ensure this provider gets invalidated when auth changes
+      ref.watch(authStateProvider);
       final repo = ref.watch(announcementsRepositoryProvider);
       return repo.watchAnnouncements(familyId, limit: 50);
     });

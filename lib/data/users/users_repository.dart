@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fam_sync/domain/models/user_profile.dart';
+import 'package:fam_sync/data/auth/auth_repository.dart';
 
 class UsersRepository {
   UsersRepository({FirebaseFirestore? firestore})
@@ -28,6 +29,8 @@ final usersRepositoryProvider = Provider<UsersRepository>((ref) {
 
 final familyUsersProvider =
     StreamProvider.family<List<UserProfile>, String>((ref, familyId) {
+  // Watch auth state to ensure this provider gets invalidated when auth changes
+  ref.watch(authStateProvider);
   final repo = ref.watch(usersRepositoryProvider);
   return repo.watchFamilyUsers(familyId);
 });

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fam_sync/data/events/events_repository.dart';
 import 'package:fam_sync/domain/models/event.dart';
+import 'package:fam_sync/data/auth/auth_repository.dart';
 
 
 // Repository provider
@@ -25,6 +26,8 @@ final currentMonthProvider = StateProvider<DateTime>((ref) => DateTime.now());
 
 // Events for current month provider
 final monthEventsProvider = StreamProvider.family<List<Event>, String>((ref, familyId) {
+  // Watch auth state to ensure this provider gets invalidated when auth changes
+  ref.watch(authStateProvider);
   final currentMonth = ref.watch(currentMonthProvider);
   final repository = ref.watch(eventsRepositoryProvider);
   return repository.getMonthEventsStream(familyId, currentMonth.year, currentMonth.month);
@@ -32,18 +35,24 @@ final monthEventsProvider = StreamProvider.family<List<Event>, String>((ref, fam
 
 // Today's events provider
 final todayEventsProvider = StreamProvider.family<List<Event>, String>((ref, familyId) {
+  // Watch auth state to ensure this provider gets invalidated when auth changes
+  ref.watch(authStateProvider);
   final repository = ref.watch(eventsRepositoryProvider);
   return repository.getTodayEventsStream(familyId);
 });
 
 // Upcoming events provider (next 7 days)
 final upcomingEventsProvider = StreamProvider.family<List<Event>, String>((ref, familyId) {
+  // Watch auth state to ensure this provider gets invalidated when auth changes
+  ref.watch(authStateProvider);
   final repository = ref.watch(eventsRepositoryProvider);
   return repository.getUpcomingEventsStream(familyId);
 });
 
 // User events provider
 final userEventsProvider = StreamProvider.family<List<Event>, MapEntry<String, String>>((ref, entry) {
+  // Watch auth state to ensure this provider gets invalidated when auth changes
+  ref.watch(authStateProvider);
   final familyId = entry.key;
   final userId = entry.value;
   final repository = ref.watch(eventsRepositoryProvider);

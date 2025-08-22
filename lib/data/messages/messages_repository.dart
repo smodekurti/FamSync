@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fam_sync/domain/models/message.dart';
+import 'package:fam_sync/data/auth/auth_repository.dart';
 
 class MessagesRepository {
   MessagesRepository({FirebaseFirestore? firestore})
@@ -49,6 +50,8 @@ final messagesRepositoryProvider = Provider<MessagesRepository>((ref) {
 });
 
 final messagesStreamProvider = StreamProvider.family<List<Message>, String>((ref, familyId) {
+  // Watch auth state to ensure this provider gets invalidated when auth changes
+  ref.watch(authStateProvider);
   final repo = ref.watch(messagesRepositoryProvider);
   return repo.watchMessages(familyId);
 });

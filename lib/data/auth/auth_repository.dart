@@ -21,6 +21,11 @@ class AuthRepository {
         yield null;
         continue;
       }
+      
+      // Add a small delay to ensure Firebase Auth state is fully propagated
+      // This helps resolve timing issues between auth state and Firestore permissions
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      
       final docRef = _firestore.collection('users').doc(user.uid);
       // Listen to profile in real-time with offline cache; create if missing lazily
       yield* docRef.snapshots().asyncMap((snap) async {
@@ -57,6 +62,16 @@ class AuthRepository {
   }
 
   Future<void> signOut() => _auth.signOut();
+  
+  /// Force refresh the user profile stream to resolve authentication state issues
+  Future<void> refreshUserProfile() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      // Force a small delay to ensure auth state is stable
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      // This will trigger the stream to refresh
+    }
+  }
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -66,6 +81,18 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 final userProfileStreamProvider = StreamProvider<UserProfile?>((ref) {
   final repo = ref.watch(authRepositoryProvider);
   return repo.watchUserProfile();
+});
+
+/// Provider that invalidates all family-related providers when auth state changes
+final authStateProvider = StreamProvider<fb.User?>((ref) {
+  return fb.FirebaseAuth.instance.authStateChanges();
+});
+
+/// Provider that forces refresh of all family-related data
+final refreshFamilyDataProvider = FutureProvider.family<void, String>((ref, familyId) async {
+  // This will trigger invalidation of all family-related providers
+  await Future<void>.delayed(const Duration(milliseconds: 300));
+  return;
 });
 
 

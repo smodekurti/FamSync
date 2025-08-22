@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fam_sync/domain/models/task.dart';
+import 'package:fam_sync/data/auth/auth_repository.dart';
 
 class TasksRepository {
   TasksRepository({FirebaseFirestore? firestore})
@@ -161,6 +162,8 @@ final tasksStreamProvider = StreamProvider.family<List<Task>, String>((
   ref,
   familyId,
 ) {
+  // Watch auth state to ensure this provider gets invalidated when auth changes
+  ref.watch(authStateProvider);
   final repo = ref.watch(tasksRepositoryProvider);
   return repo.watchTasks(familyId);
 });

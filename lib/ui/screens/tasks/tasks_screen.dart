@@ -41,12 +41,12 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
     final profileAsync = ref.watch(userProfileStreamProvider);
     return FamAppBarScaffold(
       title: const FamilyAppBarTitle(fallback: AppStrings.tasksTitle),
-      fixedActions: const [
-        Icon(AppIcons.reminder),
-        SizedBox(width: 8),
-        Icon(AppIcons.add),
-        SizedBox(width: 8),
-        Icon(AppIcons.profile),
+      fixedActions: [
+        const Icon(AppIcons.reminder),
+        SizedBox(width: spaces.sm),
+        const Icon(AppIcons.add),
+        SizedBox(width: spaces.sm),
+        const Icon(AppIcons.profile),
       ],
       extraActions: kDebugMode
           ? [
@@ -116,10 +116,10 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                           children: [
                             Text(_subtitleForTask(t, uidToName, currentUid)),
                             if (assigneeChips.isNotEmpty) ...[
-                              const SizedBox(height: 6),
+                              SizedBox(height: spaces.xs),
                               Wrap(
-                                spacing: 6,
-                                runSpacing: -8,
+                                spacing: spaces.xs,
+                                runSpacing: -spaces.xs,
                                 children: assigneeChips,
                               ),
                             ],
@@ -177,8 +177,13 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
       return Chip(
         visualDensity: VisualDensity.compact,
         avatar: CircleAvatar(
-          radius: 10,
-          child: Text(initial, style: const TextStyle(fontSize: 11)),
+          radius: context.spaces.sm,
+          child: Text(
+            initial, 
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
         label: Text(name),
       );
@@ -289,7 +294,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: spaces.sm),
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: _dueDate == null
@@ -414,23 +419,23 @@ class _PriorityFilterBar extends StatelessWidget {
             selected: selected == null,
             onSelected: (_) => onChanged(null),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: context.spaces.sm),
           FilterChip(
-            avatar: const Icon(AppIcons.priorityHigh, size: 16),
+            avatar: Icon(AppIcons.priorityHigh, size: context.spaces.md),
             label: const Text(AppStrings.filterHigh),
             selected: selected == TaskPriority.high,
             onSelected: (_) => onChanged(TaskPriority.high),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: context.spaces.sm),
           FilterChip(
-            avatar: const Icon(AppIcons.priorityMedium, size: 16),
+            avatar: Icon(AppIcons.priorityMedium, size: context.spaces.md),
             label: const Text(AppStrings.filterMedium),
             selected: selected == TaskPriority.medium,
             onSelected: (_) => onChanged(TaskPriority.medium),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: context.spaces.sm),
           FilterChip(
-            avatar: const Icon(AppIcons.priorityLow, size: 16),
+            avatar: Icon(AppIcons.priorityLow, size: context.spaces.md),
             label: const Text(AppStrings.filterLow),
             selected: selected == TaskPriority.low,
             onSelected: (_) => onChanged(TaskPriority.low),

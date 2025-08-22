@@ -50,12 +50,12 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
 
     return FamAppBarScaffold(
       title: const FamilyAppBarTitle(fallback: AppStrings.messagesTitle),
-      fixedActions: const [
-        Icon(AppIcons.reminder),
-        SizedBox(width: 8),
-        Icon(AppIcons.add),
-        SizedBox(width: 8),
-        Icon(AppIcons.profile),
+      fixedActions: [
+        const Icon(AppIcons.reminder),
+        SizedBox(width: spaces.sm),
+        const Icon(AppIcons.add),
+        SizedBox(width: spaces.sm),
+        const Icon(AppIcons.profile),
       ],
       extraActions: const [],
       headerBuilder: (context, controller) => TextField(
@@ -189,7 +189,7 @@ class _MessageBubble extends StatelessWidget {
         children: [
           if (!isMine)
             Padding(
-              padding: const EdgeInsets.only(right: 8.0),
+              padding: EdgeInsets.only(right: context.spaces.sm),
               child: _Avatar(
                 url: message.authorPhotoUrl,
                 fallbackInitial: message.authorName.isNotEmpty
@@ -198,12 +198,17 @@ class _MessageBubble extends StatelessWidget {
               ),
             ),
           Container(
-            constraints: const BoxConstraints(maxWidth: 520),
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.75,
+            ),
             decoration: BoxDecoration(
               color: bg,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(context.spaces.md),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: EdgeInsets.symmetric(
+              horizontal: context.spaces.sm,
+              vertical: context.spaces.xs,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -211,28 +216,28 @@ class _MessageBubble extends StatelessWidget {
                   message.authorName,
                   style: Theme.of(
                     context,
-                  ).textTheme.labelSmall?.copyWith(color: fg.withOpacity(0.7)),
+                  ).textTheme.labelSmall?.copyWith(color: fg.withValues(alpha: 0.7)),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: context.spaces.xs / 2),
                 Text(
                   message.text,
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(color: fg),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: context.spaces.xs / 2),
                 Text(
                   formatRelativeTime(message.createdAt),
                   style: Theme.of(
                     context,
-                  ).textTheme.labelSmall?.copyWith(color: fg.withOpacity(0.6)),
+                  ).textTheme.labelSmall?.copyWith(color: fg.withValues(alpha: 0.6)),
                 ),
               ],
             ),
           ),
           if (isMine)
             Padding(
-              padding: const EdgeInsets.only(left: 8.0),
+              padding: EdgeInsets.only(left: context.spaces.sm),
               child: _Avatar(
                 url: message.authorPhotoUrl,
                 fallbackInitial: message.authorName.isNotEmpty
@@ -253,10 +258,10 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = Theme.of(context).colorScheme.surfaceVariant;
+    final bg = Theme.of(context).colorScheme.surfaceContainerHighest;
     final fg = Theme.of(context).colorScheme.onSurfaceVariant;
     return CircleAvatar(
-      radius: 14,
+      radius: context.spaces.md,
       backgroundColor: bg,
       backgroundImage: (url != null && url!.isNotEmpty)
           ? NetworkImage(url!)
@@ -264,7 +269,10 @@ class _Avatar extends StatelessWidget {
       child: (url == null || url!.isEmpty)
           ? Text(
               fallbackInitial.toUpperCase(),
-              style: TextStyle(color: fg, fontSize: 12),
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: fg,
+                fontWeight: FontWeight.bold,
+              ),
             )
           : null,
     );

@@ -41,11 +41,10 @@ class MonthViewNew extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircularProgressIndicator(),
-            SizedBox(height: 16),
+            SizedBox(height: context.spaces.md),
             Text(
               'Loading calendar events...',
-              style: TextStyle(
-                fontSize: 16,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
@@ -58,28 +57,26 @@ class MonthViewNew extends ConsumerWidget {
           children: [
             Icon(
               Icons.error_outline,
-              size: 48,
+              size: context.spaces.xxl,
               color: Theme.of(context).colorScheme.error,
             ),
-            SizedBox(height: 16),
+            SizedBox(height: context.spaces.md),
             Text(
               'Unable to load events',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 color: Theme.of(context).colorScheme.error,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: context.spaces.sm),
             Text(
               'Please check your connection and try again',
-              style: TextStyle(
-                fontSize: 14,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 16),
+            SizedBox(height: context.spaces.md),
             ElevatedButton(
               onPressed: () {
                 // Refresh the data - familyId is guaranteed to be non-null here
@@ -128,15 +125,13 @@ class MonthViewNew extends ConsumerWidget {
             multiDayEndText: 'End',
             expandableDateFormat: 'EEEE, MMMM d, yyyy',
             datePickerType: DatePickerType.date,
-            dayOfWeekStyle: TextStyle(
+            dayOfWeekStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
               color: colors.onSurface,
               fontWeight: FontWeight.w600,
-              fontSize: 12,
             ),
-            displayMonthTextStyle: TextStyle(
+            displayMonthTextStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: colors.onSurface,
               fontWeight: FontWeight.bold,
-              fontSize: 16,
             ),
             bottomBarColor: colors.surfaceContainerHighest,
             bottomBarArrowColor: colors.onSurfaceVariant,
@@ -402,7 +397,7 @@ class MonthViewNew extends ConsumerWidget {
         margin: EdgeInsets.only(bottom: spaces.xs),
         padding: EdgeInsets.symmetric(horizontal: spaces.md, vertical: spaces.sm),
         decoration: BoxDecoration(
-          color: const Color(0xFFF9F5FC), // Light lavender background #f9f5fc
+          color: colors.surfaceContainerLowest, // Responsive background color
           borderRadius: BorderRadius.circular(spaces.sm),
         ),
         child: Row(
@@ -434,12 +429,12 @@ class MonthViewNew extends ConsumerWidget {
           
           // Vertical bar (middle)
           Container(
-            width: 4,
-            height: spaces.xl * 2, // Fixed height for the vertical bar
+            width: spaces.xs / 2,
+            height: spaces.xl * 2, // Responsive height for the vertical bar
             margin: EdgeInsets.symmetric(horizontal: spaces.md),
             decoration: BoxDecoration(
               color: barColor, // Red for past, green for current/future
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(spaces.xs / 2),
             ),
           ),
           

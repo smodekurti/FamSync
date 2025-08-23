@@ -10,6 +10,7 @@ import 'package:fam_sync/domain/models/pending_member.dart';
 import 'package:fam_sync/domain/models/invite_validation_result.dart';
 import 'package:fam_sync/domain/models/family.dart' as models;
 import 'package:fam_sync/data/auth/auth_repository.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb;
 
 /// Repository for managing family invitations
 /// Handles invite generation, validation, acceptance, and lifecycle management
@@ -201,7 +202,17 @@ class InviteRepository {
   /// Validates an invite code and returns detailed information
   /// This is the core method for invite validation
   Future<InviteValidationResult> validateInviteCode(String inviteCode) async {
+    print('🔍 [DEBUG] ===== INVITE VALIDATION START =====');
+    print('🔍 [DEBUG] Invite code to validate: "$inviteCode"');
+    print('🔍 [DEBUG] Current user UID: ${fb.FirebaseAuth.instance.currentUser?.uid}');
+    print('🔍 [DEBUG] Current user email: ${fb.FirebaseAuth.instance.currentUser?.email}');
+    print('🔍 [DEBUG] Is user signed in: ${fb.FirebaseAuth.instance.currentUser != null}');
+    
     try {
+      print('🔍 [DEBUG] Step 1: Querying invites collection for code "$inviteCode"');
+      print('🔍 [DEBUG] Collection path: invites');
+      print('🔍 [DEBUG] Query: where("inviteCode", isEqualTo: "$inviteCode")');
+      
       // Find invite by code
       final inviteQuery = await _firestore
           .collection('invites')
@@ -209,7 +220,11 @@ class InviteRepository {
           .limit(1)
           .get();
 
+      print('✅ [DEBUG] Invite query completed successfully!');
+      print('🔍 [DEBUG] Query result: ${inviteQuery.docs.length} documents found');
+      
       if (inviteQuery.docs.isEmpty) {
+        print('❌ [DEBUG] No invites found with code "$inviteCode"');
         return InviteValidationResult.failure(
           errorMessage: 'Invalid invite code',
           errorType: InviteValidationError.invalidCode,
@@ -217,10 +232,22 @@ class InviteRepository {
       }
 
       final inviteDoc = inviteQuery.docs.first;
+      print('✅ [DEBUG] Found invite document: ${inviteDoc.id}');
+      print('🔍 [DEBUG] Invite document data: ${inviteDoc.data()}');
+      
       final invite = FamilyInvite.fromJson(inviteDoc.data());
+      print('✅ [DEBUG] Successfully parsed invite object');
+      print('🔍 [DEBUG] Parsed invite details:');
+      print('   - ID: ${invite.id}');
+      print('   - Family ID: ${invite.familyId}');
+      print('   - Status: ${invite.status}');
+      print('   - Expires at: ${invite.expiresAt}');
+      print('   - Use count: ${invite.useCount}/${invite.maxUses}');
 
       // Check if invite is active
+      print('🔍 [DEBUG] Step 2: Checking invite status');
       if (invite.status != InviteStatus.active) {
+        print('❌ [DEBUG] Invite is not active. Status: ${invite.status}');
         if (invite.status == InviteStatus.revoked) {
           return InviteValidationResult.failure(
             errorMessage: 'Invite has been revoked',
@@ -245,7 +272,9 @@ class InviteRepository {
       }
 
       // Check if invite has expired
+      print('🔍 [DEBUG] Step 3: Checking if invite has expired');
       if (invite.isExpired) {
+        print('❌ [DEBUG] Invite has expired. Expires at: ${invite.expiresAt}');
         return InviteValidationResult.failure(
           errorMessage: 'Invite has expired',
           errorType: InviteValidationError.expired,
@@ -254,7 +283,9 @@ class InviteRepository {
       }
 
       // Check if invite has been used up
+      print('🔍 [DEBUG] Step 4: Checking invite usage count');
       if (invite.useCount >= invite.maxUses) {
+        print('❌ [DEBUG] Invite has been used up. Use count: ${invite.useCount}/${invite.maxUses}');
         return InviteValidationResult.failure(
           errorMessage: 'Invite has already been used',
           errorType: InviteValidationError.alreadyUsed,
@@ -263,12 +294,19 @@ class InviteRepository {
       }
 
       // Get family information
+      print('🔍 [DEBUG] Step 5: Fetching family information');
+      print('🔍 [DEBUG] Family document path: families/${invite.familyId}');
+      
       final familyDoc = await _firestore
           .collection('families')
           .doc(invite.familyId)
           .get();
 
+      print('✅ [DEBUG] Family document fetch completed successfully!');
+      print('🔍 [DEBUG] Family document exists: ${familyDoc.exists}');
+      
       if (!familyDoc.exists) {
+        print('❌ [DEBUG] Family document does not exist');
         return InviteValidationResult.failure(
           errorMessage: 'Family not found',
           errorType: InviteValidationError.familyNotFound,
@@ -276,10 +314,23 @@ class InviteRepository {
         );
       }
 
+      print('🔍 [DEBUG] Family document data: ${familyDoc.data()}');
       final family = models.Family.fromJson(familyDoc.data()!);
+      print('✅ [DEBUG] Successfully parsed family object');
+      print('🔍 [DEBUG] Parsed family details:');
+      print('   - ID: ${family.id}');
+      print('   - Name: ${family.name}');
+      print('   - Member count: ${family.memberUids.length}');
+      print('   - Max members: ${family.maxMembers}');
+      print('   - Can accept members: ${family.canAcceptMembers}');
 
       // Check if family is full
+      print('🔍 [DEBUG] Step 6: Checking if family can accept new members');
       if (!family.canAcceptMembers) {
+        print('❌ [DEBUG] Family cannot accept new members');
+        print('   - Member count: ${family.memberUids.length}');
+        print('   - Max members: ${family.maxMembers}');
+        print('   - Allow invites: ${family.allowInvites}');
         return InviteValidationResult.failure(
           errorMessage: 'Family has reached its member limit',
           errorType: InviteValidationError.familyFull,
@@ -289,8 +340,12 @@ class InviteRepository {
       }
 
       // Check if current user is already a member
+      print('🔍 [DEBUG] Step 7: Checking if current user is already a member');
       final currentUser = await _getCurrentUser();
+      print('🔍 [DEBUG] Current user data: ${currentUser?.toJson()}');
+      
       if (currentUser != null && family.memberUids.contains(currentUser.uid)) {
+        print('❌ [DEBUG] User is already a member of this family');
         return InviteValidationResult.failure(
           errorMessage: 'You are already a member of this family',
           errorType: InviteValidationError.alreadyMember,
@@ -300,12 +355,38 @@ class InviteRepository {
         );
       }
 
-      // Success - invite is valid
+      print('✅ [DEBUG] ===== INVITE VALIDATION SUCCESS =====');
+      print('🔍 [DEBUG] Returning successful validation result');
+      
+      // Return successful validation
       return InviteValidationResult.success(
         family: family,
         inviteId: invite.id,
       );
-    } catch (e) {
+      
+    } catch (e, stackTrace) {
+      print('❌ [DEBUG] ===== INVITE VALIDATION ERROR =====');
+      print('❌ [DEBUG] Error type: ${e.runtimeType}');
+      print('❌ [DEBUG] Error message: $e');
+      print('❌ [DEBUG] Error toString: $e');
+      print('❌ [DEBUG] Stack trace: $stackTrace');
+      
+      // Check if it's a Firebase exception
+      if (e is fb.FirebaseException) {
+        print('🔍 [DEBUG] Firebase exception details:');
+        print('   - Code: ${e.code}');
+        print('   - Message: ${e.message}');
+      }
+      
+      // Check if it's a Firestore exception
+      if (e is fb.FirebaseException && e.code == 'permission-denied') {
+        print('🚨 [DEBUG] PERMISSION DENIED ERROR DETECTED!');
+        print('🚨 [DEBUG] This suggests a security rules issue');
+        print('🚨 [DEBUG] Current user: ${fb.FirebaseAuth.instance.currentUser?.uid}');
+        print('🚨 [DEBUG] User email: ${fb.FirebaseAuth.instance.currentUser?.email}');
+        print('🚨 [DEBUG] User signed in: ${fb.FirebaseAuth.instance.currentUser != null}');
+      }
+      
       return InviteValidationResult.failure(
         errorMessage: 'Error validating invite: $e',
         errorType: InviteValidationError.unknown,

@@ -39,15 +39,36 @@ class _AcceptInviteScreenState extends ConsumerState<AcceptInviteScreen> {
 
   /// Extracts invite code from URL query parameters
   void _extractInviteCodeFromUrl() {
-    final uri = Uri.parse(GoRouterState.of(context).uri.toString());
-    final code = uri.queryParameters['code'];
-    if (code != null && code.isNotEmpty) {
-      setState(() {
-        _prefilledCode = code;
-        _inviteCodeController.text = code;
-      });
-      // Auto-validate the prefilled code
-      _validateInviteCode();
+    print('🔍 [DEBUG] ===== URL EXTRACTION START =====');
+    print('🔍 [DEBUG] Current context: ${context.toString()}');
+    
+    try {
+      final uri = Uri.parse(GoRouterState.of(context).uri.toString());
+      print('🔍 [DEBUG] Parsed URI: $uri');
+      print('🔍 [DEBUG] URI query parameters: ${uri.queryParameters}');
+      
+      final code = uri.queryParameters['code'];
+      print('🔍 [DEBUG] Extracted code parameter: "$code"');
+      
+      if (code != null && code.isNotEmpty) {
+        print('🔍 [DEBUG] Code is valid, updating UI state');
+        setState(() {
+          _prefilledCode = code;
+          _inviteCodeController.text = code;
+        });
+        print('🔍 [DEBUG] UI state updated with prefilled code');
+        
+        // Auto-validate the prefilled code
+        print('🔍 [DEBUG] Auto-validating prefilled code...');
+        _validateInviteCode();
+      } else {
+        print('🔍 [DEBUG] No valid code found in URL parameters');
+      }
+    } catch (e, stackTrace) {
+      print('❌ [DEBUG] ===== URL EXTRACTION ERROR =====');
+      print('❌ [DEBUG] Error type: ${e.runtimeType}');
+      print('❌ [DEBUG] Error message: $e');
+      print('❌ [DEBUG] Stack trace: $stackTrace');
     }
   }
 
@@ -454,36 +475,72 @@ class _AcceptInviteScreenState extends ConsumerState<AcceptInviteScreen> {
     );
   }
 
-  /// Validates the invite code
+  /// Validates the invite code entered by the user
   Future<void> _validateInviteCode() async {
-    if (!_formKey.currentState!.validate()) return;
+    print('🔍 [DEBUG] ===== UI VALIDATION START =====');
+    print('🔍 [DEBUG] Invite code from controller: "${_inviteCodeController.text}"');
+    print('🔍 [DEBUG] Current validation state: _isValidating = $_isValidating');
+    
+    if (_inviteCodeController.text.trim().isEmpty) {
+      print('❌ [DEBUG] Invite code is empty, showing error');
+      setState(() {
+        _validationResult = InviteValidationResult.failure(
+          errorMessage: 'Please enter an invite code',
+          errorType: InviteValidationError.invalidCode,
+        );
+      });
+      return;
+    }
 
     setState(() {
       _isValidating = true;
+      _validationResult = null;
     });
 
+    print('🔍 [DEBUG] Set validation state to true');
+    print('🔍 [DEBUG] About to call inviteRepository.validateInviteCode()');
+    
     try {
-      final inviteCode = _inviteCodeController.text.trim().toUpperCase();
+      final inviteCode = _inviteCodeController.text.trim();
+      print('🔍 [DEBUG] Calling validateInviteCode with code: "$inviteCode"');
+      
       final inviteRepository = ref.read(inviteRepositoryProvider);
       final result = await inviteRepository.validateInviteCode(inviteCode);
+      print('✅ [DEBUG] validateInviteCode completed successfully!');
+      print('🔍 [DEBUG] Validation result:');
+      print('   - isValid: ${result.isValid}');
+      print('   - errorMessage: ${result.errorMessage}');
+      print('   - errorType: ${result.errorType}');
+      print('   - family: ${result.family?.name}');
+      print('   - inviteId: ${result.inviteId}');
 
+      if (!mounted) return;
+      
       setState(() {
         _validationResult = result;
         _isValidating = false;
       });
-    } catch (e) {
+      
+      print('✅ [DEBUG] UI state updated successfully');
+      
+    } catch (e, stackTrace) {
+      print('❌ [DEBUG] ===== UI VALIDATION ERROR =====');
+      print('❌ [DEBUG] Error type: ${e.runtimeType}');
+      print('❌ [DEBUG] Error message: $e');
+      print('❌ [DEBUG] Error toString: $e');
+      print('❌ [DEBUG] Stack trace: $stackTrace');
+      
+      if (!mounted) return;
+      
       setState(() {
+        _validationResult = InviteValidationResult.failure(
+          errorMessage: 'Error validating invite: $e',
+          errorType: InviteValidationError.unknown,
+        );
         _isValidating = false;
       });
       
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error validating invite: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
+      print('✅ [DEBUG] Error state set in UI');
     }
   }
 

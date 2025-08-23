@@ -129,6 +129,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         title: const Text('Welcome to FamSync'),
         backgroundColor: colors.surface,
         foregroundColor: colors.onSurface,
+        actions: [
+          // Logout button for users who need to switch accounts
+          IconButton(
+            onPressed: _busy ? null : _logout,
+            icon: Icon(
+              Icons.logout,
+              color: colors.onSurfaceVariant,
+            ),
+            tooltip: 'Sign Out',
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(spaces.lg),
@@ -365,6 +376,60 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     ),
                   ),
                 ),
+                
+                // Logout section at the bottom
+                SizedBox(height: spaces.xl * 2),
+                Divider(color: colors.outline),
+                SizedBox(height: spaces.lg),
+                
+                // Logout card
+                Card(
+                  elevation: 1,
+                  color: colors.surfaceVariant.withOpacity(0.3),
+                  child: Padding(
+                    padding: EdgeInsets.all(spaces.lg),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.account_circle_outlined,
+                          size: spaces.xl,
+                          color: colors.onSurfaceVariant,
+                        ),
+                        SizedBox(height: spaces.sm),
+                        Text(
+                          'Need to switch accounts?',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: colors.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: spaces.sm),
+                        Text(
+                          'If you need to sign in with a different account, you can sign out here.',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colors.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: spaces.md),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: _busy ? null : _logout,
+                            icon: Icon(Icons.logout),
+                            label: const Text('Sign Out'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: colors.error,
+                              side: BorderSide(color: colors.error),
+                              padding: EdgeInsets.symmetric(vertical: spaces.md),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -483,6 +548,66 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Could not process invite code: $e'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Handles user logout and redirects to auth screen
+  Future<void> _logout() async {
+    setState(() => _busy = true);
+    
+    try {
+      // Show confirmation dialog
+      final shouldLogout = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Sign Out'),
+          content: const Text(
+            'Are you sure you want to sign out? You can sign back in with a different account.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: const Text('Sign Out'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldLogout != true || !mounted) return;
+
+      // Sign out from Firebase
+      await fb.FirebaseAuth.instance.signOut();
+      
+      if (!mounted) return;
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Successfully signed out'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
+      );
+      
+      // Navigate back to auth screen
+      context.go('/auth');
+      
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error signing out: $e'),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );

@@ -1,4 +1,4 @@
-// Firestore security rules for FamSync
+// Final working rules based on successful tests
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -71,8 +71,7 @@ service cloud.firestore {
         allow delete: if isSameFamily(familyId);
       }
 
-      // Events are now nested under families for better security
-      // This prevents users from seeing events from other families
+      // Events
       match /events/{id} {
         allow read: if isSameFamily(familyId);
         allow create: if isSameFamily(familyId);

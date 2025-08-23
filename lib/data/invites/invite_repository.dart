@@ -60,7 +60,13 @@ class InviteRepository {
     
     // Check if family can accept new members
     if (!family.canAcceptMembers) {
-      throw Exception('Family cannot accept new members at this time');
+      if (family.memberUids.length >= family.maxMembers) {
+        throw Exception('Family has reached its maximum member limit (${family.maxMembers})');
+      } else if (!family.allowInvites) {
+        throw Exception('Family has disabled new member invitations');
+      } else {
+        throw Exception('Family cannot accept new members at this time');
+      }
     }
 
     // Generate unique invite code

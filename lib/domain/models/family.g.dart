@@ -26,7 +26,7 @@ _$FamilyImpl _$$FamilyImplFromJson(Map<String, dynamic> json) => _$FamilyImpl(
       const {},
   inviteCode: json['inviteCode'] as String?,
   maxMembers: (json['maxMembers'] as num?)?.toInt() ?? 10,
-  allowInvites: json['allowInvites'] as bool? ?? false,
+  allowInvites: json['allowInvites'] as bool? ?? true,
   createdAt: json['createdAt'] == null
       ? null
       : DateTime.parse(json['createdAt'] as String),

@@ -244,7 +244,7 @@ class _$FamilyImpl extends _Family {
     final Map<String, String> colors = const {},
     this.inviteCode,
     this.maxMembers = 10,
-    this.allowInvites = false,
+    this.allowInvites = true,
     this.createdAt,
     this.ownerUid = '',
   }) : _memberUids = memberUids,

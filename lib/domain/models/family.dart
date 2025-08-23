@@ -15,7 +15,7 @@ class Family with _$Family {
     @Default({}) Map<String, String> colors, // uid -> hex/color name token
     String? inviteCode,
     @Default(10) int maxMembers, // Maximum number of family members allowed
-    @Default(false) bool allowInvites, // Whether the family allows new invites
+    @Default(true) bool allowInvites, // Whether the family allows new invites
     DateTime? createdAt, // When the family was created
     @Default('') String ownerUid, // UID of the family owner/creator
   }) = _Family;

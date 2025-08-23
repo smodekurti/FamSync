@@ -39,7 +39,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return FamAppBarScaffold(
       title: const FamilyAppBarTitle(fallback: AppStrings.settingsTitle),
-      expandedHeight: layout.isSmall ? spaces.xxl * 4 : spaces.xxl * 6,
+      expandedHeight: spaces.xxl * 6, // Match Hub screen height
       fixedActions: [
         const Icon(Icons.settings),
         SizedBox(width: spaces.sm),
@@ -575,10 +575,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: spaces.xs / 4),
+              SizedBox(height: spaces.xs / 2), // Reduced spacing for better fit
               Text(
                 AppStrings.settingsHeaderSubtitle,
-                maxLines: layout.isSmall ? 1 : 2,
+                maxLines: 1, // Always single line to match Hub height
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Colors.white70,
@@ -588,10 +588,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ),
         SizedBox(width: spaces.md),
-        // Profile Avatar Preview
+        // Profile Avatar Preview - Responsive sizing
         Container(
-          width: spaces.lg,
-          height: spaces.lg,
+          width: layout.isSmall ? spaces.md : spaces.lg,
+          height: layout.isSmall ? spaces.md : spaces.lg,
           decoration: BoxDecoration(
             color: Colors.white24,
             shape: BoxShape.circle,
@@ -601,7 +601,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               profile.displayName.isNotEmpty 
                   ? profile.displayName[0].toUpperCase() 
                   : '?',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),

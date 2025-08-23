@@ -83,34 +83,45 @@ service cloud.firestore {
 
     // Invites collection - for family invitations
     match /invites/{inviteId} {
+      // Allow creation only by family members who can create invites
       allow create: if isSignedIn() &&
         exists(/databases/$(database)/documents/families/$(request.resource.data.familyId)) &&
         get(/databases/$(database)/documents/families/$(request.resource.data.familyId)).data.memberUids[request.auth.uid] != null;
 
-      allow read: if isSignedIn() &&
-        exists(/databases/$(database)/documents/families/$(resource.data.familyId)) &&
-        get(/databases/$(database)/documents/families/$(resource.data.familyId)).data.memberUids[request.auth.uid] != null;
+      // Allow reading by any signed-in user for invite validation
+      // This is necessary because users need to validate invites before joining
+      allow read: if isSignedIn();
 
+      // Allow updates only by the invite creator
       allow update: if isSignedIn() &&
         resource.data.createdByUid == request.auth.uid;
 
+      // Allow deletion only by the invite creator
       allow delete: if isSignedIn() &&
         resource.data.createdByUid == request.auth.uid;
     }
 
     // Pending members collection - for tracking invited users
     match /pendingMembers/{pendingId} {
+      // Allow creation only by family members who can create invites
       allow create: if isSignedIn() &&
         exists(/databases/$(database)/documents/families/$(request.resource.data.familyId)) &&
         get(/databases/$(database)/documents/families/$(request.resource.data.familyId)).data.memberUids[request.auth.uid] != null;
 
-      allow read: if isSignedIn() &&
+      // Allow reading by family members and the invited user
+      allow read: if isSignedIn() && (
+        // Family members can read pending members
         exists(/databases/$(database)/documents/families/$(resource.data.familyId)) &&
-        get(/databases/$(database)/documents/families/$(resource.data.familyId)).data.memberUids[request.auth.uid] != null;
+        get(/databases/$(database)/documents/families/$(resource.data.familyId)).data.memberUids[request.auth.uid] != null ||
+        // Invited user can read their own pending member record
+        resource.data.email == userDoc(request.auth.uid).data.email
+      );
 
+      // Allow updates only by the inviter
       allow update: if isSignedIn() &&
         resource.data.invitedByUid == request.auth.uid;
 
+      // Allow deletion only by the inviter
       allow delete: if isSignedIn() &&
         resource.data.invitedByUid == request.auth.uid;
     }

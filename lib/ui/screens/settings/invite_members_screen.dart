@@ -146,25 +146,33 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
   /// Builds the main invite content
   Widget _buildInviteContent(BuildContext context, String familyId) {
     final spaces = context.spaces;
-
+    
     return SingleChildScrollView(
       padding: EdgeInsets.all(spaces.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Generate Invite Section
-          _buildGenerateInviteSection(context, familyId),
-          
-          SizedBox(height: spaces.lg),
-          
-          // Active Invites Section
-          _buildActiveInvitesSection(context, familyId),
-          
-          SizedBox(height: spaces.lg),
-          
-          // Pending Members Section
-          _buildPendingMembersSection(context, familyId),
-        ],
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: MediaQuery.of(context).size.height - 200, // Ensure minimum height
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Generate Invite Section
+            _buildGenerateInviteSection(context, familyId),
+            
+            SizedBox(height: spaces.lg),
+            
+            // Active Invites Section
+            _buildActiveInvitesSection(context, familyId),
+            
+            SizedBox(height: spaces.lg),
+            
+            // Pending Members Section
+            _buildPendingMembersSection(context, familyId),
+            
+            // Add bottom padding to prevent content from being cut off
+            SizedBox(height: spaces.xxl),
+          ],
+        ),
       ),
     );
   }
@@ -284,6 +292,7 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
               horizontal: spaces.md,
               vertical: spaces.sm,
             ),
+            isDense: context.layout.isSmall, // Make more compact on small screens
           ),
           items: const [
             DropdownMenuItem(
@@ -331,6 +340,7 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
               horizontal: spaces.md,
               vertical: spaces.sm,
             ),
+            isDense: context.layout.isSmall, // Make more compact on small screens
           ),
           items: List.generate(5, (index) => index + 1).map((uses) {
             return DropdownMenuItem(
@@ -374,6 +384,7 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
               horizontal: spaces.md,
               vertical: spaces.sm,
             ),
+            isDense: context.layout.isSmall, // Make more compact on small screens
           ),
           items: [1, 3, 7, 14, 30].map((days) {
             return DropdownMenuItem(
@@ -416,11 +427,13 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
                 size: spaces.xl,
               ),
               SizedBox(width: spaces.sm),
-              Text(
-                'Invite Generated Successfully!',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: colors.primary,
-                  fontWeight: FontWeight.w600,
+              Expanded(
+                child: Text(
+                  'Invite Generated Successfully!',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: colors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -448,13 +461,14 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
             ),
             child: Column(
               children: [
-                Text(
+                SelectableText(
                   _generatedInviteCode!,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontFamily: 'monospace',
                     fontWeight: FontWeight.bold,
                     letterSpacing: 2,
                   ),
+                  textAlign: TextAlign.center,
                 ),
                 SizedBox(height: spaces.sm),
                 Text(
@@ -462,6 +476,7 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colors.onSurfaceVariant,
                   ),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -469,34 +484,64 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
           
           SizedBox(height: spaces.md),
           
-          // Action Buttons
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _copyInviteCode(),
-                  icon: const Icon(Icons.copy),
-                  label: const Text('Copy Code'),
-                  style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: spaces.md),
-                  ),
+          // Action Buttons - Make responsive for small screens
+          context.layout.isSmall
+              ? Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _copyInviteCode(),
+                        icon: const Icon(Icons.copy),
+                        label: const Text('Copy Code'),
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: spaces.md),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: spaces.sm),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () => _shareInviteCode(),
+                        icon: const Icon(Icons.share),
+                        label: const Text('Share'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colors.primary,
+                          foregroundColor: colors.onPrimary,
+                          padding: EdgeInsets.symmetric(vertical: spaces.md),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _copyInviteCode(),
+                        icon: const Icon(Icons.copy),
+                        label: const Text('Copy Code'),
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: spaces.md),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: spaces.sm),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _shareInviteCode(),
+                        icon: const Icon(Icons.share),
+                        label: const Text('Share'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colors.primary,
+                          foregroundColor: colors.onPrimary,
+                          padding: EdgeInsets.symmetric(vertical: spaces.md),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              SizedBox(width: spaces.sm),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => _shareInviteCode(),
-                  icon: const Icon(Icons.share),
-                  label: const Text('Share'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colors.primary,
-                    foregroundColor: colors.onPrimary,
-                    padding: EdgeInsets.symmetric(vertical: spaces.md),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
@@ -676,7 +721,13 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Code: ${invite.inviteCode}'),
+            Flexible(
+              child: Text(
+                'Code: ${invite.inviteCode}',
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontFamily: 'monospace'),
+              ),
+            ),
             Text('Expires: ${invite.daysUntilExpiry} days'),
             Text('Uses: ${invite.useCount}/${invite.maxUses}'),
           ],
@@ -698,6 +749,7 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
             ),
           ],
         ),
+        isThreeLine: true, // Allow more space for subtitle
       ),
     );
   }
@@ -756,7 +808,7 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
           child: Text(
             member.displayName[0].toUpperCase(),
             style: TextStyle(
-              color: colors.onSecondary,
+              color: colors.secondary,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -764,11 +816,17 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
         title: Text(
           member.displayName,
           style: const TextStyle(fontWeight: FontWeight.w600),
+          overflow: TextOverflow.ellipsis,
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(member.email),
+            Flexible(
+              child: Text(
+                member.email,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             Text('Role: ${member.role.capitalize()}'),
             Text('Invited: ${member.daysSinceInvited} days ago'),
             Text('Status: ${member.statusDescription}'),
@@ -785,15 +843,19 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
                     vertical: spaces.sm,
                   ),
                 ),
-                child: Text(member.actionText),
+                child: Text(
+                  member.actionText,
+                  style: TextStyle(fontSize: context.layout.isSmall ? 10 : 12),
+                ),
               )
             : Text(
                 member.actionText,
                 style: TextStyle(
                   color: colors.onSurfaceVariant,
-                  fontSize: 12,
+                  fontSize: context.layout.isSmall ? 10 : 12,
                 ),
               ),
+        isThreeLine: true, // Allow more space for subtitle
       ),
     );
   }

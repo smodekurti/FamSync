@@ -18,6 +18,19 @@ import 'package:fam_sync/domain/models/announcement.dart';
 import 'package:fam_sync/domain/models/task.dart';
 import 'package:fam_sync/domain/models/user_profile.dart';
 
+// Constants for responsive limits
+const int maxDisplayUsers = 4;
+const int maxRecentTasks = 5;
+const int maxRecentAnnouncements = 3;
+const int maxShortcutItems = 3;
+const int maxAvatarDisplay = 6;
+
+// Duration constants
+const String durationLong = '1h';
+const String durationMedium = '45m';
+const String durationShort = '30m';
+const String durationVeryShort = '15m';
+
 class HubScreen extends ConsumerWidget {
   const HubScreen({super.key});
 
@@ -116,7 +129,7 @@ class _TopStrip extends ConsumerWidget {
                           usersAsync.when(
                             data: (users) => Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: users.take(6).map((user) {
+                              children: users.take(maxAvatarDisplay).map((user) {
                                 final label = user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : '?';
                                 return Padding(
                                   padding: EdgeInsets.only(left: spaces.xs),
@@ -233,7 +246,7 @@ class _TimelineContent extends ConsumerWidget {
             final todayTasks = tasks.where((t) =>
                 !t.completed && (t.dueDate == null ||
                     (t.dueDate!.year == today.year && t.dueDate!.month == today.month && t.dueDate!.day == today.day)))
-                .take(5)
+                .take(maxRecentTasks)
                 .toList();
             
             if (todayTasks.isEmpty) {
@@ -286,7 +299,7 @@ class _TimelineContent extends ConsumerWidget {
                   ),
                 ),
                 SizedBox(height: context.spaces.sm),
-                ...announcements.take(3).map((announcement) => _TimelineAnnouncementItem(announcement: announcement)),
+                ...announcements.take(maxRecentAnnouncements).map((announcement) => _TimelineAnnouncementItem(announcement: announcement)),
               ],
             );
           },
@@ -355,9 +368,9 @@ class _TimelineAnnouncementItem extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            spreadRadius: 0,
-            offset: const Offset(0, 1),
+            blurRadius: spaces.xs,
+            spreadRadius: spaces.xs / 8,
+            offset: Offset(0, spaces.xs / 4),
           ),
         ],
       ),
@@ -551,13 +564,13 @@ class _TimelineTaskItem extends StatelessWidget {
     // Calculate actual duration based on task data
     if (task.dueDate != null) {
       // If there's a due date, estimate duration based on task complexity
-      if (task.notes.length > 100) return '1h';
-      if (task.notes.length > 50) return '45m';
-      if (task.notes.length > 20) return '30m';
-      return '15m';
+      if (task.notes.length > 100) return durationLong;
+      if (task.notes.length > 50) return durationMedium;
+      if (task.notes.length > 20) return durationShort;
+      return durationVeryShort;
     }
     // Default duration for tasks without due dates
-    return '30m';
+    return durationShort;
   }
   
   double _calculateDynamicBarHeight(Task task, BuildContext context) {
@@ -607,8 +620,8 @@ class _TimelineTaskItem extends StatelessWidget {
                 
                 if (assignedUsers.isEmpty) return const SizedBox.shrink();
                 
-                // Show up to 4 assignee avatars with slight overlap (like in the image)
-                final displayUsers = assignedUsers.take(4).toList();
+                // Show up to maxDisplayUsers assignee avatars with slight overlap
+                final displayUsers = assignedUsers.take(maxDisplayUsers).toList();
                 return SizedBox(
                   height: context.spaces.lg, // Responsive height for the Stack
                   child: Stack(
@@ -618,8 +631,8 @@ class _TimelineTaskItem extends StatelessWidget {
                           left: i * (context.layout.isSmall ? context.spaces.sm.toDouble() : context.spaces.md.toDouble()), // Adaptive overlap for different screen sizes
                           child: _buildFamilyMemberAvatar(displayUsers[i], context),
                         ),
-                      // Show count of additional assignees if any (like "+5" in the image)
-                      if (assignedUsers.length > 4)
+                      // Show count of additional assignees if any
+                      if (assignedUsers.length > maxDisplayUsers)
                         Positioned(
                           left: displayUsers.length * (context.layout.isSmall ? context.spaces.sm.toDouble() : context.spaces.md.toDouble()),
                           child: Container(
@@ -631,11 +644,11 @@ class _TimelineTaskItem extends StatelessWidget {
                             ),
                             child: Center(
                               child: Text(
-                                '+${assignedUsers.length - 4}',
+                                '+${assignedUsers.length - maxDisplayUsers}',
                                 style: TextStyle(
-                                  fontSize: context.spaces.xs + 2,
+                                  fontSize: context.spaces.sm,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.grey[700],
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ),
@@ -686,7 +699,7 @@ class _TimelineTaskItem extends StatelessWidget {
               initial,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: context.spaces.xs + 2,
+                                            fontSize: context.spaces.sm,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -697,12 +710,12 @@ class _TimelineTaskItem extends StatelessWidget {
           right: 0,
           bottom: 0,
           child: Container(
-            width: context.spaces.xs + 2,
-            height: context.spaces.xs + 2,
+                                        width: context.spaces.sm,
+                            height: context.spaces.sm,
             decoration: BoxDecoration(
               color: Colors.green,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: context.spaces.xs / 3),
+                              border: Border.all(color: Colors.white, width: context.spaces.xs / 4),
             ),
             child: Icon(
               Icons.check,
@@ -860,7 +873,7 @@ class _AnnouncementsList extends ConsumerWidget {
               ? const Center(child: Text(AppStrings.noAnnouncementsYet))
               : Column(
                   children: [
-                    for (final a in items.take(3))
+                    for (final a in items.take(maxShortcutItems))
                       Padding(
                         padding: EdgeInsets.only(bottom: context.spaces.sm),
                         child: ListTile(
@@ -947,7 +960,7 @@ class _MessagesList extends ConsumerWidget {
               ? const Center(child: Text(AppStrings.noMessagesYet))
               : Column(
                   children: [
-                    for (final m in items.take(3))
+                    for (final m in items.take(maxShortcutItems))
                       Padding(
                         padding: EdgeInsets.only(bottom: context.spaces.sm),
                         child: ListTile(

@@ -142,8 +142,9 @@ service cloud.firestore {
     // ===== PENDING MEMBERS =====
     
     match /pendingMembers/{pendingId} {
-      // Allow creation only by family members who can create invites
-      allow create: if isSignedIn() && isSameFamily(request.resource.data.familyId);
+      // Allow creation by any signed-in user for invite acceptance
+      // Users need to create pending member records when accepting invites
+      allow create: if isSignedIn();
       
       // Allow reading by family members and the invited user
       allow read: if isSignedIn() && (

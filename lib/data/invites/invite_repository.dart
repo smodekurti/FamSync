@@ -451,6 +451,27 @@ class InviteRepository {
         'roles': updatedRoles,
       });
 
+      // Update user profile with family ID and mark as onboarded
+      final userRef = _firestore.collection('users').doc(uid);
+      print('🔍 [DEBUG] Updating user profile: users/$uid');
+      print('🔍 [DEBUG] Setting user data:');
+      print('   - familyId: ${invite.familyId}');
+      print('   - role: ${invite.role}');
+      print('   - onboarded: true');
+      print('   - displayName: $displayName');
+      print('   - email: $email');
+      
+      tx.set(userRef, {
+        'familyId': invite.familyId,
+        'role': invite.role,
+        'onboarded': true,
+        'displayName': displayName,
+        'email': email,
+        'updatedAt': DateTime.now(),
+      }, SetOptions(merge: true));
+      
+      print('✅ [DEBUG] User profile update transaction queued');
+
       // Create pending member record for tracking
       final pendingMemberRef = _firestore.collection('pendingMembers').doc();
       final pendingMember = PendingMember.fromInvite(

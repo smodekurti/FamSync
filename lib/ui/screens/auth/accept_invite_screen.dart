@@ -546,7 +546,13 @@ class _AcceptInviteScreenState extends ConsumerState<AcceptInviteScreen> {
 
   /// Accepts the invite and joins the family
   Future<void> _acceptInvite() async {
-    if (_validationResult == null || !_validationResult!.isValid) return;
+    print('🔍 [DEBUG] ===== ACCEPT INVITE START =====');
+    print('🔍 [DEBUG] Validation result: ${_validationResult?.toJson()}');
+    
+    if (_validationResult == null || !_validationResult!.isValid) {
+      print('❌ [DEBUG] Cannot accept invite - validation result is invalid');
+      return;
+    }
 
     setState(() {
       _isAccepting = true;
@@ -555,16 +561,27 @@ class _AcceptInviteScreenState extends ConsumerState<AcceptInviteScreen> {
     try {
       final currentUser = ref.read(authStateProvider).value;
       if (currentUser == null) {
+        print('❌ [DEBUG] No authenticated user found');
         throw Exception('User not authenticated');
       }
+      
+      print('🔍 [DEBUG] Current user:');
+      print('   - UID: ${currentUser.uid}');
+      print('   - Email: ${currentUser.email}');
+      print('   - Display name: ${currentUser.displayName}');
 
       final inviteRepository = ref.read(inviteRepositoryProvider);
+      print('🔍 [DEBUG] Calling inviteRepository.acceptInvite()...');
+      
       await inviteRepository.acceptInvite(
         inviteId: _validationResult!.inviteId!,
         uid: currentUser.uid,
         displayName: currentUser.displayName ?? 'New Member',
         email: currentUser.email ?? '',
       );
+
+      print('✅ [DEBUG] inviteRepository.acceptInvite() completed successfully!');
+      print('🔍 [DEBUG] User should now be onboarded and have familyId set');
 
       setState(() {
         _isAccepting = false;
@@ -579,10 +596,16 @@ class _AcceptInviteScreenState extends ConsumerState<AcceptInviteScreen> {
           ),
         );
 
+        print('🔍 [DEBUG] Navigating to /hub...');
         // Navigate to hub screen
         context.go('/hub');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('❌ [DEBUG] ===== ACCEPT INVITE ERROR =====');
+      print('❌ [DEBUG] Error type: ${e.runtimeType}');
+      print('❌ [DEBUG] Error message: $e');
+      print('❌ [DEBUG] Stack trace: $stackTrace');
+      
       setState(() {
         _isAccepting = false;
       });

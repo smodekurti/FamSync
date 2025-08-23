@@ -9,6 +9,7 @@ import 'package:fam_sync/data/tasks/tasks_repository.dart';
 
 import 'package:fam_sync/core/utils/time.dart';
 import 'package:fam_sync/data/users/users_repository.dart';
+import 'package:fam_sync/data/family/family_repository.dart';
 import 'package:fam_sync/ui/appbar/fam_app_bar_scaffold.dart';
 import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
 import 'package:fam_sync/ui/strings.dart';
@@ -57,69 +58,130 @@ class _TopStrip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final spaces = context.spaces;
+    final layout = context.layout;
     final dateStr = formatHeaderDate(DateTime.now());
     final profileAsync = ref.watch(userProfileStreamProvider);
-    return Row(
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                dateStr,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: spaces.xs / 4),
-              Text(
-                AppStrings.headerSubtitlePlaceholder,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white70,
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(width: spaces.md),
-        profileAsync.when(
-          data: (profile) {
-            final familyId = profile?.familyId;
-            if (familyId == null) return const SizedBox.shrink();
-            final usersAsync = ref.watch(familyUsersProvider(familyId));
-            return usersAsync.when(
-              data: (users) => SizedBox(
-                height: spaces.lg,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  shrinkWrap: true,
-                  itemBuilder: (_, i) {
-                    final u = users[i];
-                    final label = u.displayName.isNotEmpty ? u.displayName[0] : '?';
-                    return CircleAvatar(
-                      radius: spaces.md,
-                      backgroundColor: Colors.white24,
-                      child: Text(
-                        label,
-                        style: const TextStyle(color: Colors.white),
+        // Top row with date and meaningful family info
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    dateStr,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: spaces.xs / 2),
+                  // Meaningful family information
+                  profileAsync.when(
+                    data: (profile) {
+                      final familyId = profile?.familyId;
+                      if (familyId == null) return const SizedBox.shrink();
+                      
+                      final familyAsync = ref.watch(familyStreamProvider(familyId));
+                      final usersAsync = ref.watch(familyUsersProvider(familyId));
+                      
+                      return Row(
+                        children: [
+                          familyAsync.when(
+                            data: (family) => Text(
+                              family?.name ?? 'Family',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.white70,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            loading: () => Text(
+                              'Loading...',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.white60,
+                              ),
+                            ),
+                            error: (_, __) => const SizedBox.shrink(),
+                          ),
+                          SizedBox(width: spaces.sm),
+                                                     usersAsync.when(
+                             data: (users) => Text(
+                               '• ${users.length} member${users.length == 1 ? '' : ''}',
+                               maxLines: 1,
+                               overflow: TextOverflow.ellipsis,
+                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                 color: Colors.white60,
+                               ),
+                             ),
+                             loading: () => const SizedBox.shrink(),
+                             error: (_, __) => const SizedBox.shrink(),
+                           ),
+                        ],
+                      );
+                    },
+                    loading: () => Text(
+                      'Loading family...',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.white60,
                       ),
-                    );
-                  },
-                  separatorBuilder: (_, __) => SizedBox(width: spaces.xs),
-                  itemCount: users.length.clamp(0, 6),
-                ),
+                    ),
+                    error: (_, __) => const SizedBox.shrink(),
+                  ),
+                ],
               ),
+            ),
+          ],
+        ),
+        
+        // Bottom row with member avatars - positioned lower and left-aligned from right
+        SizedBox(height: spaces.md),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            profileAsync.when(
+              data: (profile) {
+                final familyId = profile?.familyId;
+                if (familyId == null) return const SizedBox.shrink();
+                
+                final usersAsync = ref.watch(familyUsersProvider(familyId));
+                return usersAsync.when(
+                  data: (users) => Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: users.take(6).map((user) {
+                      final label = user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : '?';
+                      return Padding(
+                        padding: EdgeInsets.only(left: spaces.xs),
+                        child: CircleAvatar(
+                          radius: layout.isSmall ? spaces.sm : spaces.md,
+                          backgroundColor: Colors.white24,
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: layout.isSmall ? 12 : 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  error: (_, __) => const SizedBox.shrink(),
+                  loading: () => const SizedBox.shrink(),
+                );
+              },
               error: (_, __) => const SizedBox.shrink(),
               loading: () => const SizedBox.shrink(),
-            );
-          },
-          error: (_, __) => const SizedBox.shrink(),
-          loading: () => const SizedBox.shrink(),
+            ),
+          ],
         ),
       ],
     );

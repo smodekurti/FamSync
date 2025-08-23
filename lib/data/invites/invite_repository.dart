@@ -47,6 +47,22 @@ class InviteRepository {
     int maxUses = 1,
     int daysUntilExpiry = 7,
   }) async {
+    // First, validate that the user can create invites for this family
+    final familyDoc = await _firestore.collection('families').doc(familyId).get();
+    if (!familyDoc.exists) {
+      throw Exception('Family not found');
+    }
+    
+    final family = models.Family.fromJson(familyDoc.data()!);
+    if (!family.canCreateInvites(createdByUid)) {
+      throw Exception('You do not have permission to create invites for this family');
+    }
+    
+    // Check if family can accept new members
+    if (!family.canAcceptMembers) {
+      throw Exception('Family cannot accept new members at this time');
+    }
+
     // Generate unique invite code
     String inviteCode;
     bool isUnique = false;

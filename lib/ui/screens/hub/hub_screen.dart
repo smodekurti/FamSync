@@ -81,7 +81,7 @@ class _TopStrip extends ConsumerWidget {
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: spaces.xs / 2),
+                                    SizedBox(height: spaces.xs / 4), // Reduced spacing to fit better
                   // Meaningful family information
                   profileAsync.when(
                     data: (profile) {
@@ -98,7 +98,7 @@ class _TopStrip extends ConsumerWidget {
                               family?.name ?? 'Family',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: Colors.white70,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -112,18 +112,32 @@ class _TopStrip extends ConsumerWidget {
                             error: (_, __) => const SizedBox.shrink(),
                           ),
                           SizedBox(width: spaces.sm),
-                                                     usersAsync.when(
-                             data: (users) => Text(
-                               '• ${users.length} member${users.length == 1 ? '' : ''}',
-                               maxLines: 1,
-                               overflow: TextOverflow.ellipsis,
-                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                 color: Colors.white60,
-                               ),
-                             ),
-                             loading: () => const SizedBox.shrink(),
-                             error: (_, __) => const SizedBox.shrink(),
-                           ),
+                          // Member avatars placed right next to family name
+                          usersAsync.when(
+                            data: (users) => Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: users.take(6).map((user) {
+                                final label = user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : '?';
+                                return Padding(
+                                  padding: EdgeInsets.only(left: spaces.xs),
+                                  child: CircleAvatar(
+                                    radius: layout.isSmall ? spaces.md : spaces.lg, // Bigger avatars
+                                    backgroundColor: Colors.white24,
+                                    child: Text(
+                                      label,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: layout.isSmall ? 14 : 16, // Bigger font sizes
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            loading: () => const SizedBox.shrink(),
+                            error: (_, __) => const SizedBox.shrink(),
+                          ),
                         ],
                       );
                     },
@@ -141,48 +155,7 @@ class _TopStrip extends ConsumerWidget {
           ],
         ),
         
-        // Bottom row with member avatars - positioned lower and left-aligned from right
-        SizedBox(height: spaces.md),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            profileAsync.when(
-              data: (profile) {
-                final familyId = profile?.familyId;
-                if (familyId == null) return const SizedBox.shrink();
-                
-                final usersAsync = ref.watch(familyUsersProvider(familyId));
-                return usersAsync.when(
-                  data: (users) => Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: users.take(6).map((user) {
-                      final label = user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : '?';
-                      return Padding(
-                        padding: EdgeInsets.only(left: spaces.xs),
-                        child: CircleAvatar(
-                          radius: layout.isSmall ? spaces.sm : spaces.md,
-                          backgroundColor: Colors.white24,
-                          child: Text(
-                            label,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: layout.isSmall ? 12 : 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  error: (_, __) => const SizedBox.shrink(),
-                  loading: () => const SizedBox.shrink(),
-                );
-              },
-              error: (_, __) => const SizedBox.shrink(),
-              loading: () => const SizedBox.shrink(),
-            ),
-          ],
-        ),
+
       ],
     );
   }

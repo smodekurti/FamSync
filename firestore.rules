@@ -76,18 +76,14 @@ service cloud.firestore {
       // Allow reading by family members OR any signed-in user for invite validation
       allow read: if isSignedIn();
       
-      // Allow updates by family members with specific conditions
+      // Allow updates by family members OR for invite acceptance
       allow update: if isSignedIn() && (
         // Family members can update family data
         isSameFamily(familyId) ||
-        // Allow new members to join (invite acceptance flow)
+        // Allow users to join via invites (simplified condition)
         (
           request.auth.uid in request.resource.data.memberUids && 
-          !(request.auth.uid in resource.data.memberUids) &&
-          resource.data.allowInvites == true &&
-          request.resource.data.memberUids.size() <= resource.data.maxMembers &&
-          request.resource.data.memberUids.size() == (resource.data.memberUids.size() + 1) &&
-          request.resource.data.memberUids is list
+          !(request.auth.uid in resource.data.memberUids)
         )
       );
       

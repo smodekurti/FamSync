@@ -35,7 +35,9 @@ mixin _$Family {
       throw _privateConstructorUsedError; // Whether the family allows new invites
   DateTime? get createdAt =>
       throw _privateConstructorUsedError; // When the family was created
-  String get ownerUid => throw _privateConstructorUsedError;
+  String get ownerUid =>
+      throw _privateConstructorUsedError; // UID of the family owner/creator
+  String? get nameNormalized => throw _privateConstructorUsedError;
 
   /// Serializes this Family to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -62,6 +64,7 @@ abstract class $FamilyCopyWith<$Res> {
     bool allowInvites,
     DateTime? createdAt,
     String ownerUid,
+    String? nameNormalized,
   });
 }
 
@@ -90,6 +93,7 @@ class _$FamilyCopyWithImpl<$Res, $Val extends Family>
     Object? allowInvites = null,
     Object? createdAt = freezed,
     Object? ownerUid = null,
+    Object? nameNormalized = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -133,6 +137,10 @@ class _$FamilyCopyWithImpl<$Res, $Val extends Family>
                 ? _value.ownerUid
                 : ownerUid // ignore: cast_nullable_to_non_nullable
                       as String,
+            nameNormalized: freezed == nameNormalized
+                ? _value.nameNormalized
+                : nameNormalized // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -158,6 +166,7 @@ abstract class _$$FamilyImplCopyWith<$Res> implements $FamilyCopyWith<$Res> {
     bool allowInvites,
     DateTime? createdAt,
     String ownerUid,
+    String? nameNormalized,
   });
 }
 
@@ -185,6 +194,7 @@ class __$$FamilyImplCopyWithImpl<$Res>
     Object? allowInvites = null,
     Object? createdAt = freezed,
     Object? ownerUid = null,
+    Object? nameNormalized = freezed,
   }) {
     return _then(
       _$FamilyImpl(
@@ -228,6 +238,10 @@ class __$$FamilyImplCopyWithImpl<$Res>
             ? _value.ownerUid
             : ownerUid // ignore: cast_nullable_to_non_nullable
                   as String,
+        nameNormalized: freezed == nameNormalized
+            ? _value.nameNormalized
+            : nameNormalized // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -247,6 +261,7 @@ class _$FamilyImpl extends _Family {
     this.allowInvites = true,
     this.createdAt,
     this.ownerUid = '',
+    this.nameNormalized,
   }) : _memberUids = memberUids,
        _roles = roles,
        _colors = colors,
@@ -305,10 +320,13 @@ class _$FamilyImpl extends _Family {
   @override
   @JsonKey()
   final String ownerUid;
+  // UID of the family owner/creator
+  @override
+  final String? nameNormalized;
 
   @override
   String toString() {
-    return 'Family(id: $id, name: $name, memberUids: $memberUids, roles: $roles, colors: $colors, inviteCode: $inviteCode, maxMembers: $maxMembers, allowInvites: $allowInvites, createdAt: $createdAt, ownerUid: $ownerUid)';
+    return 'Family(id: $id, name: $name, memberUids: $memberUids, roles: $roles, colors: $colors, inviteCode: $inviteCode, maxMembers: $maxMembers, allowInvites: $allowInvites, createdAt: $createdAt, ownerUid: $ownerUid, nameNormalized: $nameNormalized)';
   }
 
   @override
@@ -333,7 +351,9 @@ class _$FamilyImpl extends _Family {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.ownerUid, ownerUid) ||
-                other.ownerUid == ownerUid));
+                other.ownerUid == ownerUid) &&
+            (identical(other.nameNormalized, nameNormalized) ||
+                other.nameNormalized == nameNormalized));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -350,6 +370,7 @@ class _$FamilyImpl extends _Family {
     allowInvites,
     createdAt,
     ownerUid,
+    nameNormalized,
   );
 
   /// Create a copy of Family
@@ -378,6 +399,7 @@ abstract class _Family extends Family {
     final bool allowInvites,
     final DateTime? createdAt,
     final String ownerUid,
+    final String? nameNormalized,
   }) = _$FamilyImpl;
   const _Family._() : super._();
 
@@ -402,7 +424,9 @@ abstract class _Family extends Family {
   @override
   DateTime? get createdAt; // When the family was created
   @override
-  String get ownerUid;
+  String get ownerUid; // UID of the family owner/creator
+  @override
+  String? get nameNormalized;
 
   /// Create a copy of Family
   /// with the given fields replaced by the non-null parameter values.

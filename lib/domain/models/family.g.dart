@@ -31,6 +31,7 @@ _$FamilyImpl _$$FamilyImplFromJson(Map<String, dynamic> json) => _$FamilyImpl(
       ? null
       : DateTime.parse(json['createdAt'] as String),
   ownerUid: json['ownerUid'] as String? ?? '',
+  nameNormalized: json['nameNormalized'] as String?,
 );
 
 Map<String, dynamic> _$$FamilyImplToJson(_$FamilyImpl instance) =>
@@ -45,4 +46,5 @@ Map<String, dynamic> _$$FamilyImplToJson(_$FamilyImpl instance) =>
       'allowInvites': instance.allowInvites,
       'createdAt': instance.createdAt?.toIso8601String(),
       'ownerUid': instance.ownerUid,
+      'nameNormalized': instance.nameNormalized,
     };

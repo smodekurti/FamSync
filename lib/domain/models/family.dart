@@ -18,6 +18,7 @@ class Family with _$Family {
     @Default(true) bool allowInvites, // Whether the family allows new invites
     DateTime? createdAt, // When the family was created
     @Default('') String ownerUid, // UID of the family owner/creator
+    String? nameNormalized, // Normalized name for case-insensitive queries
   }) = _Family;
 
   factory Family.fromJson(Map<String, dynamic> json) => _$FamilyFromJson(json);
@@ -38,6 +39,7 @@ class Family with _$Family {
       maxMembers: maxMembers,
       allowInvites: true,
       createdAt: DateTime.now(),
+      nameNormalized: name.toLowerCase(), // Store normalized name for duplicate checking
     );
   }
 

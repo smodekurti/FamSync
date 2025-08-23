@@ -15,6 +15,8 @@ import 'package:fam_sync/ui/screens/messages/messages_screen.dart';
 import 'package:fam_sync/ui/screens/settings/settings_screen.dart';
 import 'package:fam_sync/ui/screens/splash/splash_screen.dart';
 import 'package:fam_sync/ui/screens/auth/login_screen.dart';
+import 'package:fam_sync/ui/screens/auth/accept_invite_screen.dart';
+import 'package:fam_sync/ui/screens/settings/invite_members_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -29,6 +31,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/auth',
         pageBuilder: (context, state) =>
             const NoTransitionPage(child: LoginScreen()),
+      ),
+      GoRoute(
+        path: '/accept-invite',
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: AcceptInviteScreen()),
       ),
       GoRoute(
         path: '/onboarding',
@@ -100,6 +107,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 path: '/settings',
                 pageBuilder: (context, state) =>
                     const NoTransitionPage(child: SettingsScreen()),
+              ),
+              GoRoute(
+                path: '/settings/invite-members',
+                pageBuilder: (context, state) =>
+                    const NoTransitionPage(child: InviteMembersScreen()),
               ),
             ],
           ),

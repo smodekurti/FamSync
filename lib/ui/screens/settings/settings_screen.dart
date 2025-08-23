@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:fam_sync/theme/app_theme.dart';
 import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
 import 'package:fam_sync/ui/appbar/fam_app_bar_scaffold.dart';
@@ -382,10 +383,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _inviteMembers(BuildContext context, models.Family? family) {
-    // TODO: Show invite members dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${AppStrings.inviteMembersTitle} coming soon!')),
-    );
+    if (family == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No family context available')),
+      );
+      return;
+    }
+    
+    // Navigate to invite members screen
+    context.go('/settings/invite-members');
   }
 
   void _manageMembers(BuildContext context, models.Family? family) {

@@ -25,11 +25,10 @@ class FamilyRepository {
 
   Future<String> createFamily({required String name, required String ownerUid}) async {
     final doc = _firestore.collection('families').doc();
-    final family = models.Family(
+    final family = models.Family.create(
       id: doc.id,
       name: name,
-      memberUids: [ownerUid],
-      roles: {ownerUid: 'parent'},
+      ownerUid: ownerUid,
     );
     await doc.set(family.toJson());
     return doc.id;

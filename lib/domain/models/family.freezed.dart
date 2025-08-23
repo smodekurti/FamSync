@@ -29,6 +29,13 @@ mixin _$Family {
   Map<String, String> get colors =>
       throw _privateConstructorUsedError; // uid -> hex/color name token
   String? get inviteCode => throw _privateConstructorUsedError;
+  int get maxMembers =>
+      throw _privateConstructorUsedError; // Maximum number of family members allowed
+  bool get allowInvites =>
+      throw _privateConstructorUsedError; // Whether the family allows new invites
+  DateTime? get createdAt =>
+      throw _privateConstructorUsedError; // When the family was created
+  String get ownerUid => throw _privateConstructorUsedError;
 
   /// Serializes this Family to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -51,6 +58,10 @@ abstract class $FamilyCopyWith<$Res> {
     Map<String, String> roles,
     Map<String, String> colors,
     String? inviteCode,
+    int maxMembers,
+    bool allowInvites,
+    DateTime? createdAt,
+    String ownerUid,
   });
 }
 
@@ -75,6 +86,10 @@ class _$FamilyCopyWithImpl<$Res, $Val extends Family>
     Object? roles = null,
     Object? colors = null,
     Object? inviteCode = freezed,
+    Object? maxMembers = null,
+    Object? allowInvites = null,
+    Object? createdAt = freezed,
+    Object? ownerUid = null,
   }) {
     return _then(
       _value.copyWith(
@@ -102,6 +117,22 @@ class _$FamilyCopyWithImpl<$Res, $Val extends Family>
                 ? _value.inviteCode
                 : inviteCode // ignore: cast_nullable_to_non_nullable
                       as String?,
+            maxMembers: null == maxMembers
+                ? _value.maxMembers
+                : maxMembers // ignore: cast_nullable_to_non_nullable
+                      as int,
+            allowInvites: null == allowInvites
+                ? _value.allowInvites
+                : allowInvites // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            createdAt: freezed == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            ownerUid: null == ownerUid
+                ? _value.ownerUid
+                : ownerUid // ignore: cast_nullable_to_non_nullable
+                      as String,
           )
           as $Val,
     );
@@ -123,6 +154,10 @@ abstract class _$$FamilyImplCopyWith<$Res> implements $FamilyCopyWith<$Res> {
     Map<String, String> roles,
     Map<String, String> colors,
     String? inviteCode,
+    int maxMembers,
+    bool allowInvites,
+    DateTime? createdAt,
+    String ownerUid,
   });
 }
 
@@ -146,6 +181,10 @@ class __$$FamilyImplCopyWithImpl<$Res>
     Object? roles = null,
     Object? colors = null,
     Object? inviteCode = freezed,
+    Object? maxMembers = null,
+    Object? allowInvites = null,
+    Object? createdAt = freezed,
+    Object? ownerUid = null,
   }) {
     return _then(
       _$FamilyImpl(
@@ -173,6 +212,22 @@ class __$$FamilyImplCopyWithImpl<$Res>
             ? _value.inviteCode
             : inviteCode // ignore: cast_nullable_to_non_nullable
                   as String?,
+        maxMembers: null == maxMembers
+            ? _value.maxMembers
+            : maxMembers // ignore: cast_nullable_to_non_nullable
+                  as int,
+        allowInvites: null == allowInvites
+            ? _value.allowInvites
+            : allowInvites // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        createdAt: freezed == createdAt
+            ? _value.createdAt
+            : createdAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        ownerUid: null == ownerUid
+            ? _value.ownerUid
+            : ownerUid // ignore: cast_nullable_to_non_nullable
+                  as String,
       ),
     );
   }
@@ -180,7 +235,7 @@ class __$$FamilyImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$FamilyImpl implements _Family {
+class _$FamilyImpl extends _Family {
   const _$FamilyImpl({
     required this.id,
     required this.name,
@@ -188,9 +243,14 @@ class _$FamilyImpl implements _Family {
     final Map<String, String> roles = const {},
     final Map<String, String> colors = const {},
     this.inviteCode,
+    this.maxMembers = 10,
+    this.allowInvites = false,
+    this.createdAt,
+    this.ownerUid = '',
   }) : _memberUids = memberUids,
        _roles = roles,
-       _colors = colors;
+       _colors = colors,
+       super._();
 
   factory _$FamilyImpl.fromJson(Map<String, dynamic> json) =>
       _$$FamilyImplFromJson(json);
@@ -231,10 +291,24 @@ class _$FamilyImpl implements _Family {
   // uid -> hex/color name token
   @override
   final String? inviteCode;
+  @override
+  @JsonKey()
+  final int maxMembers;
+  // Maximum number of family members allowed
+  @override
+  @JsonKey()
+  final bool allowInvites;
+  // Whether the family allows new invites
+  @override
+  final DateTime? createdAt;
+  // When the family was created
+  @override
+  @JsonKey()
+  final String ownerUid;
 
   @override
   String toString() {
-    return 'Family(id: $id, name: $name, memberUids: $memberUids, roles: $roles, colors: $colors, inviteCode: $inviteCode)';
+    return 'Family(id: $id, name: $name, memberUids: $memberUids, roles: $roles, colors: $colors, inviteCode: $inviteCode, maxMembers: $maxMembers, allowInvites: $allowInvites, createdAt: $createdAt, ownerUid: $ownerUid)';
   }
 
   @override
@@ -251,7 +325,15 @@ class _$FamilyImpl implements _Family {
             const DeepCollectionEquality().equals(other._roles, _roles) &&
             const DeepCollectionEquality().equals(other._colors, _colors) &&
             (identical(other.inviteCode, inviteCode) ||
-                other.inviteCode == inviteCode));
+                other.inviteCode == inviteCode) &&
+            (identical(other.maxMembers, maxMembers) ||
+                other.maxMembers == maxMembers) &&
+            (identical(other.allowInvites, allowInvites) ||
+                other.allowInvites == allowInvites) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.ownerUid, ownerUid) ||
+                other.ownerUid == ownerUid));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -264,6 +346,10 @@ class _$FamilyImpl implements _Family {
     const DeepCollectionEquality().hash(_roles),
     const DeepCollectionEquality().hash(_colors),
     inviteCode,
+    maxMembers,
+    allowInvites,
+    createdAt,
+    ownerUid,
   );
 
   /// Create a copy of Family
@@ -280,7 +366,7 @@ class _$FamilyImpl implements _Family {
   }
 }
 
-abstract class _Family implements Family {
+abstract class _Family extends Family {
   const factory _Family({
     required final String id,
     required final String name,
@@ -288,7 +374,12 @@ abstract class _Family implements Family {
     final Map<String, String> roles,
     final Map<String, String> colors,
     final String? inviteCode,
+    final int maxMembers,
+    final bool allowInvites,
+    final DateTime? createdAt,
+    final String ownerUid,
   }) = _$FamilyImpl;
+  const _Family._() : super._();
 
   factory _Family.fromJson(Map<String, dynamic> json) = _$FamilyImpl.fromJson;
 
@@ -304,6 +395,14 @@ abstract class _Family implements Family {
   Map<String, String> get colors; // uid -> hex/color name token
   @override
   String? get inviteCode;
+  @override
+  int get maxMembers; // Maximum number of family members allowed
+  @override
+  bool get allowInvites; // Whether the family allows new invites
+  @override
+  DateTime? get createdAt; // When the family was created
+  @override
+  String get ownerUid;
 
   /// Create a copy of Family
   /// with the given fields replaced by the non-null parameter values.

@@ -25,6 +25,12 @@ _$FamilyImpl _$$FamilyImplFromJson(Map<String, dynamic> json) => _$FamilyImpl(
       ) ??
       const {},
   inviteCode: json['inviteCode'] as String?,
+  maxMembers: (json['maxMembers'] as num?)?.toInt() ?? 10,
+  allowInvites: json['allowInvites'] as bool? ?? false,
+  createdAt: json['createdAt'] == null
+      ? null
+      : DateTime.parse(json['createdAt'] as String),
+  ownerUid: json['ownerUid'] as String? ?? '',
 );
 
 Map<String, dynamic> _$$FamilyImplToJson(_$FamilyImpl instance) =>
@@ -35,4 +41,8 @@ Map<String, dynamic> _$$FamilyImplToJson(_$FamilyImpl instance) =>
       'roles': instance.roles,
       'colors': instance.colors,
       'inviteCode': instance.inviteCode,
+      'maxMembers': instance.maxMembers,
+      'allowInvites': instance.allowInvites,
+      'createdAt': instance.createdAt?.toIso8601String(),
+      'ownerUid': instance.ownerUid,
     };

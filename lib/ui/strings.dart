@@ -96,6 +96,26 @@ class AppStrings {
   static const appDescription = 'A family organization and communication app.';
   static const appBuiltWith = 'Built with Flutter and Firebase.';
 
+  // Invite system strings
+  static const joinFamilyTitle = 'Join Family';
+  static const joinFamilySubtitle = 'Enter the invite code to join a family';
+  static const welcomeToFamSync = 'Welcome to FamSync!';
+  static const inviteCodeLabel = 'Invite Code';
+  static const inviteCodeHint = 'e.g., ABC12345';
+  static const inviteCodeValidation = 'Enter the 8-character invite code you received';
+  static const validateCodeButton = 'Validate Code';
+  static const joinFamilyButton = 'Join Family';
+  static const familyPreviewTitle = 'Family Preview';
+  static const familyNameLabel = 'Family Name';
+  static const membersLabel = 'Members';
+  static const availableSlotsLabel = 'Available Slots';
+  static const createdLabel = 'Created';
+  static const successfullyJoined = 'Successfully joined the family!';
+  static const errorJoiningFamily = 'Error joining family: ';
+  static const errorValidatingInvite = 'Error validating invite: ';
+  static const noFamilyContextMessage = 'You need to be part of a family to invite members';
+  static const noProfileFoundMessage = 'Please complete your profile setup first';
+
   // Login specific strings
   static const emailLabel = 'Email';
   static const emailHint = 'Enter your email';

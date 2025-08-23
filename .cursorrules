@@ -3,6 +3,23 @@ You are a senior Dart programmer with experience in the Flutter framework and a 
 
 Generate code, corrections, and refactorings that comply with the basic principles and nomenclature.
 
+## Project-Specific Guidelines for FamSync
+
+### Architecture & Structure
+- **Clean Architecture**: Follow the established pattern with `core/`, `data/`, `domain/`, `ui/` layers
+- **Repository Pattern**: All data access goes through repository classes in `lib/data/`
+- **Riverpod State Management**: Use `flutter_riverpod` for all state management
+- **GoRouter Navigation**: Use `go_router` for navigation with proper route definitions
+- **Dependency Injection**: Use `get_it` for service locator pattern
+- **Freezed Models**: All domain models use `freezed` for immutability and JSON serialization
+
+### File Organization
+- **UI Components**: Place in `lib/ui/screens/` for screens, `lib/ui/widgets/` for reusable widgets
+- **Theme System**: Use `lib/theme/` for all styling, colors, and responsive utilities
+- **App Bar**: Use `lib/ui/appbar/fam_app_bar_scaffold.dart` for consistent app bar implementation
+- **Strings**: Centralize all text in `lib/ui/strings.dart` using `AppStrings` class
+- **Icons**: Use `lib/ui/icons.dart` for custom icon definitions
+
 ## Dart General Guidelines
 
 ### Basic Principles
@@ -126,4 +143,98 @@ Generate code, corrections, and refactorings that comply with the basic principl
 
 - Use the standard widget testing for flutter
 - Use integration tests for each api module.
+
+## FamSync-Specific UI Guidelines
+
+### Responsive Design (CRITICAL)
+- **NEVER use hardcoded values** for spacing, sizing, or dimensions
+- **Always use responsive tokens**: `context.spaces.*`, `context.layout.*`, `context.sizes.*`
+- **Responsive utilities**: Use `lib/theme/responsive.dart` extensions for `isSmall`, `isMedium`, `isLarge`
+- **Spacing tokens**: Use `AppSpacing` class with responsive values (`xs`, `sm`, `md`, `lg`, `xl`, `xxl`)
+- **Sizing tokens**: Use `AppSizes` class for consistent component dimensions
+- **Layout calculations**: Use `spaces.xxl * 6` instead of hardcoded `240.0`
+
+### App Bar Implementation
+- **Use FamAppBarScaffold**: Always use `lib/ui/appbar/fam_app_bar_scaffold.dart`
+- **Consistent heights**: Use `expandedHeight: spaces.xxl * 6` for standard app bars
+- **Header builders**: Implement `headerBuilder` for custom app bar content
+- **Gradient backgrounds**: Use `AppGradients.hubHeaderLight/Dark` for consistent theming
+
+### Error Handling & User Experience
+- **ResponsiveErrorWidget**: Use `lib/ui/widgets/responsive_error_widget.dart` for error states
+- **Loading states**: Implement proper loading indicators with responsive sizing
+- **Error boundaries**: Handle Firestore permission errors gracefully
+- **User feedback**: Provide clear error messages and recovery options
+
+### Firebase Integration
+- **Auth Repository**: Use `lib/data/auth/auth_repository.dart` for authentication
+- **Firestore Rules**: Follow security best practices in `firestore.rules`
+- **Subscription Management**: Always cancel Firestore listeners in `dispose()` methods
+- **Error Handling**: Handle network and permission errors gracefully
+
+### State Management Patterns
+- **Riverpod Providers**: Use `ConsumerWidget` and `ConsumerStatefulWidget` consistently
+- **AsyncValue**: Handle loading, data, and error states properly
+- **State Updates**: Use `ref.read()` for actions, `ref.watch()` for UI updates
+- **Provider Organization**: Group related providers in dedicated files
+
+### Code Quality & Comments
+- **Extensive commenting**: Add comments every 3-6 lines, especially for new code blocks
+- **Multi-line comments**: Use detailed explanations for complex logic
+- **Function documentation**: Explain the purpose and behavior of each function
+- **Variable context**: Comment on why specific values or approaches were chosen
+- **Avoid AI-like language**: Make comments sound natural and professional
+
+### Performance & Optimization
+- **Const constructors**: Use `const` wherever possible to reduce rebuilds
+- **Widget extraction**: Break large widgets into smaller, focused components
+- **ListView optimization**: Use `ListView.builder` for dynamic content
+- **Memory management**: Properly dispose of controllers and subscriptions
+
+### Cross-Platform Considerations
+- **Responsive layouts**: Ensure UI works on mobile, tablet, and desktop
+- **Platform-specific code**: Use `Platform.isIOS` and `Platform.isAndroid` when needed
+- **Adaptive components**: Use `Cupertino` widgets for iOS and `Material` for Android
+- **Screen size handling**: Test on various device sizes and orientations
+
+## Common Patterns & Anti-Patterns
+
+### ✅ DO:
+- Use responsive design tokens for all dimensions
+- Implement proper error handling with user feedback
+- Follow the established file structure and naming conventions
+- Use the existing theme system and color schemes
+- Implement proper loading and error states
+- Cancel subscriptions and dispose resources properly
+
+### ❌ DON'T:
+- Use hardcoded pixel values or magic numbers
+- Create new state management solutions (stick with Riverpod)
+- Skip error handling or loading states
+- Ignore responsive design requirements
+- Use deprecated Flutter patterns
+- Create deeply nested widget trees
+
+### 🔧 When Refactoring:
+- **Preserve functionality**: Don't change behavior unless explicitly requested
+- **Maintain existing patterns**: Follow the established code structure
+- **Add comprehensive comments**: Document all changes and reasoning
+- **Test thoroughly**: Ensure no regressions in existing features
+- **Update related files**: Check for dependencies and update accordingly
+
+## File Naming & Organization
+- **Screens**: `lib/ui/screens/[feature]/[feature]_screen.dart`
+- **Widgets**: `lib/ui/widgets/[widget_name].dart`
+- **Models**: `lib/domain/models/[model_name].dart`
+- **Repositories**: `lib/data/[feature]/[feature]_repository.dart`
+- **Services**: `lib/core/services/[service_name].dart`
+- **Utilities**: `lib/core/utils/[utility_name].dart`
+
+## Dependencies & Imports
+- **Core imports first**: Flutter, Riverpod, GoRouter
+- **Project imports**: Use relative paths for project files
+- **Third-party imports**: Group by functionality
+- **Export organization**: One export per file, organized by feature
+
+Remember: This is a family-focused app with real users. Prioritize reliability, performance, and user experience. Always think about how changes will affect the entire family using the app together.
     

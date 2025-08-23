@@ -42,13 +42,13 @@ class MonthView extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.error_outline,
               size: 48,
               color: Colors.red,
             ),
-            SizedBox(height: 16),
-            Text(
+            const SizedBox(height: 16),
+            const Text(
               'Unable to load events',
               style: TextStyle(
                 fontSize: 18,
@@ -56,8 +56,8 @@ class MonthView extends ConsumerWidget {
                 color: Colors.red,
               ),
             ),
-            SizedBox(height: 8),
-            Text(
+            const SizedBox(height: 8),
+            const Text(
               'Database connection issue - check console for details',
               style: TextStyle(
                 fontSize: 14,
@@ -66,8 +66,8 @@ class MonthView extends ConsumerWidget {
               textAlign: TextAlign.center,
             ),
             if (kDebugMode) ...[
-              SizedBox(height: 16),
-              Text(
+              const SizedBox(height: 16),
+              const Text(
                 'Debug Info:',
                 style: TextStyle(
                   fontSize: 12,
@@ -75,10 +75,10 @@ class MonthView extends ConsumerWidget {
                   color: Colors.grey,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                 'Family ID: $familyId\nMonth: ${currentMonth.year}-${currentMonth.month}',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 10,
                   color: Colors.grey,
                 ),

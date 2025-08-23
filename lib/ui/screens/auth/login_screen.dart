@@ -141,12 +141,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   Future<void> _signInWithGoogle() async {
     setState(() => _isLoading = true);
     
+    // Get the repository reference before any async operations
+    final authRepo = ref.read(authRepositoryProvider);
+    
     try {
       print('🔍 [DEBUG] Starting Google sign-in...');
-      await ref.read(authRepositoryProvider).signInWithGoogle();
+      await authRepo.signInWithGoogle();
       print('🔍 [DEBUG] Google sign-in completed');
       
       if (mounted) {
+        // Force refresh the user profile stream to ensure clean state
+        print('🔍 [DEBUG] Force refreshing user profile stream...');
+        await authRepo.forceRefreshUserProfile();
+        
         // Check the current auth state
         final currentUser = ref.read(authStateProvider).value;
         print('🔍 [DEBUG] Current auth state user: ${currentUser?.uid}');
@@ -157,7 +164,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         
         // Try to navigate directly
         print('🔍 [DEBUG] Attempting navigation to hub...');
-        context.go('/hub');
+        if (mounted) {
+          context.go('/hub');
+        }
       }
     } catch (e) {
       print('❌ [DEBUG] Google sign-in error: $e');
@@ -189,7 +198,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppStrings.emailPasswordComingSoon),
+            content: const Text(AppStrings.emailPasswordComingSoon),
             backgroundColor: Theme.of(context).colorScheme.primary,
           ),
         );
@@ -351,7 +360,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                           decoration: InputDecoration(
                                             labelText: AppStrings.emailLabel,
                                             hintText: AppStrings.emailHint,
-                                            prefixIcon: Icon(Icons.email_outlined),
+                                            prefixIcon: const Icon(Icons.email_outlined),
                                             border: OutlineInputBorder(
                                               borderRadius: BorderRadius.circular(spaces.sm),
                                             ),
@@ -384,7 +393,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                           decoration: InputDecoration(
                                             labelText: AppStrings.passwordLabel,
                                             hintText: AppStrings.passwordHint,
-                                            prefixIcon: Icon(Icons.lock_outlined),
+                                            prefixIcon: const Icon(Icons.lock_outlined),
                                             suffixIcon: IconButton(
                                               icon: Icon(
                                                 _showPassword ? Icons.visibility : Icons.visibility_off,
@@ -536,7 +545,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                         onPressed: () {
                                           // TODO: Navigate to forgot password screen
                                           ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
+                                            const SnackBar(
                                               content: Text(AppStrings.forgotPasswordComingSoon),
                                             ),
                                           );
@@ -550,7 +559,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                         onPressed: () {
                                           // TODO: Navigate to sign up screen
                                           ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
+                                            const SnackBar(
                                               content: Text(AppStrings.signUpComingSoon),
                                             ),
                                           );
@@ -570,7 +579,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       ),
                     
                     // Responsive spacing that ensures content fills the screen
-                    Expanded(
+                    const Expanded(
                       child: SizedBox.shrink(),
                     ),
                     

@@ -28,9 +28,9 @@ class ShoppingScreen extends StatelessWidget {
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
                 child: controller.showSearch
-                    ? TextField(
-                        key: const ValueKey('shopping-search'),
-                        decoration: const InputDecoration(
+                    ? const TextField(
+                        key: ValueKey('shopping-search'),
+                        decoration: InputDecoration(
                           hintText: AppStrings.searchShoppingHint,
                           prefixIcon: Icon(AppIcons.search),
                           filled: true,

@@ -17,11 +17,24 @@ class AuthRepository {
   final List<StreamSubscription> _activeSubscriptions = [];
 
   Stream<UserProfile?> watchUserProfile() async* {
+    String? currentUid;
+    
     await for (final user in _auth.authStateChanges()) {
+      // If user changed, clear previous user's data and subscriptions
+      if (currentUid != null && user?.uid != currentUid) {
+        print('AuthRepository: User changed from $currentUid to ${user?.uid}, clearing previous data...');
+        await _cancelAllSubscriptions();
+        await _clearCachedData();
+      }
+      
       if (user == null) {
+        currentUid = null;
         yield null;
         continue;
       }
+      
+      currentUid = user.uid;
+      print('AuthRepository: Watching profile for user: ${user.uid} (${user.email})');
       
       // Add a small delay to ensure Firebase Auth state is fully propagated
       // This helps resolve timing issues between auth state and Firestore permissions
@@ -36,7 +49,9 @@ class AuthRepository {
         
         yield* docRef.snapshots().asyncMap((snap) async {
           if (snap.exists && snap.data() != null) {
-            return UserProfile.fromJson(snap.data()!);
+            final profile = UserProfile.fromJson(snap.data()!);
+            print('AuthRepository: Retrieved profile for ${user.email}: onboarded=${profile.onboarded}, familyId=${profile.familyId}');
+            return profile;
           }
           final profile = UserProfile(
             uid: user.uid,
@@ -48,12 +63,16 @@ class AuthRepository {
           );
           try {
             await docRef.set(profile.toJson(), SetOptions(merge: true));
-          } catch (_) {
+            print('AuthRepository: Created new profile for ${user.email}');
+          } catch (setError) {
+            print('AuthRepository: Warning - Could not save profile for ${user.email}: $setError');
             // If offline or unavailable, return minimal profile; merge will occur when back online
+            // This is not a critical error, so we continue
           }
           return profile;
         });
       } catch (e) {
+        print('AuthRepository: Error watching profile for ${user.email}: $e');
         // If there's a permission error or other issue, try to create a minimal profile
         // This prevents the error from bubbling up to the UI
         try {
@@ -69,12 +88,15 @@ class AuthRepository {
           // Try to set the profile, but don't fail if it doesn't work
           try {
             await docRef.set(profile.toJson(), SetOptions(merge: true));
-          } catch (_) {
-            // Ignore errors when setting profile
+            print('AuthRepository: Created fallback profile for ${user.email}');
+          } catch (setError) {
+            print('AuthRepository: Could not save fallback profile for ${user.email}: $setError');
+            // Ignore errors when setting profile - this is not critical
           }
           
           yield profile;
-        } catch (_) {
+        } catch (fallbackError) {
+          print('AuthRepository: Critical error creating fallback profile for ${user.email}: $fallbackError');
           // If even creating a minimal profile fails, yield null to trigger login
           yield null;
         }
@@ -104,6 +126,10 @@ class AuthRepository {
       // Clear any cached data
       print('AuthRepository: Clearing cached data...'); // Debug log
       await _clearCachedData();
+      
+      // Force refresh the user profile stream to ensure clean state
+      print('AuthRepository: Force refreshing user profile stream...'); // Debug log
+      await forceRefreshUserProfile();
       
       // Then sign out from Firebase Auth
       print('AuthRepository: Signing out from Firebase Auth...'); // Debug log
@@ -142,7 +168,7 @@ class AuthRepository {
           await _auth.signOut();
           print('AuthRepository: Force sign out completed'); // Debug log
         } catch (_) {
-          print('AuthRepository: Force sign out failed'); // Debug log
+          print('AuthRepository: Force sign out failed'); // debug log
           // Last resort - ignore all errors
         }
       }
@@ -179,10 +205,23 @@ class AuthRepository {
   Future<void> refreshUserProfile() async {
     final user = _auth.currentUser;
     if (user != null) {
+      print('AuthRepository: Refreshing user profile for ${user.email}');
       // Force a small delay to ensure auth state is stable
       await Future<void>.delayed(const Duration(milliseconds: 100));
       // This will trigger the stream to refresh
     }
+  }
+
+  /// Force refresh the user profile stream by invalidating the current stream
+  /// This is useful when switching between users to ensure clean state
+  Future<void> forceRefreshUserProfile() async {
+    print('AuthRepository: Force refreshing user profile stream');
+    // Clear all subscriptions and cached data
+    await _cancelAllSubscriptions();
+    await _clearCachedData();
+    
+    // Force a delay to ensure clean state
+    await Future<void>.delayed(const Duration(milliseconds: 300));
   }
 
   /// Force cancel all subscriptions without waiting for async operations
@@ -225,6 +264,21 @@ final refreshFamilyDataProvider = FutureProvider.family<void, String>((ref, fami
   // This will trigger invalidation of all family-related providers
   await Future<void>.delayed(const Duration(milliseconds: 300));
   return;
+});
+
+/// Provider that can be used to force refresh the user profile stream
+final refreshUserProfileProvider = FutureProvider<void>((ref) async {
+  final repo = ref.read(authRepositoryProvider);
+  await repo.forceRefreshUserProfile();
+});
+
+/// Provider that invalidates the user profile stream when auth state changes
+final userProfileInvalidatorProvider = Provider<void>((ref) {
+  // Watch auth state changes and invalidate user profile when needed
+  ref.watch(authStateProvider);
+  
+  // This will cause the userProfileStreamProvider to refresh when auth state changes
+  ref.invalidate(userProfileStreamProvider);
 });
 
 

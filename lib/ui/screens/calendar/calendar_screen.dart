@@ -114,7 +114,7 @@ class CalendarScreen extends ConsumerWidget {
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
     final minuteString = minute.toString().padLeft(2, '0');
-    final timeString = '${displayHour}:$minuteString $period';
+    final timeString = '$displayHour:$minuteString $period';
     final dateString = '$dayName, $monthName $day';
     final fullString = '$dateString • $timeString';
     

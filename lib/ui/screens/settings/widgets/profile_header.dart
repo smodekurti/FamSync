@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:fam_sync/theme/app_theme.dart';
-import 'package:fam_sync/ui/strings.dart';
 import 'package:fam_sync/domain/models/user_profile.dart';
 import 'package:fam_sync/domain/models/family.dart' as models;
 

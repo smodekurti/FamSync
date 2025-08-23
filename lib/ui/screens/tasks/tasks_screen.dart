@@ -283,8 +283,9 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                               firstDate: now.subtract(const Duration(days: 1)),
                               lastDate: now.add(const Duration(days: 365 * 3)),
                             );
-                            if (picked != null)
+                            if (picked != null) {
                               setModalState(() => _dueDate = picked);
+                            }
                           },
                           icon: const Icon(Icons.event),
                           label: Text(

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:fam_sync/data/auth/auth_repository.dart';
-import 'package:fam_sync/theme/app_theme.dart';
 import 'package:fam_sync/ui/screens/auth/login_screen.dart';
 import 'package:fam_sync/ui/widgets/responsive_error_widget.dart';
 import 'package:fam_sync/ui/strings.dart';

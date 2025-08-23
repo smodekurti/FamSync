@@ -29,10 +29,10 @@ class EventsRepository {
             // Parse all events first
             final allEvents = snapshot.docs.map((doc) {
               try {
-                final data = doc.data() as Map<String, dynamic>;
+                final data = doc.data();
                 return Event.fromJson({...data, 'id': doc.id});
               } catch (parseError) {
-                throw parseError;
+                rethrow;
               }
             }).toList();
             
@@ -62,7 +62,7 @@ class EventsRepository {
         .orderBy('startTime')
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => Event.fromJson({...(doc.data() as Map<String, dynamic>), 'id': doc.id}))
+            .map((doc) => Event.fromJson({...doc.data(), 'id': doc.id}))
             .toList());
   }
 
@@ -76,7 +76,7 @@ class EventsRepository {
         .orderBy('startTime')
         .snapshots()
         .map((snapshot) => snapshot.docs
-            .map((doc) => Event.fromJson({...(doc.data() as Map<String, dynamic>), 'id': doc.id}))
+            .map((doc) => Event.fromJson({...doc.data(), 'id': doc.id}))
             .toList());
   }
 

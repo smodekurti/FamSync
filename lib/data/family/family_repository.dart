@@ -58,7 +58,7 @@ class FamilyRepository {
   Future<String> createFamily({required String name, required String ownerUid}) async {
     // Validate input parameters
     if (ownerUid.isEmpty) {
-      throw FamilyValidationException(
+      throw const FamilyValidationException(
         'Owner UID cannot be empty',
         FamilyValidationError.invalidOwnerUid,
       );
@@ -95,7 +95,7 @@ class FamilyRepository {
     
     // Check minimum length
     if (trimmedName.length < _minNameLength) {
-      throw FamilyValidationException(
+      throw const FamilyValidationException(
         'Family name must be at least $_minNameLength characters long',
         FamilyValidationError.nameTooShort,
       );
@@ -103,7 +103,7 @@ class FamilyRepository {
 
     // Check maximum length
     if (trimmedName.length > _maxNameLength) {
-      throw FamilyValidationException(
+      throw const FamilyValidationException(
         'Family name cannot exceed $_maxNameLength characters',
         FamilyValidationError.nameTooLong,
       );
@@ -111,7 +111,7 @@ class FamilyRepository {
 
     // Check for valid characters
     if (!_validNamePattern.hasMatch(trimmedName)) {
-      throw FamilyValidationException(
+      throw const FamilyValidationException(
         'Family name can only contain letters, numbers, spaces, hyphens, underscores, and dots',
         FamilyValidationError.nameContainsInvalidChars,
       );

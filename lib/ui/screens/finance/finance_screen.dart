@@ -39,9 +39,9 @@ class FinanceScreen extends StatelessWidget {
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
               child: controller.showSearch
-                  ? TextField(
-                      key: const ValueKey('finance-search'),
-                      decoration: const InputDecoration(
+                  ? const TextField(
+                      key: ValueKey('finance-search'),
+                      decoration: InputDecoration(
                         hintText: AppStrings.searchFinanceHint,
                         prefixIcon: Icon(AppIcons.search),
                         filled: true,

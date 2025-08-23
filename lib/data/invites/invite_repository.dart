@@ -573,7 +573,7 @@ class InviteRepository {
   }
 
   /// Gets the current authenticated user
-  Future<dynamic?> _getCurrentUser() async {
+  Future<dynamic> _getCurrentUser() async {
     // This would need to be implemented based on your auth system
     // For now, returning null - you'll need to integrate with your auth repository
     return null;

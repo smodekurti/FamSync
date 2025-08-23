@@ -269,8 +269,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             onPressed: _busy || !_isNameValid || _familyName.text.trim().isEmpty
                                 ? null
                                 : _createFamily,
-                            icon: Icon(Icons.add),
-                            label: Text('Create Family'),
+                            icon: const Icon(Icons.add),
+                            label: const Text('Create Family'),
                             style: FilledButton.styleFrom(
                               backgroundColor: colors.primary,
                               foregroundColor: colors.onPrimary,
@@ -354,8 +354,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             onPressed: _busy || _familyId.text.trim().isEmpty
                                 ? null
                                 : _acceptInvite,
-                            icon: Icon(Icons.login),
-                            label: Text('Accept Invite'),
+                            icon: const Icon(Icons.login),
+                            label: const Text('Accept Invite'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: colors.secondary,
                               foregroundColor: colors.onSecondary,
@@ -385,7 +385,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 // Logout card
                 Card(
                   elevation: 1,
-                  color: colors.surfaceVariant.withOpacity(0.3),
+                  color: colors.surfaceContainerHighest.withOpacity(0.3),
                   child: Padding(
                     padding: EdgeInsets.all(spaces.lg),
                     child: Column(
@@ -417,7 +417,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           width: double.infinity,
                           child: OutlinedButton.icon(
                             onPressed: _busy ? null : _logout,
-                            icon: Icon(Icons.logout),
+                            icon: const Icon(Icons.logout),
                             label: const Text('Sign Out'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: colors.error,

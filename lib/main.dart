@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fam_sync/core/bootstrap/bootstrap.dart';
 import 'package:fam_sync/router/app_router.dart';
 import 'package:fam_sync/theme/app_theme.dart';
+import 'package:fam_sync/data/auth/auth_repository.dart';
 
 Future<void> main() async {
   final container = ProviderContainer();
@@ -20,6 +21,9 @@ class FamSyncApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Initialize the user profile invalidator to watch for auth state changes
+    ref.watch(userProfileInvalidatorProvider);
+    
     final router = ref.watch(goRouterProvider);
     return MaterialApp.router(
       title: 'Family Sync',

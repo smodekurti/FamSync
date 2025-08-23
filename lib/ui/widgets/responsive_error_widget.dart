@@ -124,7 +124,7 @@ class ResponsiveErrorWidget extends StatelessWidget {
     
     if (errorString.contains('permission-denied') || 
         errorString.contains('permission_denied')) {
-      return ErrorInfo(
+      return const ErrorInfo(
         icon: Icons.lock_outline,
         title: AppStrings.errorTitle,
         subtitle: AppStrings.errorSignOutPermission,
@@ -132,13 +132,13 @@ class ResponsiveErrorWidget extends StatelessWidget {
     } else if (errorString.contains('network') || 
                errorString.contains('timeout') ||
                errorString.contains('connection')) {
-      return ErrorInfo(
+      return const ErrorInfo(
         icon: Icons.wifi_off,
         title: AppStrings.errorTitle,
         subtitle: AppStrings.errorSignOutNetwork,
       );
     } else {
-      return ErrorInfo(
+      return const ErrorInfo(
         icon: Icons.error_outline,
         title: AppStrings.errorTitle,
         subtitle: AppStrings.errorSignOutUnknown,

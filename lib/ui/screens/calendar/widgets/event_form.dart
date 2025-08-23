@@ -356,7 +356,7 @@ class _EventFormState extends ConsumerState<EventForm> {
           location: _locationController.text.trim().isEmpty ? null : _locationController.text.trim(),
           assignedUids: _assignedUids,
           familyId: userProfile!.familyId!,
-          createdByUid: userProfile.uid!,
+          createdByUid: userProfile.uid,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );

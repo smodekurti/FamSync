@@ -371,14 +371,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void _editProfile(BuildContext context, UserProfile profile) {
     // TODO: Navigate to profile editing screen
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${AppStrings.editProfileTitle} coming soon!')),
+      const SnackBar(content: Text('${AppStrings.editProfileTitle} coming soon!')),
     );
   }
 
   void _editFamilySettings(BuildContext context, models.Family? family) {
     // TODO: Navigate to family settings screen
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${AppStrings.familySettingsTitle} coming soon!')),
+      const SnackBar(content: Text('${AppStrings.familySettingsTitle} coming soon!')),
     );
   }
 
@@ -397,56 +397,56 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void _manageMembers(BuildContext context, models.Family? family) {
     // TODO: Navigate to member management screen
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${AppStrings.manageMembersTitle} coming soon!')),
+      const SnackBar(content: Text('${AppStrings.manageMembersTitle} coming soon!')),
     );
   }
 
   void _selectLanguage(BuildContext context) {
     // TODO: Show language selection dialog
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${AppStrings.languageTitle} selection coming soon!')),
+      const SnackBar(content: Text('${AppStrings.languageTitle} selection coming soon!')),
     );
   }
 
   void _adjustFontSize(BuildContext context) {
     // TODO: Show font size adjustment dialog
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${AppStrings.fontSizeTitle} adjustment coming soon!')),
+      const SnackBar(content: Text('${AppStrings.fontSizeTitle} adjustment coming soon!')),
     );
   }
 
   void _configureEventReminders(BuildContext context) {
     // TODO: Show event reminder configuration
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${AppStrings.eventRemindersTitle} configuration coming soon!')),
+      const SnackBar(content: Text('${AppStrings.eventRemindersTitle} configuration coming soon!')),
     );
   }
 
   void _configureTaskNotifications(BuildContext context) {
     // TODO: Show task notification configuration
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${AppStrings.taskNotificationsTitle} configuration coming soon!')),
+      const SnackBar(content: Text('${AppStrings.taskNotificationsTitle} configuration coming soon!')),
     );
   }
 
   void _showHelp(BuildContext context) {
     // TODO: Navigate to help screen
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${AppStrings.helpFaqTitle} coming soon!')),
+      const SnackBar(content: Text('${AppStrings.helpFaqTitle} coming soon!')),
     );
   }
 
   void _reportBug(BuildContext context) {
     // TODO: Show bug report dialog
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${AppStrings.reportBugTitle} coming soon!')),
+      const SnackBar(content: Text('${AppStrings.reportBugTitle} coming soon!')),
     );
   }
 
   void _sendFeedback(BuildContext context) {
     // TODO: Show feedback dialog
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${AppStrings.sendFeedbackTitle} coming soon!')),
+      const SnackBar(content: Text('${AppStrings.sendFeedbackTitle} coming soon!')),
     );
   }
 
@@ -457,9 +457,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       applicationVersion: '1.0.0',
       applicationIcon: const Icon(Icons.family_restroom),
       children: [
-        Text(AppStrings.appDescription),
+        const Text(AppStrings.appDescription),
         SizedBox(height: context.spaces.md),
-        Text(AppStrings.appBuiltWith),
+        const Text(AppStrings.appBuiltWith),
       ],
     );
   }
@@ -470,16 +470,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppStrings.signOutTitle),
-        content: Text(AppStrings.signOutSubtitle),
+        title: const Text(AppStrings.signOutTitle),
+        content: const Text(AppStrings.signOutSubtitle),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(AppStrings.cancel),
+            child: const Text(AppStrings.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(AppStrings.signOut),
+            child: const Text(AppStrings.signOut),
           ),
         ],
       ),
@@ -495,9 +495,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         // Show loading state
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text(AppStrings.signingOut),
-              duration: const Duration(seconds: 2),
+              duration: Duration(seconds: 2),
             ),
           );
         }
@@ -512,10 +512,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         // Success - AuthGate will handle navigation automatically
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text(AppStrings.signOutSuccess),
               backgroundColor: Colors.green,
-              duration: const Duration(seconds: 1),
+              duration: Duration(seconds: 1),
             ),
           );
         }
@@ -531,7 +531,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           // Show error message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(AppStrings.errorSignOutRetry),
+              content: const Text(AppStrings.errorSignOutRetry),
               backgroundColor: Theme.of(context).colorScheme.error,
               duration: const Duration(seconds: 3),
             ),
@@ -598,7 +598,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         Container(
           width: layout.isSmall ? spaces.md : spaces.lg,
           height: layout.isSmall ? spaces.md : spaces.lg,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.white24,
             shape: BoxShape.circle,
           ),
@@ -693,12 +693,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppStrings.errorSignOutForce),
-        content: Text(AppStrings.errorSignOutForceMessage),
+        title: const Text(AppStrings.errorSignOutForce),
+        content: const Text(AppStrings.errorSignOutForceMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(AppStrings.errorSignOutForceCancel),
+            child: const Text(AppStrings.errorSignOutForceCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
@@ -706,7 +706,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               backgroundColor: context.colors.error,
               foregroundColor: context.colors.onError,
             ),
-            child: Text(AppStrings.errorSignOutForceConfirm),
+            child: const Text(AppStrings.errorSignOutForceConfirm),
           ),
         ],
       ),

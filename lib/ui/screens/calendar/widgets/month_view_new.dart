@@ -40,7 +40,7 @@ class MonthViewNew extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
+            const CircularProgressIndicator(),
             SizedBox(height: context.spaces.md),
             Text(
               'Loading calendar events...',
@@ -83,7 +83,7 @@ class MonthViewNew extends ConsumerWidget {
                 // since we return early if familyId is null
                 ref.invalidate(monthEventsProvider(familyId));
               },
-              child: Text('Retry'),
+              child: const Text('Retry'),
             ),
 
           ],
@@ -356,7 +356,7 @@ class MonthViewNew extends ConsumerWidget {
     return Container(
       width: spaces.lg,
       height: spaces.lg,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.grey,
         shape: BoxShape.circle,
       ),
@@ -382,7 +382,7 @@ class MonthViewNew extends ConsumerWidget {
     final minute = event.startTime.minute;
     final isAM = hour < 12;
     final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
-    final timeString = '${displayHour}:${minute.toString().padLeft(2, '0')} ${isAM ? 'AM' : 'PM'}';
+    final timeString = '$displayHour:${minute.toString().padLeft(2, '0')} ${isAM ? 'AM' : 'PM'}';
     
     // Determine if event is in the past, current, or future
     final now = DateTime.now();
@@ -1087,7 +1087,7 @@ class MonthViewNew extends ConsumerWidget {
     if (familyId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No family context available'),
+          content: const Text('No family context available'),
           backgroundColor: context.colors.error,
         ),
       );

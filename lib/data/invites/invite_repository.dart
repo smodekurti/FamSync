@@ -472,18 +472,21 @@ class InviteRepository {
       
       print('✅ [DEBUG] User profile update transaction queued');
 
-      // Create pending member record for tracking
-      final pendingMemberRef = _firestore.collection('pendingMembers').doc();
-      final pendingMember = PendingMember.fromInvite(
-        id: pendingMemberRef.id,
-        inviteId: inviteId,
-        email: email,
-        displayName: displayName,
-        familyId: invite.familyId,
-        invitedByUid: invite.createdByUid,
-        role: invite.role,
-      );
-      tx.set(pendingMemberRef, pendingMember.toJson());
+      // Remove any existing pending member records for this user
+      // Since they're now an active family member, they're no longer "pending"
+      print('🔍 [DEBUG] Removing existing pending member records for user: $uid');
+      final pendingMembersQuery = _firestore.collection('pendingMembers')
+          .where('email', isEqualTo: email)
+          .where('familyId', isEqualTo: invite.familyId)
+          .get();
+      
+      final pendingMembersSnapshot = await pendingMembersQuery;
+      for (final doc in pendingMembersSnapshot.docs) {
+        print('🔍 [DEBUG] Deleting pending member record: ${doc.id}');
+        tx.delete(doc.reference);
+      }
+      
+      print('✅ [DEBUG] Pending member cleanup completed');
     });
   }
 

@@ -142,21 +142,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     setState(() => _isLoading = true);
     
     try {
+      print('🔍 [DEBUG] Starting Google sign-in...');
       await ref.read(authRepositoryProvider).signInWithGoogle();
+      print('🔍 [DEBUG] Google sign-in completed');
       
-      // Wait for the authentication state to update before navigating
       if (mounted) {
-        print('🔍 [DEBUG] Google sign-in completed, waiting for auth state update...');
+        // Check the current auth state
+        final currentUser = ref.read(authStateProvider).value;
+        print('🔍 [DEBUG] Current auth state user: ${currentUser?.uid}');
         
-        // Wait for the user profile to be available
-        await _waitForUserProfile();
+        // Check the current profile
+        final profile = ref.read(userProfileStreamProvider).value;
+        print('🔍 [DEBUG] Current profile: ${profile?.email}');
         
-        if (mounted) {
-          print('🔍 [DEBUG] User profile available, navigating to hub...');
-          context.go('/hub');
-        }
+        // Try to navigate directly
+        print('🔍 [DEBUG] Attempting navigation to hub...');
+        context.go('/hub');
       }
     } catch (e) {
+      print('❌ [DEBUG] Google sign-in error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -172,30 +176,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     }
   }
 
-  /// Waits for the user profile to become available after sign-in
-  Future<void> _waitForUserProfile() async {
-    const maxWaitTime = Duration(seconds: 10);
-    const checkInterval = Duration(milliseconds: 100);
-    
-    final startTime = DateTime.now();
-    
-    while (DateTime.now().difference(startTime) < maxWaitTime) {
-      // Check if user profile is available
-      final profile = ref.read(userProfileStreamProvider).value;
-      if (profile != null) {
-        print('🔍 [DEBUG] User profile found: ${profile.email}');
-        return;
-      }
-      
-      // Wait a bit before checking again
-      await Future.delayed(checkInterval);
-      
-      // Check if widget is still mounted
-      if (!mounted) return;
-    }
-    
-    print('🔍 [DEBUG] Timeout waiting for user profile');
-  }
+
 
   Future<void> _signInWithEmail() async {
     if (!_formKey.currentState!.validate()) return;

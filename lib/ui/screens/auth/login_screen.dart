@@ -143,8 +143,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     
     try {
       await ref.read(authRepositoryProvider).signInWithGoogle();
+      
+      // Wait for the authentication state to update before navigating
       if (mounted) {
-        context.go('/hub');
+        print('🔍 [DEBUG] Google sign-in completed, waiting for auth state update...');
+        
+        // Wait for the user profile to be available
+        await _waitForUserProfile();
+        
+        if (mounted) {
+          print('🔍 [DEBUG] User profile available, navigating to hub...');
+          context.go('/hub');
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -160,6 +170,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  /// Waits for the user profile to become available after sign-in
+  Future<void> _waitForUserProfile() async {
+    const maxWaitTime = Duration(seconds: 10);
+    const checkInterval = Duration(milliseconds: 100);
+    
+    final startTime = DateTime.now();
+    
+    while (DateTime.now().difference(startTime) < maxWaitTime) {
+      // Check if user profile is available
+      final profile = ref.read(userProfileStreamProvider).value;
+      if (profile != null) {
+        print('🔍 [DEBUG] User profile found: ${profile.email}');
+        return;
+      }
+      
+      // Wait a bit before checking again
+      await Future.delayed(checkInterval);
+      
+      // Check if widget is still mounted
+      if (!mounted) return;
+    }
+    
+    print('🔍 [DEBUG] Timeout waiting for user profile');
   }
 
   Future<void> _signInWithEmail() async {

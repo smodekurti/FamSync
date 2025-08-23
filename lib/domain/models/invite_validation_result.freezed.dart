@@ -27,7 +27,7 @@ mixin _$InviteValidationResult {
   bool get isValid => throw _privateConstructorUsedError;
 
   /// The family object if valid
-  models.Family? get family => throw _privateConstructorUsedError;
+  Family? get family => throw _privateConstructorUsedError;
 
   /// The invite ID if valid
   String? get inviteId => throw _privateConstructorUsedError;
@@ -72,7 +72,7 @@ abstract class $InviteValidationResultCopyWith<$Res> {
   @useResult
   $Res call({
     bool isValid,
-    models.Family? family,
+    Family? family,
     String? inviteId,
     String? errorMessage,
     InviteValidationError? errorType,
@@ -124,7 +124,7 @@ class _$InviteValidationResultCopyWithImpl<
             family: freezed == family
                 ? _value.family
                 : family // ignore: cast_nullable_to_non_nullable
-                      as models.Family?,
+                      as Family?,
             inviteId: freezed == inviteId
                 ? _value.inviteId
                 : inviteId // ignore: cast_nullable_to_non_nullable
@@ -188,7 +188,7 @@ abstract class _$$InviteValidationResultImplCopyWith<$Res>
   @useResult
   $Res call({
     bool isValid,
-    models.Family? family,
+    Family? family,
     String? inviteId,
     String? errorMessage,
     InviteValidationError? errorType,
@@ -238,7 +238,7 @@ class __$$InviteValidationResultImplCopyWithImpl<$Res>
         family: freezed == family
             ? _value.family
             : family // ignore: cast_nullable_to_non_nullable
-                  as models.Family?,
+                  as Family?,
         inviteId: freezed == inviteId
             ? _value.inviteId
             : inviteId // ignore: cast_nullable_to_non_nullable
@@ -301,7 +301,7 @@ class _$InviteValidationResultImpl extends _InviteValidationResult {
 
   /// The family object if valid
   @override
-  final models.Family? family;
+  final Family? family;
 
   /// The invite ID if valid
   @override
@@ -407,7 +407,7 @@ class _$InviteValidationResultImpl extends _InviteValidationResult {
 abstract class _InviteValidationResult extends InviteValidationResult {
   const factory _InviteValidationResult({
     required final bool isValid,
-    required final models.Family? family,
+    required final Family? family,
     required final String? inviteId,
     final String? errorMessage,
     final InviteValidationError? errorType,
@@ -428,7 +428,7 @@ abstract class _InviteValidationResult extends InviteValidationResult {
 
   /// The family object if valid
   @override
-  models.Family? get family;
+  Family? get family;
 
   /// The invite ID if valid
   @override

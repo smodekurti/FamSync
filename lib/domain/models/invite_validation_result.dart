@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:fam_sync/domain/models/family.dart' as models;
+import 'package:fam_sync/domain/models/family.dart';
 
 part 'invite_validation_result.freezed.dart';
 part 'invite_validation_result.g.dart';
@@ -14,7 +14,7 @@ class InviteValidationResult with _$InviteValidationResult {
     /// Whether the invite code is valid and can be used
     required bool isValid,
     /// The family object if valid
-    required models.Family? family,
+    required Family? family,
     /// The invite ID if valid
     required String? inviteId,
     /// Error message if validation failed
@@ -37,7 +37,7 @@ class InviteValidationResult with _$InviteValidationResult {
 
   /// Creates a successful validation result
   factory InviteValidationResult.success({
-    required models.Family family,
+    required Family family,
     required String inviteId,
   }) {
     return InviteValidationResult(
@@ -51,7 +51,7 @@ class InviteValidationResult with _$InviteValidationResult {
   factory InviteValidationResult.failure({
     required String errorMessage,
     required InviteValidationError errorType,
-    models.Family? family,
+    Family? family,
     String? inviteId,
     bool isAlreadyMember = false,
     bool isFamilyFull = false,

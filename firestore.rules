@@ -131,9 +131,7 @@ service cloud.firestore {
     
     match /invites/{inviteId} {
       // Allow creation only by family members who can create invites
-      allow create: if isSignedIn() &&
-        exists(/databases/$(database)/documents/families/$(request.resource.data.familyId)) &&
-        get(/databases/$(database)/documents/families/$(request.resource.data.familyId)).data.memberUids[request.auth.uid] != null;
+      allow create: if isSignedIn() && isSameFamily(request.resource.data.familyId);
       
       // Allow reading by any signed-in user for invite validation
       allow read: if isSignedIn();
@@ -149,15 +147,12 @@ service cloud.firestore {
     
     match /pendingMembers/{pendingId} {
       // Allow creation only by family members who can create invites
-      allow create: if isSignedIn() &&
-        exists(/databases/$(database)/documents/families/$(request.resource.data.familyId)) &&
-        get(/databases/$(database)/documents/families/$(request.resource.data.familyId)).data.memberUids[request.auth.uid] != null;
+      allow create: if isSignedIn() && isSameFamily(request.resource.data.familyId);
       
       // Allow reading by family members and the invited user
       allow read: if isSignedIn() && (
         // Family members can read pending members
-        exists(/databases/$(database)/documents/families/$(resource.data.familyId)) &&
-        get(/databases/$(database)/documents/families/$(resource.data.familyId)).data.memberUids[request.auth.uid] != null ||
+        isSameFamily(resource.data.familyId) ||
         // Invited user can read their own pending member record
         resource.data.email == userDoc(request.auth.uid).data.email
       );

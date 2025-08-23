@@ -47,57 +47,155 @@ class InviteRepository {
     int maxUses = 1,
     int daysUntilExpiry = 7,
   }) async {
-    // First, validate that the user can create invites for this family
-    final familyDoc = await _firestore.collection('families').doc(familyId).get();
-    if (!familyDoc.exists) {
-      throw Exception('Family not found');
-    }
+    print('🔍 [DEBUG] createInvite called with:');
+    print('   - familyId: $familyId');
+    print('   - createdByUid: $createdByUid');
+    print('   - role: $role');
+    print('   - maxUses: $maxUses');
+    print('   - daysUntilExpiry: $daysUntilExpiry');
     
-    final family = models.Family.fromJson(familyDoc.data()!);
-    if (!family.canCreateInvites(createdByUid)) {
-      throw Exception('You do not have permission to create invites for this family');
-    }
-    
-    // Check if family can accept new members
-    if (!family.canAcceptMembers) {
-      if (family.memberUids.length >= family.maxMembers) {
-        throw Exception('Family has reached its maximum member limit (${family.maxMembers})');
-      } else if (!family.allowInvites) {
-        throw Exception('Family has disabled new member invitations');
-      } else {
-        throw Exception('Family cannot accept new members at this time');
+    try {
+      print('🔍 [DEBUG] Step 1: Validating user permissions...');
+      
+      // First, validate that the user can create invites for this family
+      print('🔍 [DEBUG] Attempting to read family document: families/$familyId');
+      final familyDoc = await _firestore.collection('families').doc(familyId).get();
+      
+      print('🔍 [DEBUG] Family document read result:');
+      print('   - exists: ${familyDoc.exists}');
+      print('   - has data: ${familyDoc.data() != null}');
+      
+      if (!familyDoc.exists) {
+        print('❌ [DEBUG] Family document does not exist');
+        throw Exception('Family not found');
       }
+      
+      print('🔍 [DEBUG] Step 2: Parsing family data...');
+      final family = models.Family.fromJson(familyDoc.data()!);
+      print('🔍 [DEBUG] Family parsed successfully:');
+      print('   - name: ${family.name}');
+      print('   - memberUids: ${family.memberUids}');
+      print('   - roles: ${family.roles}');
+      print('   - ownerUid: ${family.ownerUid}');
+      print('   - allowInvites: ${family.allowInvites}');
+      print('   - maxMembers: ${family.maxMembers}');
+      
+      print('🔍 [DEBUG] Step 3: Checking if user can create invites...');
+      final canCreate = family.canCreateInvites(createdByUid);
+      print('🔍 [DEBUG] canCreateInvites($createdByUid) = $canCreate');
+      
+      if (!canCreate) {
+        print('❌ [DEBUG] User does not have permission to create invites');
+        print('   - user is owner: ${family.isOwner(createdByUid)}');
+        print('   - user is parent: ${family.isParent(createdByUid)}');
+        throw Exception('You do not have permission to create invites for this family');
+      }
+      
+      print('🔍 [DEBUG] Step 4: Checking if family can accept new members...');
+      final canAccept = family.canAcceptMembers;
+      print('🔍 [DEBUG] canAcceptMembers = $canAccept');
+      
+      if (!canAccept) {
+        print('❌ [DEBUG] Family cannot accept new members');
+        print('   - member count: ${family.memberUids.length}');
+        print('   - max members: ${family.maxMembers}');
+        print('   - allow invites: ${family.allowInvites}');
+        
+        if (family.memberUids.length >= family.maxMembers) {
+          throw Exception('Family has reached its maximum member limit (${family.maxMembers})');
+        } else if (!family.allowInvites) {
+          throw Exception('Family has disabled new member invitations');
+        } else {
+          throw Exception('Family cannot accept new members at this time');
+        }
+      }
+      
+      print('🔍 [DEBUG] Step 5: Generating unique invite code...');
+      
+      // Generate unique invite code
+      String inviteCode;
+      bool isUnique = false;
+      int attempts = 0;
+      
+      // Ensure invite code is unique
+      do {
+        attempts++;
+        inviteCode = _generateInviteCode();
+        print('🔍 [DEBUG] Generated invite code attempt $attempts: $inviteCode');
+        
+        print('🔍 [DEBUG] Checking for duplicate invite codes...');
+        final existingInvite = await _firestore
+            .collection('invites')
+            .where('inviteCode', isEqualTo: inviteCode)
+            .where('status', isEqualTo: InviteStatus.active.name)
+            .get();
+        
+        isUnique = existingInvite.docs.isEmpty;
+        print('🔍 [DEBUG] Duplicate check result: isUnique = $isUnique');
+        
+        if (!isUnique) {
+          print('🔍 [DEBUG] Code $inviteCode already exists, generating new one...');
+        }
+      } while (!isUnique && attempts < 10); // Prevent infinite loops
+      
+      if (!isUnique) {
+        print('❌ [DEBUG] Failed to generate unique invite code after $attempts attempts');
+        throw Exception('Failed to generate unique invite code');
+      }
+      
+      print('🔍 [DEBUG] Unique invite code generated: $inviteCode');
+      
+      print('🔍 [DEBUG] Step 6: Creating invite document...');
+      
+      // Create invite document
+      final doc = _firestore.collection('invites').doc();
+      print('🔍 [DEBUG] Created document reference: invites/${doc.id}');
+      
+      final invite = FamilyInvite.create(
+        id: doc.id,
+        familyId: familyId,
+        inviteCode: inviteCode,
+        createdByUid: createdByUid,
+        role: role,
+        maxUses: maxUses,
+        daysUntilExpiry: daysUntilExpiry,
+      );
+      
+      print('🔍 [DEBUG] Invite object created successfully:');
+      print('   - id: ${invite.id}');
+      print('   - familyId: ${invite.familyId}');
+      print('🔍 [DEBUG] Invite data to be written:');
+      print('   - JSON: ${invite.toJson()}');
+      
+      print('🔍 [DEBUG] Step 7: Writing invite to Firestore...');
+      print('🔍 [DEBUG] This is where the permission error likely occurs...');
+      
+      try {
+        await doc.set(invite.toJson());
+        print('✅ [DEBUG] Invite document written successfully to Firestore!');
+      } catch (e) {
+        print('❌ [DEBUG] ERROR writing invite to Firestore:');
+        print('   - Error type: ${e.runtimeType}');
+        print('   - Error message: $e');
+        print('   - Error toString: ${e.toString()}');
+        
+        // Re-throw with additional context
+        throw Exception('Failed to write invite to Firestore: $e');
+      }
+      
+      print('🔍 [DEBUG] Step 8: Returning created invite...');
+      print('✅ [DEBUG] createInvite completed successfully!');
+      return invite;
+      
+    } catch (e) {
+      print('❌ [DEBUG] ERROR in createInvite:');
+      print('   - Error type: ${e.runtimeType}');
+      print('   - Error message: $e');
+      print('   - Error toString: ${e.toString()}');
+      
+      // Re-throw the error
+      rethrow;
     }
-
-    // Generate unique invite code
-    String inviteCode;
-    bool isUnique = false;
-    
-    // Ensure invite code is unique
-    do {
-      inviteCode = _generateInviteCode();
-      final existingInvite = await _firestore
-          .collection('invites')
-          .where('inviteCode', isEqualTo: inviteCode)
-          .where('status', isEqualTo: InviteStatus.active.name)
-          .get();
-      isUnique = existingInvite.docs.isEmpty;
-    } while (!isUnique);
-
-    // Create invite document
-    final doc = _firestore.collection('invites').doc();
-    final invite = FamilyInvite.create(
-      id: doc.id,
-      familyId: familyId,
-      inviteCode: inviteCode,
-      createdByUid: createdByUid,
-      role: role,
-      maxUses: maxUses,
-      daysUntilExpiry: daysUntilExpiry,
-    );
-
-    await doc.set(invite.toJson());
-    return invite;
   }
 
   /// Validates an invite code and returns detailed information

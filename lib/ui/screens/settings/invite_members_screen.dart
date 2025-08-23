@@ -55,10 +55,17 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
           }
 
           final familyId = profile.familyId;
+          print('🔍 [DEBUG] Profile data:');
+          print('   - profile.uid: ${profile.uid}');
+          print('   - profile.familyId: $familyId');
+          print('   - profile.role: ${profile.role}');
+          
           if (familyId == null) {
+            print('❌ [DEBUG] No family ID found in profile');
             return _buildNoFamilyContent(context);
           }
 
+          print('🔍 [DEBUG] Building invite content with familyId: $familyId');
           return _buildInviteContent(context, familyId);
         },
         loading: () => _buildLoadingContent(context),
@@ -87,7 +94,20 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
 
   /// Builds the family header information
   Widget _buildFamilyHeader(models.Family? family) {
-    if (family == null) return const SizedBox.shrink();
+    print('🔍 [DEBUG] _buildFamilyHeader called with family:');
+    if (family == null) {
+      print('❌ [DEBUG] Family is null');
+      return const SizedBox.shrink();
+    }
+    
+    print('🔍 [DEBUG] Family data:');
+    print('   - id: ${family.id}');
+    print('   - name: ${family.name}');
+    print('   - memberUids: ${family.memberUids}');
+    print('   - roles: ${family.roles}');
+    print('   - ownerUid: ${family.ownerUid}');
+    print('   - allowInvites: ${family.allowInvites}');
+    print('   - maxMembers: ${family.maxMembers}');
 
     final spaces = context.spaces;
     
@@ -873,17 +893,33 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
 
   /// Handles invite generation
   Future<void> _generateInvite(String familyId) async {
+    print('🔍 [DEBUG] _generateInvite called with familyId: $familyId');
+    
     setState(() {
       _isGeneratingInvite = true;
     });
 
     try {
+      print('🔍 [DEBUG] Step 1: Getting current user...');
       final currentUser = ref.read(authStateProvider).value;
+      print('🔍 [DEBUG] Current user: ${currentUser?.uid}');
+      
       if (currentUser == null) {
+        print('❌ [DEBUG] User not authenticated');
         throw Exception('User not authenticated');
       }
 
+      print('🔍 [DEBUG] Step 2: Getting invite repository...');
       final inviteRepository = ref.read(inviteRepositoryProvider);
+      print('🔍 [DEBUG] Invite repository obtained');
+
+      print('🔍 [DEBUG] Step 3: Calling createInvite with parameters:');
+      print('   - familyId: $familyId');
+      print('   - createdByUid: ${currentUser.uid}');
+      print('   - role: $_selectedRole');
+      print('   - maxUses: $_selectedMaxUses');
+      print('   - daysUntilExpiry: $_selectedExpiryDays');
+
       final invite = await inviteRepository.createInvite(
         familyId: familyId,
         createdByUid: currentUser.uid,
@@ -892,14 +928,27 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
         daysUntilExpiry: _selectedExpiryDays,
       );
 
+      print('✅ [DEBUG] Invite created successfully!');
+      print('   - invite id: ${invite.id}');
+      print('   - invite code: ${invite.inviteCode}');
+
       setState(() {
         _generatedInviteCode = invite.inviteCode;
         _isGeneratingInvite = false;
       });
 
+      print('🔍 [DEBUG] Step 4: Invalidating invites provider...');
       // Invalidate the invites provider to refresh the list
       ref.invalidate(familyInvitesProvider);
+      print('✅ [DEBUG] Invite generation completed successfully!');
+      
     } catch (e) {
+      print('❌ [DEBUG] ERROR in _generateInvite:');
+      print('   - Error type: ${e.runtimeType}');
+      print('   - Error message: $e');
+      print('   - Error toString: ${e.toString()}');
+      print('   - Stack trace: ${StackTrace.current}');
+      
       setState(() {
         _isGeneratingInvite = false;
       });

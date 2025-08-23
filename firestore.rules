@@ -83,35 +83,35 @@ service cloud.firestore {
 
     // Invites collection - for family invitations
     match /invites/{inviteId} {
-      allow create: if isSignedIn() && 
+      allow create: if isSignedIn() &&
         exists(/databases/$(database)/documents/families/$(request.resource.data.familyId)) &&
         get(/databases/$(database)/documents/families/$(request.resource.data.familyId)).data.memberUids[request.auth.uid] != null;
-      
-      allow read: if isSignedIn() && 
+
+      allow read: if isSignedIn() &&
         exists(/databases/$(database)/documents/families/$(resource.data.familyId)) &&
         get(/databases/$(database)/documents/families/$(resource.data.familyId)).data.memberUids[request.auth.uid] != null;
-      
-      allow update: if isSignedIn() && 
+
+      allow update: if isSignedIn() &&
         resource.data.createdByUid == request.auth.uid;
-      
-      allow delete: if isSignedIn() && 
+
+      allow delete: if isSignedIn() &&
         resource.data.createdByUid == request.auth.uid;
     }
 
     // Pending members collection - for tracking invited users
     match /pendingMembers/{pendingId} {
-      allow create: if isSignedIn() && 
+      allow create: if isSignedIn() &&
         exists(/databases/$(database)/documents/families/$(request.resource.data.familyId)) &&
         get(/databases/$(database)/documents/families/$(request.resource.data.familyId)).data.memberUids[request.auth.uid] != null;
-      
-      allow read: if isSignedIn() && 
+
+      allow read: if isSignedIn() &&
         exists(/databases/$(database)/documents/families/$(resource.data.familyId)) &&
         get(/databases/$(database)/documents/families/$(resource.data.familyId)).data.memberUids[request.auth.uid] != null;
-      
-      allow update: if isSignedIn() && 
+
+      allow update: if isSignedIn() &&
         resource.data.invitedByUid == request.auth.uid;
-      
-      allow delete: if isSignedIn() && 
+
+      allow delete: if isSignedIn() &&
         resource.data.invitedByUid == request.auth.uid;
     }
   }

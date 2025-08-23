@@ -26,6 +26,30 @@ class _AcceptInviteScreenState extends ConsumerState<AcceptInviteScreen> {
   bool _isValidating = false;
   bool _isAccepting = false;
   InviteValidationResult? _validationResult;
+  String? _prefilledCode;
+
+  @override
+  void initState() {
+    super.initState();
+    // Extract invite code from URL if present
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _extractInviteCodeFromUrl();
+    });
+  }
+
+  /// Extracts invite code from URL query parameters
+  void _extractInviteCodeFromUrl() {
+    final uri = Uri.parse(GoRouterState.of(context).uri.toString());
+    final code = uri.queryParameters['code'];
+    if (code != null && code.isNotEmpty) {
+      setState(() {
+        _prefilledCode = code;
+        _inviteCodeController.text = code;
+      });
+      // Auto-validate the prefilled code
+      _validateInviteCode();
+    }
+  }
 
   @override
   void dispose() {
@@ -133,7 +157,9 @@ class _AcceptInviteScreenState extends ConsumerState<AcceptInviteScreen> {
             ),
             SizedBox(height: spaces.sm),
             Text(
-              'You\'ve been invited to join a family. Enter the invite code below to get started.',
+              _prefilledCode != null 
+                  ? 'We found an invite code! Review the details below and join the family.'
+                  : 'You\'ve been invited to join a family. Enter the invite code below to get started.',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: colors.onSurfaceVariant,
               ),
@@ -163,14 +189,16 @@ class _AcceptInviteScreenState extends ConsumerState<AcceptInviteScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Invite Code',
+                _prefilledCode != null ? 'Invite Code (Prefilled)' : 'Invite Code',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
               SizedBox(height: spaces.sm),
               Text(
-                'Enter the 8-character invite code you received',
+                _prefilledCode != null 
+                    ? 'The invite code has been automatically filled. You can modify it if needed.'
+                    : 'Enter the 8-character invite code you received',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colors.onSurfaceVariant,
                 ),

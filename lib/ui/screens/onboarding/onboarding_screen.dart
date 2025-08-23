@@ -327,8 +327,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         TextField(
                           controller: _familyId,
                           decoration: InputDecoration(
-                            labelText: 'Family ID or Invite Code',
-                            hintText: 'Enter the code shared by your family',
+                            labelText: 'Invite Code',
+                            hintText: 'Enter the invite code shared by your family',
                             prefixIcon: Icon(Icons.key, color: colors.secondary),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(spaces.sm),
@@ -339,18 +339,27 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         SizedBox(height: spaces.md),
                         SizedBox(
                           width: double.infinity,
-                          child: OutlinedButton.icon(
+                          child: ElevatedButton.icon(
                             onPressed: _busy || _familyId.text.trim().isEmpty
                                 ? null
-                                : _joinFamily,
+                                : _acceptInvite,
                             icon: Icon(Icons.login),
-                            label: Text('Join Family'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: colors.secondary,
-                              side: BorderSide(color: colors.secondary),
+                            label: Text('Accept Invite'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: colors.secondary,
+                              foregroundColor: colors.onSecondary,
                               padding: EdgeInsets.symmetric(vertical: spaces.md),
                             ),
                           ),
+                        ),
+                        SizedBox(height: spaces.sm),
+                        Text(
+                          'This will take you to the invite acceptance screen where you can validate and join the family.',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colors.onSurfaceVariant,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
@@ -437,8 +446,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
   }
 
-  Future<void> _joinFamily() async {
+  /// Handles invite acceptance by redirecting to the accept invite screen
+  Future<void> _acceptInvite() async {
     setState(() => _busy = true);
+    
     try {
       final uid = fb.FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) {
@@ -451,32 +462,27 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         );
         return;
       }
-      final familyId = _familyId.text.trim();
-      await ref
-          .read(familyRepositoryProvider)
-          .joinFamily(familyId: familyId, uid: uid, role: _role);
-      await _updateUser(
-        uid: uid,
-        familyId: familyId,
-        role: _role,
-        onboarded: true,
-      );
+
+      final inviteCode = _familyId.text.trim();
+      if (inviteCode.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Please enter an invite code.'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+        return;
+      }
+
+      // Navigate to the accept invite screen with the invite code
       if (!mounted) return;
+      context.go('/accept-invite?code=$inviteCode');
       
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Successfully joined family!'),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        ),
-      );
-      
-      context.go('/hub');
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Could not join family: $e'),
+          content: Text('Could not process invite code: $e'),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );

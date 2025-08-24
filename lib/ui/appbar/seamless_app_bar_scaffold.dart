@@ -80,59 +80,60 @@ class SeamlessAppBarScaffold extends ConsumerWidget {
     final colors = gradientColors ?? defaultGradient;
     
     // Calculate contrast for text colors
-    final bgCollapsed = colors.first;
-    final contrast = ThemeData.estimateBrightnessForColor(bgCollapsed);
+    final contrast = ThemeData.estimateBrightnessForColor(colors.first);
     final onGradient = contrast == Brightness.dark ? Colors.white : Colors.black;
     
     return Scaffold(
       floatingActionButton: floatingActionButton,
       body: CustomScrollView(
         slivers: [
-          // Header AppBar with gradient background
-          SliverAppBar(
-            pinned: true,
-            expandedHeight: headerHeight,
-            elevation: 0,
-            backgroundColor: bgCollapsed,
-            foregroundColor: onGradient,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(contentBorderRadius),
-                bottomRight: Radius.circular(contentBorderRadius),
-              ),
-            ),
-            leading: leading,
-            actions: actions,
-            flexibleSpace: FlexibleSpaceBar(
-              collapseMode: CollapseMode.pin,
-              titlePadding: EdgeInsetsDirectional.only(
-                start: spaces.md,
-                bottom: spaces.sm,
-              ),
-              title: Opacity(
-                opacity: _calculateTitleOpacity(headerHeight),
-                child: DefaultTextStyle.merge(
-                  style: TextStyle(color: onGradient),
-                  child: title,
+          // Fixed AppBar with gradient background
+          SliverToBoxAdapter(
+            child: Container(
+              height: headerHeight,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: colors,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(contentBorderRadius),
+                  bottomRight: Radius.circular(contentBorderRadius),
                 ),
               ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: colors,
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(contentBorderRadius),
-                    bottomRight: Radius.circular(contentBorderRadius),
-                  ),
-                ),
+              child: SafeArea(
                 child: Padding(
                   padding: headerPadding,
-                  child: Align(
-                    alignment: Alignment.bottomLeft,
-                    child: headerContent,
+                  child: Column(
+                    children: [
+                      // Top row with title and actions
+                      Expanded(
+                        child: Row(
+                          children: [
+                            if (leading != null) leading!,
+                            Expanded(
+                              child: Padding(
+                                padding: EdgeInsetsDirectional.only(
+                                  start: spaces.md,
+                                  bottom: spaces.sm,
+                                ),
+                                child: DefaultTextStyle.merge(
+                                  style: TextStyle(color: onGradient),
+                                  child: title,
+                                ),
+                              ),
+                            ),
+                            ...actions,
+                          ],
+                        ),
+                      ),
+                      // Header content area
+                      Align(
+                        alignment: Alignment.bottomLeft,
+                        child: headerContent,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -176,13 +177,7 @@ class SeamlessAppBarScaffold extends ConsumerWidget {
     );
   }
 
-  /// Calculates the opacity of the title based on scroll position
-  /// This creates a smooth fade effect as the user scrolls
-  double _calculateTitleOpacity(double headerHeight) {
-    // For now, return a fixed opacity that looks good
-    // In a more advanced implementation, this could be dynamic based on scroll
-    return 0.9;
-  }
+
 }
 
 /// Extension methods for easier usage of SeamlessAppBarScaffold

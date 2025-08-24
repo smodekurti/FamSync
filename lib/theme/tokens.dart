@@ -35,6 +35,16 @@ class AppGradients {
     Color(0xFF4E3BFF), // Deeper indigo
     Color(0xFFFF3D7F), // Vivid magenta
   ];
+  
+  // New seamless design gradients
+  static const List<Color> hubSeamlessLight = [
+    Color(0xFF8B5CF6), // Purple
+    Color(0xFF3B82F6), // Blue
+  ];
+  static const List<Color> hubSeamlessDark = [
+    Color(0xFF7C3AED), // Deeper purple
+    Color(0xFF2563EB), // Deeper blue
+  ];
 }
 
 class AppSpacing {

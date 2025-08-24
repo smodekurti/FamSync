@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fam_sync/theme/app_theme.dart';
+import 'package:fam_sync/theme/tokens.dart';
 import 'package:fam_sync/data/auth/auth_repository.dart';
 import 'package:fam_sync/data/announcements/announcements_repository.dart';
 import 'package:fam_sync/data/messages/messages_repository.dart';
@@ -10,7 +11,8 @@ import 'package:fam_sync/data/tasks/tasks_repository.dart';
 import 'package:fam_sync/core/utils/time.dart';
 import 'package:fam_sync/data/users/users_repository.dart';
 import 'package:fam_sync/data/family/family_repository.dart';
-import 'package:fam_sync/ui/appbar/fam_app_bar_scaffold.dart';
+import 'package:fam_sync/ui/appbar/seamless_app_bar_scaffold.dart';
+import 'package:fam_sync/ui/widgets/hub_header_content.dart';
 import 'package:fam_sync/ui/widgets/family_app_bar_title.dart';
 import 'package:fam_sync/ui/strings.dart';
 import 'package:fam_sync/ui/icons.dart';
@@ -37,10 +39,12 @@ class HubScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final spaces = context.spaces;
-    return FamAppBarScaffold(
-      title: const FamilyAppBarTitle(fallback: 'Family'),
+    final profileAsync = ref.watch(userProfileStreamProvider);
+    
+    return SeamlessAppBarScaffold(
+      title: const FamilyAppBarTitle(fallback: 'Family Hub'),
       expandedHeight: spaces.xxl * 6, // Responsive header height
-      fixedActions: [
+      actions: [
         const Icon(AppIcons.reminder),
         SizedBox(width: spaces.sm),
         const Icon(AppIcons.add),
@@ -48,7 +52,21 @@ class HubScreen extends ConsumerWidget {
         const Icon(AppIcons.profile),
         SizedBox(width: spaces.xs),
       ],
-      headerBuilder: (context, controller) => _TopStrip(),
+      headerContent: HubHeaderContent(
+        userName: profileAsync.when(
+          data: (profile) => profile?.displayName,
+          loading: () => null,
+          error: (_, __) => null,
+        ),
+        showNotificationBadge: true,
+        onNotificationTap: () {
+          // TODO: Implement notification handling
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Notifications coming soon!')),
+          );
+        },
+      ),
+      gradientColors: AppGradients.hubSeamlessLight,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

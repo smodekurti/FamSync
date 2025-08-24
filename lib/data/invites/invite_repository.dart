@@ -18,11 +18,9 @@ class InviteRepository {
   InviteRepository({
     FirebaseFirestore? firestore,
     Uuid? uuid,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance,
-       _uuid = uuid ?? const Uuid();
+  }) : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
-  final Uuid _uuid;
 
   /// Generates a new invite code for a family
   /// Creates a secure, unique code that can be shared with potential members

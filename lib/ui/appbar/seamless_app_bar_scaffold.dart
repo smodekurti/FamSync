@@ -69,7 +69,8 @@ class SeamlessAppBarScaffold extends ConsumerWidget {
     final spaces = context.spaces;
     
     // Calculate responsive header height if not provided
-    final headerHeight = expandedHeight ?? (spaces.xxl * 6);
+    // Default to 30% of screen height to match the design in the image
+    final headerHeight = expandedHeight ?? (MediaQuery.of(context).size.height * 0.3);
     
     // Determine gradient colors based on theme
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -207,7 +208,7 @@ extension SeamlessAppBarScaffoldExtensions on BuildContext {
       title: title,
       body: body,
       headerContent: headerContent,
-      expandedHeight: expandedHeight ?? (spaces.xxl * 6),
+      expandedHeight: expandedHeight ?? (spaces.xxl * 8), // Use responsive spacing instead
       leading: leading,
       actions: actions,
       floatingActionButton: floatingActionButton,

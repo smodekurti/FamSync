@@ -43,7 +43,7 @@ class HubScreen extends ConsumerWidget {
     
     return SeamlessAppBarScaffold(
       title: const FamilyAppBarTitle(fallback: 'Family Hub'),
-      expandedHeight: spaces.xxl * 6, // Responsive header height
+      expandedHeight: MediaQuery.of(context).size.height * 0.3, // 30% of screen height to match image
       actions: [
         const Icon(AppIcons.reminder),
         SizedBox(width: spaces.sm),

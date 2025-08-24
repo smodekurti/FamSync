@@ -22,7 +22,7 @@ class SeamlessAppBarScaffold extends ConsumerWidget {
     this.floatingActionButton,
     this.padding,
     this.gradientColors,
-    this.contentOverlap = 80.0, // How much content overlaps with header
+    this.contentOverlap = 40.0, // How much content overlaps with header
     this.headerPadding = const EdgeInsets.all(16.0),
     this.contentBorderRadius = 24.0,
   });
@@ -69,8 +69,8 @@ class SeamlessAppBarScaffold extends ConsumerWidget {
     final spaces = context.spaces;
     
     // Calculate responsive header height if not provided
-    // Default to 30% of screen height to match the design in the image
-    final headerHeight = expandedHeight ?? (MediaQuery.of(context).size.height * 0.3);
+    // Default to compact header height (~18% of screen height)
+    final headerHeight = expandedHeight ?? (MediaQuery.of(context).size.height * 0.18);
     
     // Determine gradient colors based on theme
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -203,7 +203,7 @@ extension SeamlessAppBarScaffoldExtensions on BuildContext {
       title: title,
       body: body,
       headerContent: headerContent,
-      expandedHeight: expandedHeight ?? (spaces.xxl * 8), // Use responsive spacing instead
+      expandedHeight: expandedHeight ?? (spaces.xxl * 6), // Use responsive spacing as fallback
       leading: leading,
       actions: actions,
       floatingActionButton: floatingActionButton,

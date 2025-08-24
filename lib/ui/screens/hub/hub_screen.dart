@@ -43,7 +43,7 @@ class HubScreen extends ConsumerWidget {
     
     return SeamlessAppBarScaffold(
       title: const FamilyAppBarTitle(fallback: 'Family Hub'),
-      expandedHeight: MediaQuery.of(context).size.height * 0.3, // 30% of screen height to match image
+      expandedHeight: MediaQuery.of(context).size.height * 0.18, // Compact header height (~18% of screen)
       actions: [
         const Icon(AppIcons.reminder),
         SizedBox(width: spaces.sm),
@@ -67,6 +67,7 @@ class HubScreen extends ConsumerWidget {
         },
       ),
       gradientColors: AppGradients.hubSeamlessLight,
+      contentOverlap: 40.0, // Reduced overlap for more natural integration
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

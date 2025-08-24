@@ -85,88 +85,88 @@ class SeamlessAppBarScaffold extends ConsumerWidget {
     
     return Scaffold(
       floatingActionButton: floatingActionButton,
-      body: CustomScrollView(
-        slivers: [
+      body: Column(
+        children: [
           // Fixed AppBar with gradient background
-          SliverToBoxAdapter(
-            child: Container(
-              height: headerHeight,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: colors,
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(contentBorderRadius),
-                  bottomRight: Radius.circular(contentBorderRadius),
-                ),
+          Container(
+            height: headerHeight,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: colors,
               ),
-              child: SafeArea(
-                child: Padding(
-                  padding: headerPadding,
-                  child: Column(
-                    children: [
-                      // Top row with title and actions
-                      Expanded(
-                        child: Row(
-                          children: [
-                            if (leading != null) leading!,
-                            Expanded(
-                              child: Padding(
-                                padding: EdgeInsetsDirectional.only(
-                                  start: spaces.md,
-                                  bottom: spaces.sm,
-                                ),
-                                child: DefaultTextStyle.merge(
-                                  style: TextStyle(color: onGradient),
-                                  child: title,
-                                ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(contentBorderRadius),
+                bottomRight: Radius.circular(contentBorderRadius),
+              ),
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: headerPadding,
+                child: Column(
+                  children: [
+                    // Top row with title and actions
+                    Expanded(
+                      child: Row(
+                        children: [
+                          if (leading != null) leading!,
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsetsDirectional.only(
+                                start: spaces.md,
+                                bottom: spaces.sm,
+                              ),
+                              child: DefaultTextStyle.merge(
+                                style: TextStyle(color: onGradient),
+                                child: title,
                               ),
                             ),
-                            ...actions,
-                          ],
-                        ),
+                          ),
+                          ...actions,
+                        ],
                       ),
-                      // Header content area
-                      Align(
-                        alignment: Alignment.bottomLeft,
-                        child: headerContent,
-                      ),
-                    ],
-                  ),
+                    ),
+                    // Header content area
+                    Align(
+                      alignment: Alignment.bottomLeft,
+                      child: headerContent,
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
           
-          // Content area with seamless integration
-          SliverToBoxAdapter(
-            child: Transform.translate(
-              offset: Offset(0, -contentOverlap),
-              child: Container(
-                margin: EdgeInsets.only(
-                  left: spaces.md,
-                  right: spaces.md,
-                  bottom: spaces.lg,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  borderRadius: BorderRadius.circular(contentBorderRadius),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                      spreadRadius: 0,
+          // Scrollable content area with seamless integration
+          Expanded(
+            child: SingleChildScrollView(
+              child: Transform.translate(
+                offset: Offset(0, -contentOverlap),
+                child: Container(
+                  margin: EdgeInsets.only(
+                    left: spaces.md,
+                    right: spaces.md,
+                    bottom: spaces.lg,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: BorderRadius.circular(contentBorderRadius),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                        spreadRadius: 0,
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(contentBorderRadius),
+                    child: Padding(
+                      padding: padding ?? EdgeInsets.all(spaces.md),
+                      child: body,
                     ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(contentBorderRadius),
-                  child: Padding(
-                    padding: padding ?? EdgeInsets.all(spaces.md),
-                    child: body,
                   ),
                 ),
               ),

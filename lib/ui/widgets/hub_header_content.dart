@@ -35,9 +35,10 @@ class HubHeaderContent extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         // Top row: Greeting and notification bell
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
             // Greeting text
             Expanded(
               child: Column(
@@ -103,6 +104,7 @@ class HubHeaderContent extends ConsumerWidget {
               ),
             ),
           ],
+        ),
         ),
         
         SizedBox(height: spaces.md),

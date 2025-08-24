@@ -47,10 +47,6 @@ class HubScreen extends ConsumerWidget {
       actions: [
         const Icon(AppIcons.reminder),
         SizedBox(width: spaces.sm),
-        const Icon(AppIcons.add),
-        SizedBox(width: spaces.sm),
-        const Icon(AppIcons.profile),
-        SizedBox(width: spaces.xs),
       ],
       headerContent: HubHeaderContent(
         userName: profileAsync.when(
